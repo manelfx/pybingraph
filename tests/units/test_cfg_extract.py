@@ -339,8 +339,8 @@ def test_extract_suppresses_fakeret_for_a_static_nonreturning_call() -> None:
     assert block.fallthrough_addr is None
 
 
-def test_extract_models_static_memory_tail_jump_as_terminal_exit() -> None:
-    """Keep a GOT tail jump out of the unresolved-dispatcher path."""
+def test_extract_models_static_memory_tail_jump_as_explicit_exit() -> None:
+    """Render a proven GOT tail target as an explicit jump exit."""
 
     project = project_module.load_project(
         Path("angr-binaries/tests/x86_64/rust_hello_world")
@@ -352,12 +352,12 @@ def test_extract_models_static_memory_tail_jump_as_terminal_exit() -> None:
     block = decode_bounded_block(project, session.bounds, 0x424110, set())
 
     assert block is not None
-    assert block.jumpkind == "Ijk_Terminal"
-    assert block.direct_targets == ()
+    assert block.jumpkind == "Ijk_Boring"
+    assert block.direct_targets == (0x408A80,)
 
     cfg = session.build()
     source = next(node for node in cfg.graph.nodes() if node.addr == 0x424110)
-    assert not tuple(cfg.graph.successors(source))
+    assert [node.addr for node in cfg.graph.successors(source)] == [0x408A80]
     assert cfg.extract_stats.unresolved_indirect_targets == 0
 
     # The same exact static-load form remains an ordinary in-function edge.
@@ -433,8 +433,8 @@ def test_extract_suppresses_fakeret_for_a_mips_pic_nonreturning_call() -> None:
     assert block.fallthrough_addr is None
 
 
-def test_extract_models_mips_pic_tail_jump_as_terminal_exit() -> None:
-    """Keep a resolved MIPS ``jr $t9`` tail call out of dispatcher recovery."""
+def test_extract_models_mips_pic_tail_jump_as_explicit_exit() -> None:
+    """Render a resolved MIPS ``jr $t9`` tail call as a jump exit."""
 
     project = project_module.load_project(
         Path("angr-binaries/tests/mipsel/btrfs-tools_btrfs-calc-size")
@@ -446,12 +446,12 @@ def test_extract_models_mips_pic_tail_jump_as_terminal_exit() -> None:
     block = decode_bounded_block(project, session.bounds, 0x40D740, set())
 
     assert block is not None
-    assert block.jumpkind == "Ijk_Terminal"
-    assert block.direct_targets == ()
+    assert block.jumpkind == "Ijk_Boring"
+    assert block.direct_targets == (0x42237C,)
 
     cfg = session.build()
     source = next(node for node in cfg.graph.nodes() if node.addr == 0x40D740)
-    assert not tuple(cfg.graph.successors(source))
+    assert [node.addr for node in cfg.graph.successors(source)] == [0x42237C]
     assert cfg.extract_stats.unresolved_indirect_targets == 0
 
     full_block = project.factory.block(
@@ -498,8 +498,8 @@ def test_extract_models_mips_pic_tail_jump_as_terminal_exit() -> None:
     assert in_function.direct_targets == (0x40D6A0,)
 
 
-def test_extract_models_mips_pic_import_tail_jump_as_terminal_exit() -> None:
-    """Treat a MIPS GOT slot for an imported tail callee as a terminal exit."""
+def test_extract_models_mips_pic_import_tail_jump_as_explicit_exit() -> None:
+    """Render a MIPS GOT import tail callee as an explicit jump exit."""
 
     project = project_module.load_project(Path("angr-binaries/tests/mips/dir"))
     session = builder_module._ExtractionSession(
@@ -509,8 +509,45 @@ def test_extract_models_mips_pic_import_tail_jump_as_terminal_exit() -> None:
     block = decode_bounded_block(project, session.bounds, 0x40D9B0, set())
 
     assert block is not None
-    assert block.jumpkind == "Ijk_Terminal"
-    assert block.direct_targets == ()
+    assert block.jumpkind == "Ijk_Boring"
+    assert block.direct_targets == (0x500070,)
+
+
+def test_extract_recovers_mips_pic_relative_jump_table() -> None:
+    """Recover a bounded MIPS PIC table of ``$gp``-relative branch offsets."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/mipsel/busybox"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x40FDC0
+    )
+
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+
+    targets = session.static_targets[0x40FFD4]
+    assert len(targets) == 27
+    assert targets[0] == 0x40FFF0
+    assert targets[-1] == 0x410518
+    assert session.unresolved_dispatcher_reasons.get(0x40FFD4) is None
+
+
+def test_extract_recovers_mips_pic_table_with_inline_scaled_index() -> None:
+    """Accept a selector shifted in the dispatcher, not only its predecessor."""
+
+    for path, function_addr, dispatcher_addr, expected_count in (
+        ("mipsel/busybox", 0x412898, 0x413654, 6),
+        ("mips/dir", 0x416960, 0x416A3C, 10),
+    ):
+        project = project_module.load_project(Path("angr-binaries/tests") / path)
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), function_addr
+        )
+
+        session._decode_all_blocks()
+        session._discover_static_jump_targets()
+
+        assert len(session.static_targets[dispatcher_addr]) == expected_count
+        assert session.unresolved_dispatcher_reasons.get(dispatcher_addr) is None
 
 
 def test_extract_suppresses_fakeret_for_a_declared_nonreturning_symbol() -> None:

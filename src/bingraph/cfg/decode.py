@@ -1055,14 +1055,12 @@ def lift_block_terminator(
         if static_memory_target is not None and (
             rejection_reason is None or is_known_import
         ):
-            if is_direct_target_valid(bounds, static_memory_target):
-                return TerminatorInfo(
-                    jumpkind="Ijk_Boring", direct_targets=(static_memory_target,)
-                )
-            # An executable target beyond the bounded function, or a named
-            # CLE import, is an exact tail exit rather than an unresolved
-            # computed dispatch.
-            return TerminatorInfo(jumpkind="Ijk_Terminal")
+            # Keep exact tail targets as normal boring edges. The renderer's
+            # ``cfg_exits=jump`` policy then exposes out-of-function jumps,
+            # while unresolved memory-derived targets still take the UJT path.
+            return TerminatorInfo(
+                jumpkind="Ijk_Boring", direct_targets=(static_memory_target,)
+            )
 
     direct_target = semantic.direct_target()
     if semantic.is_jump() and direct_target is not None:

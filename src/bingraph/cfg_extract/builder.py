@@ -26,6 +26,7 @@ from bingraph.cfg.graph import CFGGraph, add_successor_edge
 from bingraph.cfg.jumps import (
     _read_static_jump_table_targets,
     conditional_pc_dispatch_targets,
+    plan_mips_pic_relative_jump_table,
     plan_static_jump_table,
     static_jump_target_rejection_reason,
 )
@@ -437,6 +438,10 @@ class _ExtractionSession:
                         allow_guarded_loads=True,
                         allow_static_bases=True,
                     )
+                    if plan is None and reason == "no_table_shape":
+                        plan, reason = plan_mips_pic_relative_jump_table(
+                            self.project, graph, self.bounds, node
+                        )
                     if plan is not None:
                         targets = _read_static_jump_table_targets(
                             self.project,
