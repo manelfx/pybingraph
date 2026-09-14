@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import SimpleNamespace
-from typing import Literal
+from typing import Any, Literal
 
 from angr import KnowledgeBase
 from angr.knowledge_plugins.cfg import CFGModel, CFGNode
@@ -85,6 +85,7 @@ class StaticJumpTable:
     entries_are_relative: bool = True
     static_base_addr: int | None = None
     index_values: tuple[int, ...] | None = None
+    index_expression: tuple[Any, ...] | None = None
 
 
 @dataclass(frozen=True)

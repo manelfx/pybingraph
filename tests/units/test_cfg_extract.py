@@ -797,6 +797,56 @@ def test_extract_does_not_reconnect_an_unbounded_table_dispatcher() -> None:
     assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
 
 
+def test_extract_resolves_a_guarded_x86_64_expression_table() -> None:
+    """Resolve a zero-extended memory selector narrowed by its guard."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/bomb"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x400F43)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    source = nodes[0x400F71]
+
+    assert nodes[0x400F7C]
+    successors = tuple(cfg.graph.successors(source))
+
+    assert len(successors) == 8
+    assert all(not successor.is_simprocedure for successor in successors)
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert cfg.extract_stats.static_jump_unbounded_index == 0
+    assert cfg.extract_stats.unresolved_indirect_targets == 0
+
+
+def test_extract_resolves_a_guarded_x86_64_stack_selector() -> None:
+    """Normalize VEX's narrowed zero-extended stack selector in a guard."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/x86_64/cfg_switches")
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x40052D)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x40053A]))
+
+    assert len(successors) == 7
+    assert all(not successor.is_simprocedure for successor in successors)
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert cfg.extract_stats.unresolved_indirect_targets == 0
+
+
+def test_extract_resolves_a_guarded_sign_extended_byte_selector() -> None:
+    """Use the unsigned guard on a sign-extended byte table selector."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/x86_64/dir_gcc_-O0")
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x404D02)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x404DF6]))
+
+    assert len(successors) == 14
+    assert all(not successor.is_simprocedure for successor in successors)
+    assert cfg.extract_stats.static_jump_plans_resolved >= 3
+    assert cfg.extract_stats.unresolved_indirect_targets == 0
+
+
 def test_extract_resolves_constant_masked_jump_table_indices() -> None:
     """Recover concrete targets when VEX masks an otherwise unbounded index."""
 

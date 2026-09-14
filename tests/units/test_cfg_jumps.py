@@ -393,6 +393,71 @@ def test_guarded_table_bound_tracks_a_zero_extended_index_value() -> None:
     assert _vex_guarded_index_upper_bound(vex, 0x100F, (16, 64)) == 4
 
 
+def test_guarded_table_bound_tracks_a_right_shifted_index_value() -> None:
+    """Accept a guard on an x86-64 selector narrowed by a logical shift."""
+
+    # shr rdi, 32; cmp edi, 0x28; ja 0x2000
+    # The not-taken path enters the dispatcher at 0x100e.
+    vex = pyvex.lift(
+        bytes.fromhex("48c1ef204883ff280f87f20f0000"),
+        0x1000,
+        archinfo.ArchAMD64(),
+    )
+    rdi_offset = archinfo.ArchAMD64().registers["rdi"][0]
+
+    assert _vex_guarded_index_upper_bound(vex, 0x100E, (rdi_offset, 64)) == 40
+
+
+def test_static_table_accepts_a_guarded_stack_selector() -> None:
+    """Recover an x86 switch table indexed by one guarded stack argument."""
+
+    # push ebp; mov ebp, esp; sub esp, 16; cmp dword ptr [ebp + 8], 12;
+    # ja default. The selector therefore needs the prologue's ebp assignment
+    # normalized before it can match the dispatcher's stack load.
+    predecessor_vex = pyvex.lift(
+        bytes.fromhex("5589e583ec10837d080c7755"), 0x1000, archinfo.ArchX86()
+    )
+    # mov eax, [ebp + 8]; shl eax, 2; add eax, table; mov eax, [eax]; jmp eax
+    dispatcher_vex = pyvex.lift(
+        bytes.fromhex("8b4508c1e00205708704088b00ffe0"),
+        0x100C,
+        archinfo.ArchX86(),
+    )
+    predecessor = _Node(0x1000, 12, predecessor_vex)
+    dispatcher = _Node(0x100C, 15, dispatcher_vex)
+    graph = nx.DiGraph([(predecessor, dispatcher)])
+    bounds = FunctionBounds(0x1000, 0x1100, 0x100, SimpleNamespace(name="f"))
+    project = SimpleNamespace(arch=archinfo.ArchX86())
+
+    plan, reason = plan_static_jump_table(
+        project,
+        graph,
+        bounds,
+        dispatcher,
+        allow_static_bases=True,
+        allow_guarded_expression_indices=True,
+    )
+
+    assert reason is None
+    assert plan is not None
+    assert plan.base_addr == 0x8048770
+    assert plan.entry_indices == tuple(range(13))
+
+    unguarded_graph = nx.DiGraph()
+    unguarded_graph.add_node(dispatcher)
+    unguarded_plan, unguarded_reason = plan_static_jump_table(
+        project,
+        unguarded_graph,
+        bounds,
+        dispatcher,
+        allow_static_bases=True,
+        allow_guarded_expression_indices=True,
+    )
+
+    assert unguarded_plan is None
+    assert unguarded_reason == "no_table_shape"
+
+
 def test_guarded_table_bound_handles_an_ite_index_expression() -> None:
     """Use VEX's type environment while tracing a conditional-move index."""
 

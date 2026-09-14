@@ -427,6 +427,27 @@ def _vex_low_bits_source(expr, definitions: dict[int, Any], tyenv, bits: int):
         expr = expr.args[0]
 
 
+def _vex_guard_width_view_key(
+    expr, definitions: dict[int, Any], tyenv, bits: int
+) -> tuple[Any, ...] | None:
+    """Return a structural key after removing guard-width zext/truncation."""
+
+    while True:
+        expr = _resolve_vex_expr(expr, definitions)
+        conversion = _vex_width_conversion(expr)
+        if conversion is None:
+            return _vex_expr_key(expr, definitions)
+        source_bits, destination_bits, signedness = conversion
+        if destination_bits == bits and source_bits > bits:
+            # A guard observes only this low-width view of a wider value.
+            expr = expr.args[0]
+            continue
+        if source_bits == bits and destination_bits > bits and signedness == "U":
+            expr = expr.args[0]
+            continue
+        return _vex_expr_key(expr, definitions)
+
+
 def _vex_is_zero_extension_from(
     expr, definitions: dict[int, Any], bits: int, register_bits: int
 ) -> bool:
@@ -487,6 +508,45 @@ def _vex_guarded_index_upper_bound(
     return next(iter(bounds)) if len(bounds) == 1 else None
 
 
+def _vex_guarded_expression_upper_bound(
+    vex, target_addr: int, index_expression: tuple[Any, ...]
+) -> int | None:
+    """Return a bound when a predecessor guards one exact selector expression."""
+
+    definitions = _vex_tmp_definitions(vex)
+    bounds: set[int] = set()
+    for exit_index, stmt in enumerate(vex.statements):
+        if not isinstance(stmt, pyvex.stmt.Exit):
+            continue
+        if getattr(stmt.dst, "value", None) != target_addr:
+            continue
+        upper_bound = _vex_guard_expression_upper_bound(
+            stmt.guard,
+            index_expression,
+            definitions,
+            vex,
+            index_on_left=True,
+        )
+        if upper_bound is not None:
+            bounds.add(upper_bound)
+
+    if _vex_const_value(vex.next, definitions) == target_addr:
+        for stmt in vex.statements:
+            if not isinstance(stmt, pyvex.stmt.Exit):
+                continue
+            upper_bound = _vex_guard_expression_upper_bound(
+                stmt.guard,
+                index_expression,
+                definitions,
+                vex,
+                index_on_left=False,
+            )
+            if upper_bound is not None:
+                bounds.add(upper_bound)
+
+    return next(iter(bounds)) if len(bounds) == 1 else None
+
+
 def _vex_guard_upper_bound(
     guard,
     index_key: tuple[int, int],
@@ -524,6 +584,100 @@ def _vex_guard_upper_bound(
     else:
         return None
     return upper_bound if upper_bound >= 0 else None
+
+
+def _vex_guard_expression_upper_bound(
+    guard,
+    index_expression: tuple[Any, ...],
+    definitions: dict[int, Any],
+    vex,
+    *,
+    index_on_left: bool,
+) -> int | None:
+    """Return an unsigned guard bound for one exact non-register selector."""
+
+    guard = _resolve_vex_expr(guard, definitions)
+    while isinstance(guard, pyvex.expr.Unop):
+        guard = _resolve_vex_expr(guard.args[0], definitions)
+    if not isinstance(guard, pyvex.expr.Binop) or not guard.op.endswith("U"):
+        return None
+
+    index_expr, bound_expr = (
+        (guard.args[0], guard.args[1])
+        if index_on_left
+        else (guard.args[1], guard.args[0])
+    )
+    guarded_key = _vex_normalize_guard_expression_key(
+        _vex_expr_key(index_expr, definitions)
+    )
+    if guarded_key != index_expression and guarded_key != _vex_key_at_block_exit(
+        index_expression, definitions, vex
+    ):
+        return None
+    bound = _vex_static_int(bound_expr, definitions)
+    if bound is None:
+        return None
+
+    if "CmpLT" in guard.op:
+        upper_bound = bound - 1 if index_on_left else bound
+    elif "CmpLE" in guard.op:
+        upper_bound = bound if index_on_left else bound - 1
+    else:
+        return None
+    return upper_bound if upper_bound >= 0 else None
+
+
+def _vex_normalize_guard_expression_key(
+    key: tuple[Any, ...] | None,
+) -> tuple[Any, ...] | None:
+    """Normalize the zero-extended value VEX narrows again for a guard."""
+
+    if (
+        key is not None
+        and key[:2] == ("unop", "Iop_64to32")
+        and key[2][:2] == ("unop", "Iop_32Uto64")
+    ):
+        return key[2]
+    return key
+
+
+def _vex_key_at_block_exit(
+    key: tuple[Any, ...], definitions: dict[int, Any], vex
+) -> tuple[Any, ...] | None:
+    """Rewrite register reads in one key through the predecessor's last PUT."""
+
+    register_values = {
+        statement.offset: _vex_expr_key(statement.data, definitions)
+        for statement in vex.statements
+        if isinstance(statement, pyvex.stmt.Put)
+    }
+
+    def rewrite(value: tuple[Any, ...], seen: frozenset[int]) -> tuple[Any, ...] | None:
+        tag = value[0]
+        if tag == "get":
+            offset = value[1]
+            replacement = register_values.get(offset)
+            if replacement is None or offset in seen:
+                return value
+            # ``replacement`` reads the register state at the assignment, not
+            # the block exit. Do not rewrite nested GETs through later PUTs.
+            return replacement
+        if tag == "const":
+            return value
+        if tag in {"unop", "load"}:
+            prefix, argument = value[:-1], value[-1]
+            rewritten = rewrite(argument, seen)
+            return (*prefix, rewritten) if rewritten is not None else None
+        if tag in {"binop", "ccall"}:
+            prefix = value[:2]
+            arguments = tuple(rewrite(argument, seen) for argument in value[2:])
+            return (*prefix, *arguments) if all(arguments) else None
+        if tag == "ite":
+            arguments = tuple(rewrite(argument, seen) for argument in value[1:])
+            return (tag, *arguments) if all(arguments) else None
+        return None
+
+    return rewrite(key, frozenset())
 
 
 def _vex_guarded_index_values(
@@ -616,13 +770,40 @@ def _vex_guard_matches_index_register(
         value = _resolve_vex_expr(stmt.data, definitions)
         if value is resolved_expr or value == resolved_expr:
             return True
-        if guard_source is None or not _vex_is_zero_extension_from(
-            value, definitions, guard_bits, index_key[1]
-        ):
+        if _vex_is_zero_extension_from(value, definitions, guard_bits, index_key[1]):
+            if _vex_guard_width_view_key(
+                value, definitions, vex.tyenv, guard_bits
+            ) == _vex_guard_width_view_key(
+                resolved_expr, definitions, vex.tyenv, guard_bits
+            ):
+                return True
+        if guard_source is None:
             return False
         value_source = _vex_low_bits_source(value, definitions, vex.tyenv, guard_bits)
-        return value_source is guard_source or value_source == guard_source
+        if value_source is not guard_source and value_source != guard_source:
+            return False
+        if _vex_is_zero_extension_from(value, definitions, guard_bits, index_key[1]):
+            return True
+        return _vex_is_right_shift_narrowed_value(
+            value, definitions, vex.tyenv, guard_bits, index_key[1]
+        )
     return False
+
+
+def _vex_is_right_shift_narrowed_value(
+    expr, definitions: dict[int, Any], tyenv, bits: int, register_bits: int
+) -> bool:
+    """Return whether a logical right shift leaves at most ``bits`` values."""
+
+    expr = _resolve_vex_expr(expr, definitions)
+    if not isinstance(expr, pyvex.expr.Binop) or not expr.op.startswith("Iop_Shr"):
+        return False
+    shift = _vex_const_value(expr.args[1], definitions)
+    return (
+        shift is not None
+        and expr.result_size(tyenv) == register_bits
+        and register_bits - shift <= bits
+    )
 
 
 def _guarded_jump_table_entry_count(
@@ -633,9 +814,8 @@ def _guarded_jump_table_entry_count(
 ) -> int | None:
     """Return the bounded table length proven by a predecessor branch."""
 
-    if table.index_register_offset is None or table.index_bits is None:
+    if table.index_register_offset is None and table.index_expression is None:
         return None
-    index_key = table.index_register_offset, table.index_bits
     bounds_found: set[int] = set()
     for predecessor in graph.predecessors(node):
         if not _node_is_materialized_cfg_node(predecessor):
@@ -645,7 +825,18 @@ def _guarded_jump_table_entry_count(
         vex = _node_vex(predecessor)
         if vex is None:
             continue
-        upper_bound = _vex_guarded_index_upper_bound(vex, node.addr, index_key)
+        if table.index_expression is not None:
+            upper_bound = _vex_guarded_expression_upper_bound(
+                vex, node.addr, table.index_expression
+            )
+        elif table.index_register_offset is not None and table.index_bits is not None:
+            upper_bound = _vex_guarded_index_upper_bound(
+                vex,
+                node.addr,
+                (table.index_register_offset, table.index_bits),
+            )
+        else:
+            continue
         if upper_bound is not None:
             bounds_found.add(upper_bound)
 
@@ -1031,6 +1222,7 @@ def _vex_direct_jump_table(
     allow_masked_index_values: bool = False,
     allow_guarded_loads: bool = False,
     allow_static_base: bool = False,
+    allow_guarded_expression_index: bool = False,
 ) -> StaticJumpTable | None:
     """
     Describe a bounded table whose entries are absolute jump destinations.
@@ -1058,6 +1250,7 @@ def _vex_direct_jump_table(
             allow_inline_index_values=allow_inline_index_values,
             allow_masked_index_values=allow_masked_index_values,
             allow_static_base=allow_static_base,
+            allow_guarded_expression_index=allow_guarded_expression_index,
         )
 
     if not allow_guarded_loads:
@@ -1136,6 +1329,7 @@ def _vex_direct_table_from_load(
     allow_inline_index_values: bool,
     allow_masked_index_values: bool,
     allow_static_base: bool = False,
+    allow_guarded_expression_index: bool = False,
 ) -> StaticJumpTable | None:
     """Describe an absolute-address table load from its VEX address expression."""
 
@@ -1151,6 +1345,7 @@ def _vex_direct_table_from_load(
     index_key = None
     index_bits = None
     index_values = None
+    index_expression = None
     for term in address_terms:
         value = _vex_const_value(term, definitions)
         if value is not None:
@@ -1178,19 +1373,36 @@ def _vex_direct_table_from_load(
             candidate_values = _vex_guarded_expression_values(
                 guard, term.args[0], definitions
             )
+        candidate_expression = None
         if (
-            (candidate_index is None and candidate_values is None)
+            candidate_index is None
+            and candidate_values is None
+            and allow_guarded_expression_index
+        ):
+            candidate_expression = _vex_expr_key(term.args[0], definitions)
+            if candidate_expression is None or not _vex_key_reads_memory(
+                candidate_expression
+            ):
+                candidate_expression = None
+        if (
+            (
+                candidate_index is None
+                and candidate_values is None
+                and candidate_expression is None
+            )
             or shift is None
             or 1 << shift != entry_size
             or index_key is not None
             or index_values is not None
+            or index_expression is not None
         ):
             return None
         index_key = candidate_index
         index_bits = candidate_index[1] if candidate_index is not None else None
         index_values = candidate_values
+        index_expression = candidate_expression
 
-    if index_key is None and index_values is None:
+    if index_key is None and index_values is None and index_expression is None:
         return None
     if base_key is None and guard is None and not allow_static_base:
         # Preserve the existing direct-table policy. An absolute base is only
@@ -1224,6 +1436,7 @@ def _vex_direct_table_from_load(
         entries_are_relative=False,
         static_base_addr=static_base_addr,
         index_values=index_values,
+        index_expression=index_expression,
     )
 
 
@@ -2077,6 +2290,7 @@ def plan_static_jump_table(
     allow_masked_index_values: bool = False,
     allow_guarded_loads: bool = False,
     allow_static_bases: bool = False,
+    allow_guarded_expression_indices: bool = False,
 ) -> tuple[StaticJumpTablePlan | None, str | None]:
     """Return one fully proven static-table read plan for an indirect branch.
 
@@ -2106,6 +2320,7 @@ def plan_static_jump_table(
             allow_masked_index_values=allow_masked_index_values,
             allow_guarded_loads=allow_guarded_loads,
             allow_static_base=allow_static_bases,
+            allow_guarded_expression_index=allow_guarded_expression_indices,
         )
     )
     if table is None:
@@ -2131,6 +2346,7 @@ def plan_static_jump_table(
                 allow_masked_index_values=allow_masked_index_values,
                 allow_guarded_loads=allow_guarded_loads,
                 allow_static_base=allow_static_bases,
+                allow_guarded_expression_index=allow_guarded_expression_indices,
             )
         )
 
@@ -2142,6 +2358,11 @@ def plan_static_jump_table(
 
     entry_indices = table.index_values
     entry_count = _guarded_jump_table_entry_count(graph, bounds, node, table)
+    if table.index_expression is not None and entry_count is None:
+        # The optional expression matcher is only safe when its matching
+        # predecessor guard proves a finite table. Otherwise let extraction
+        # use its ordinary component-recovery path.
+        return None, "no_table_shape"
     if entry_indices is None:
         if entry_count is None and pic_base_addr is not None:
             entry_count = _x86_pc_thunk_guarded_entry_count(
@@ -2241,6 +2462,23 @@ def _read_static_jump_table_targets(
     return tuple(sorted(targets))
 
 
+def _vex_key_reads_memory(key: tuple[Any, ...]) -> bool:
+    """Return whether one structural VEX key contains a memory read."""
+
+    tag = key[0]
+    if tag == "load":
+        return True
+    if tag in {"const", "get"}:
+        return False
+    if tag == "unop":
+        return _vex_key_reads_memory(key[2])
+    if tag in {"binop", "ccall"}:
+        return any(_vex_key_reads_memory(argument) for argument in key[2:])
+    if tag == "ite":
+        return any(_vex_key_reads_memory(argument) for argument in key[1:])
+    return False
+
+
 def _vex_expr_key(expr, definitions: dict[int, Any]) -> tuple[Any, ...] | None:
     """Return a structural key for a local VEX expression.
 
@@ -2258,6 +2496,18 @@ def _vex_expr_key(expr, definitions: dict[int, Any]) -> tuple[Any, ...] | None:
         return ("const", value) if isinstance(value, int) else None
     if isinstance(expr, pyvex.expr.Get):
         return ("get", expr.offset, expr.result_size(None))
+    if isinstance(expr, pyvex.expr.Load):
+        address = _vex_expr_key(expr.addr, definitions)
+        return (
+            (
+                "load",
+                expr.end,
+                expr.result_size(None),
+                address,
+            )
+            if address is not None
+            else None
+        )
     if isinstance(expr, pyvex.expr.Unop):
         argument = _vex_expr_key(expr.args[0], definitions)
         return ("unop", expr.op, argument) if argument is not None else None
