@@ -427,6 +427,25 @@ def _vex_low_bits_source(expr, definitions: dict[int, Any], tyenv, bits: int):
         expr = expr.args[0]
 
 
+def _vex_low_masked_source(expr, definitions: dict[int, Any], tyenv):
+    """Return the source and width of an all-ones low-bit mask expression."""
+
+    expr = _resolve_vex_expr(expr, definitions)
+    if not isinstance(expr, pyvex.expr.Binop) or not expr.op.startswith("Iop_And"):
+        return None
+    left, right = expr.args
+    left_value = _vex_const_value(left, definitions)
+    right_value = _vex_const_value(right, definitions)
+    mask, source = (
+        (left_value, right) if left_value is not None else (right_value, left)
+    )
+    if mask is None or mask <= 0 or mask & (mask + 1):
+        return None
+    bits = mask.bit_length()
+    source = _vex_low_bits_source(source, definitions, tyenv, bits)
+    return (source, bits) if source is not None else None
+
+
 def _vex_guard_width_view_key(
     expr, definitions: dict[int, Any], tyenv, bits: int
 ) -> tuple[Any, ...] | None:
@@ -761,6 +780,10 @@ def _vex_guard_matches_index_register(
     if resolved_expr is None:
         return False
     guard_bits = resolved_expr.result_size(vex.tyenv)
+    if getattr(getattr(vex, "arch", None), "name", None) in {"AMD64", "X86"} and (
+        masked_source := _vex_low_masked_source(resolved_expr, definitions, vex.tyenv)
+    ):
+        resolved_expr, guard_bits = masked_source
     guard_source = _vex_low_bits_source(
         resolved_expr, definitions, vex.tyenv, guard_bits
     )
@@ -2018,6 +2041,13 @@ def _mips_static_value(
         return None
     if _vex_get_key(expr, definitions, vex) == (gp_offset, project.arch.bits):
         return global_pointer
+    if any(
+        isinstance(statement, pyvex.stmt.Put)
+        and statement.offset == gp_offset
+        and _resolve_vex_expr(statement.data, definitions) == expr
+        for statement in vex.statements
+    ):
+        return global_pointer
 
     if isinstance(expr, pyvex.expr.Binop) and expr.op.startswith("Iop_Add"):
         left = _mips_static_value(
@@ -2044,6 +2074,156 @@ def _mips_static_value(
     return int.from_bytes(raw, byteorder=byteorder)
 
 
+def _mips_static_register_from_immediate_predecessors(
+    project: Project,
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    expr,
+    global_pointer: int,
+) -> int | None:
+    """Resolve one dispatcher register when every predecessor writes it."""
+
+    if not isinstance(expr, pyvex.expr.Get):
+        return None
+
+    values: set[int] = set()
+    predecessors = tuple(graph.predecessors(node))
+    if not predecessors:
+        return None
+    for predecessor in predecessors:
+        if not (
+            _node_is_materialized_cfg_node(predecessor)
+            and _node_intersects_bounds(predecessor, bounds)
+        ):
+            return None
+        vex = _node_vex(predecessor)
+        if vex is None:
+            return None
+        definitions = _vex_tmp_definitions(vex)
+        for statement in reversed(vex.statements):
+            if (
+                not isinstance(statement, pyvex.stmt.Put)
+                or statement.offset != expr.offset
+            ):
+                continue
+            value = _mips_static_value(
+                project, vex, statement.data, definitions, global_pointer
+            )
+            if value is None:
+                return None
+            values.add(value)
+            break
+        else:
+            return None
+    return next(iter(values)) if len(values) == 1 else None
+
+
+def _mips_static_register_at_node(
+    project: Project,
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    expr,
+    global_pointer: int,
+) -> int | None:
+    """Return a register's must-constant value at one in-function CFG node."""
+
+    if not isinstance(expr, pyvex.expr.Get):
+        return None
+
+    unknown = object()
+    unreached = object()
+    nodes = tuple(
+        candidate
+        for candidate in graph.nodes()
+        if _node_is_materialized_cfg_node(candidate)
+        and _node_intersects_bounds(candidate, bounds)
+    )
+    if node not in nodes:
+        return None
+
+    def merge(values: list[object]) -> object:
+        if not values:
+            return unreached
+        if unknown in values or len(set(values)) != 1:
+            return unknown
+        return values[0]
+
+    def transfer(candidate, incoming: object) -> object:
+        if incoming is unreached:
+            return unreached
+        vex = _node_vex(candidate)
+        if vex is None:
+            return unknown
+        definitions = _vex_tmp_definitions(vex)
+        value = incoming
+        for statement in vex.statements:
+            if (
+                not isinstance(statement, pyvex.stmt.Put)
+                or statement.offset != expr.offset
+            ):
+                continue
+            static_value = _mips_static_value(
+                project, vex, statement.data, definitions, global_pointer
+            )
+            value = static_value if static_value is not None else unknown
+        return value
+
+    incoming_values = {candidate: unreached for candidate in nodes}
+    outgoing_values = {candidate: unreached for candidate in nodes}
+    while True:
+        changed = False
+        for candidate in nodes:
+            values = []
+            if candidate.addr == bounds.addr:
+                values.append(unknown)
+            for predecessor in graph.predecessors(candidate):
+                if predecessor not in outgoing_values:
+                    values.append(unknown)
+                    continue
+                predecessor_value = outgoing_values[predecessor]
+                if predecessor_value is not unreached:
+                    values.append(predecessor_value)
+            incoming = merge(values)
+            outgoing = transfer(candidate, incoming)
+            if (
+                incoming_values[candidate] != incoming
+                or outgoing_values[candidate] != outgoing
+            ):
+                incoming_values[candidate] = incoming
+                outgoing_values[candidate] = outgoing
+                changed = True
+        if not changed:
+            break
+
+    value = incoming_values[node]
+    return value if isinstance(value, int) else None
+
+
+def _mips_static_register_from_predecessors(
+    project: Project,
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    expr,
+    global_pointer: int,
+) -> tuple[int | None, bool]:
+    """Resolve a dispatcher register and report whether propagation was needed."""
+
+    immediate_value = _mips_static_register_from_immediate_predecessors(
+        project, graph, bounds, node, expr, global_pointer
+    )
+    if immediate_value is not None:
+        return immediate_value, False
+    return (
+        _mips_static_register_at_node(
+            project, graph, bounds, node, expr, global_pointer
+        ),
+        True,
+    )
+
+
 def _mips_inverted_unsigned_guard(guard, definitions: dict[int, Any]):
     """Unwrap ``CmpEQ(1UtoN(Cmp*u(...)), 0)`` into its unsigned compare."""
 
@@ -2057,6 +2237,12 @@ def _mips_inverted_unsigned_guard(guard, definitions: dict[int, Any]):
     if _vex_const_value(zero, definitions) != 0:
         return None
     boolean = _resolve_vex_expr(boolean, definitions)
+    return _mips_unsigned_comparison_from_boolean(boolean, definitions)
+
+
+def _mips_unsigned_comparison_from_boolean(boolean, definitions: dict[int, Any]):
+    """Return the unsigned comparison stored in one widened boolean value."""
+
     conversion = _vex_width_conversion(boolean)
     if conversion is None or conversion[0] != 1 or conversion[2] != "U":
         return None
@@ -2064,6 +2250,58 @@ def _mips_inverted_unsigned_guard(guard, definitions: dict[int, Any]):
     if not isinstance(comparison, pyvex.expr.Binop) or not comparison.op.endswith("U"):
         return None
     return comparison
+
+
+def _mips_inverted_unsigned_guard_from_fallthrough_predecessor(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    guard,
+    definitions: dict[int, Any],
+):
+    """Resolve a zero test through one predecessor delay-slot register write."""
+
+    comparison = _mips_inverted_unsigned_guard(guard, definitions)
+    if comparison is not None:
+        return comparison
+
+    guard = _resolve_vex_expr(guard, definitions)
+    if not isinstance(guard, pyvex.expr.Binop) or not guard.op.startswith("Iop_CmpEQ"):
+        return None
+    left, right = guard.args
+    value, zero = (
+        (left, right) if _vex_const_value(right, definitions) == 0 else (right, left)
+    )
+    if _vex_const_value(zero, definitions) != 0:
+        return None
+    value = _resolve_vex_expr(value, definitions)
+    if not isinstance(value, pyvex.expr.Get):
+        return None
+
+    predecessors = tuple(graph.predecessors(node))
+    if len(predecessors) != 1:
+        return None
+    predecessor = predecessors[0]
+    if not (
+        _node_is_materialized_cfg_node(predecessor)
+        and _node_intersects_bounds(predecessor, bounds)
+    ):
+        return None
+    predecessor_vex = _node_vex(predecessor)
+    if (
+        predecessor_vex is None
+        or _vex_const_value(predecessor_vex.next, _vex_tmp_definitions(predecessor_vex))
+        != node.addr
+    ):
+        return None
+    predecessor_definitions = _vex_tmp_definitions(predecessor_vex)
+    for statement in reversed(predecessor_vex.statements):
+        if isinstance(statement, pyvex.stmt.Put) and statement.offset == value.offset:
+            return _mips_unsigned_comparison_from_boolean(
+                _resolve_vex_expr(statement.data, predecessor_definitions),
+                predecessor_definitions,
+            )
+    return None
 
 
 def _mips_guarded_index_entry_count(
@@ -2092,8 +2330,9 @@ def _mips_guarded_index_entry_count(
             for exit_index, statement in enumerate(vex.statements)
             if isinstance(statement, pyvex.stmt.Exit)
             if (
-                comparison := _mips_inverted_unsigned_guard(
-                    statement.guard, definitions
+                comparison
+                := _mips_inverted_unsigned_guard_from_fallthrough_predecessor(
+                    graph, bounds, predecessor, statement.guard, definitions
                 )
             )
             is not None
@@ -2127,12 +2366,25 @@ def _mips_scaled_index_entry_count(
 ) -> int | None:
     """Return a predecessor-proven count for a MIPS byte-scaled selector."""
 
+    expression_entry_counts: set[int] = set()
+    bounded_expression_predecessors = 0
+    relevant_predecessors = 0
     index_keys: set[tuple[int, int]] = set()
     for predecessor in graph.predecessors(node):
-        vex = _node_vex(predecessor)
-        if vex is None:
+        if not (
+            _node_is_materialized_cfg_node(predecessor)
+            and _node_intersects_bounds(predecessor, bounds)
+        ):
             continue
+        vex = _node_vex(predecessor)
+        if (
+            vex is None
+            or _vex_const_value(vex.next, _vex_tmp_definitions(vex)) != node.addr
+        ):
+            continue
+        relevant_predecessors += 1
         definitions = _vex_tmp_definitions(vex)
+        predecessor_expression_counts: set[int] = set()
         for statement_index, statement in enumerate(vex.statements):
             if not isinstance(statement, pyvex.stmt.Put):
                 continue
@@ -2147,6 +2399,26 @@ def _mips_scaled_index_entry_count(
             if shift is None or 1 << shift != entry_size:
                 continue
             source = _resolve_vex_expr(scaled.args[0], definitions)
+            expression_counts = {
+                len(values)
+                for statement in vex.statements
+                if isinstance(statement, pyvex.stmt.Exit)
+                if (
+                    comparison
+                    := _mips_inverted_unsigned_guard_from_fallthrough_predecessor(
+                        graph, bounds, predecessor, statement.guard, definitions
+                    )
+                )
+                is not None
+                if (
+                    values := _vex_guarded_expression_values(
+                        comparison, source, definitions
+                    )
+                )
+                is not None
+            }
+            if len(expression_counts) == 1:
+                predecessor_expression_counts.update(expression_counts)
             index_key = _vex_get_key(source, definitions, vex)
             if index_key is None:
                 for previous in reversed(vex.statements[:statement_index]):
@@ -2158,7 +2430,18 @@ def _mips_scaled_index_entry_count(
                         break
             if index_key is not None:
                 index_keys.add(index_key)
+        if len(predecessor_expression_counts) == 1:
+            expression_entry_counts.update(predecessor_expression_counts)
+            bounded_expression_predecessors += 1
 
+    if (
+        relevant_predecessors
+        and bounded_expression_predecessors == relevant_predecessors
+        and len(expression_entry_counts) == 1
+    ):
+        return next(iter(expression_entry_counts))
+    if expression_entry_counts:
+        return None
     if len(index_keys) != 1:
         return None
     return _mips_guarded_index_entry_count(graph, bounds, node, next(iter(index_keys)))
@@ -2183,6 +2466,8 @@ def plan_mips_pic_relative_jump_table(
     graph: CFGGraph,
     bounds: FunctionBounds,
     node,
+    *,
+    allow_predecessor_static_base: bool = False,
 ) -> tuple[StaticJumpTablePlan | None, str | None]:
     """Plan a MIPS ``$gp``-relative table of offsets to branch targets.
 
@@ -2190,7 +2475,9 @@ def plan_mips_pic_relative_jump_table(
     byte-scaled selector, read a relative entry, then add ``$gp`` before
     ``jr``. The ordinary matcher intentionally rejects that two-base form.
     Accept it only when the function entry proves ``$gp`` and the immediate
-    predecessor proves the unscaled selector's finite range.
+    predecessor proves the unscaled selector's finite range. Extraction may
+    additionally opt in to a table base established before that predecessor,
+    including a delay slot, when every in-function path agrees on its value.
     """
 
     if not project.arch.name.startswith("MIPS"):
@@ -2234,15 +2521,32 @@ def plan_mips_pic_relative_jump_table(
         table_addr = 0
         scaled_index_key = None
         inline_index_key = None
+        used_propagated_static_base = False
         for term in address_terms:
             value = _mips_static_value(project, vex, term, definitions, global_pointer)
             if value is not None:
                 table_addr += value
                 continue
+            if allow_predecessor_static_base:
+                key = _mips_inline_scaled_index_key(term, definitions, vex, entry_size)
+                if key is not None:
+                    if scaled_index_key is not None or inline_index_key is not None:
+                        break
+                    inline_index_key = key
+                    continue
+                value, propagated = _mips_static_register_from_predecessors(
+                    project, graph, bounds, node, term, global_pointer
+                )
+                if value is not None:
+                    table_addr += value
+                    used_propagated_static_base |= propagated
+                    continue
             key = _vex_get_key(term, definitions, vex)
             if key is not None and scaled_index_key is None:
                 scaled_index_key = key
                 continue
+            if allow_predecessor_static_base:
+                break
             key = _mips_inline_scaled_index_key(term, definitions, vex, entry_size)
             if key is None or scaled_index_key is not None:
                 break
@@ -2260,6 +2564,10 @@ def plan_mips_pic_relative_jump_table(
                     graph, bounds, node, inline_index_key
                 )
             if entry_count is None:
+                if used_propagated_static_base:
+                    # The opt-in base proof must not change a previously
+                    # shape-free dispatcher unless it can resolve the table.
+                    return None, "no_table_shape"
                 return None, "unbounded_index"
             mask = (1 << project.arch.bits) - 1
             table = StaticJumpTable(

@@ -378,6 +378,15 @@ def test_guarded_jump_table_bound_tracks_a_narrowed_register_view() -> None:
     assert _vex_guarded_index_upper_bound(vex, 0x1006, (80, 64)) == 17
 
 
+def test_guarded_jump_table_bound_tracks_a_post_decrement_byte_selector() -> None:
+    """Match VEX's masked flags against the byte index after decrementing."""
+
+    # add al, -1; cmp al, 5; jbe 0x1008
+    vex = pyvex.lift(bytes.fromhex("04ff3c057602"), 0x1000, archinfo.ArchAMD64())
+
+    assert _vex_guarded_index_upper_bound(vex, 0x1008, (16, 8)) == 5
+
+
 def test_guarded_table_bound_tracks_a_zero_extended_index_value() -> None:
     """Match a narrow guard after its value was written into a wider register."""
 

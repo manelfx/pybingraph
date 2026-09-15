@@ -441,7 +441,11 @@ class _ExtractionSession:
                     )
                     if plan is None and reason == "no_table_shape":
                         plan, reason = plan_mips_pic_relative_jump_table(
-                            self.project, graph, self.bounds, node
+                            self.project,
+                            graph,
+                            self.bounds,
+                            node,
+                            allow_predecessor_static_base=True,
                         )
                     if plan is not None:
                         targets = _read_static_jump_table_targets(

@@ -815,6 +815,110 @@ def test_extract_resolves_a_guarded_x86_64_expression_table() -> None:
     assert cfg.extract_stats.unresolved_indirect_targets == 0
 
 
+def test_extract_resolves_guarded_post_decrement_byte_tables() -> None:
+    """Use range guards on byte selectors after their index normalization."""
+
+    project = project_module.load_project(
+        Path(
+            "angr-binaries/tests/x86_64/"
+            "1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51"
+        )
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x427320)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+
+    for source_addr in (0x4284F5, 0x4291FE):
+        successors = tuple(cfg.graph.successors(nodes[source_addr]))
+        assert len(successors) == 5
+        assert all(
+            successor.simprocedure_name != "UnresolvableJumpTarget"
+            for successor in successors
+        )
+
+    assert cfg.extract_stats.static_jump_plans_resolved >= 2
+
+
+def test_extract_resolves_mips_pic_table_guarded_before_local_scale() -> None:
+    """Use a range guard and table base carried by the predecessor delay slot."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/mipsel/darpa_ping"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x404120)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x404158]))
+
+    assert len(successors) == 22
+    assert all(
+        successor.simprocedure_name != "UnresolvableJumpTarget"
+        for successor in successors
+    )
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+
+
+def test_extract_resolves_normalized_mips_pic_table_selectors() -> None:
+    """Use the guarded expression before scaling, not only a plain register."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    for function_addr, source_addr, expected_successors in (
+        (0x4064F4, 0x406580, 8),
+        (0x42C460, 0x42CE94, 6),
+        (0x43C030, 0x43C0C4, 8),
+    ):
+        cfg = build_extracted_cfg(project, KnowledgeBase(project), function_addr)
+        nodes = {
+            node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure
+        }
+        successors = tuple(cfg.graph.successors(nodes[source_addr]))
+
+        assert len(successors) == expected_successors
+        assert all(
+            successor.simprocedure_name != "UnresolvableJumpTarget"
+            for successor in successors
+        )
+        assert cfg.extract_stats.static_jump_unbounded_index == 0
+
+
+def test_extract_propagates_mips_pic_table_base_across_split_blocks() -> None:
+    """Retain a must-constant table base after target-driven block splitting."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x467380)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x467548]))
+
+    assert len(successors) == 6
+    assert all(
+        successor.simprocedure_name != "UnresolvableJumpTarget"
+        for successor in successors
+    )
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+
+
+def test_extract_resolves_mips_pic_table_guarded_across_delay_slot() -> None:
+    """Carry a MIPS guard through its predecessor delay-slot register write."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x4669AC)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x466A68]))
+
+    assert len(successors) == 27
+    assert all(
+        successor.simprocedure_name != "UnresolvableJumpTarget"
+        for successor in successors
+    )
+    assert 0x466B34 in nodes
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert cfg.extract_stats.static_jump_target_edges_added == 27
+    assert cfg.extract_stats.sweep_runs == 0
+    assert cfg.extract_stats.static_jump_unbounded_index == 0
+
+
 def test_extract_resolves_a_guarded_x86_64_stack_selector() -> None:
     """Normalize VEX's narrowed zero-extended stack selector in a guard."""
 
