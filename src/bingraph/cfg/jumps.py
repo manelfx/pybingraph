@@ -588,6 +588,9 @@ def _vex_guard_upper_bound(
         if index_on_left
         else (guard.args[1], guard.args[0])
     )
+    index_expr, bound_expr = _vex_unsigned_shifted_compare_operands(
+        index_expr, bound_expr, definitions, vex
+    )
     if not _vex_guard_matches_index_register(
         index_expr, index_key, definitions, vex, preceding_statements
     ):
@@ -603,6 +606,43 @@ def _vex_guard_upper_bound(
     else:
         return None
     return upper_bound if upper_bound >= 0 else None
+
+
+def _vex_unsigned_shifted_compare_operands(expr, bound, definitions, vex):
+    """Unwrap equal-width left shifts used for narrow x86 unsigned flags.
+
+    VEX represents an x86 comparison such as ``cmp ax, 43`` as a 64-bit
+    unsigned comparison after shifting both operands left by 48 bits.  The
+    shift preserves unsigned ordering when the unshifted value fits below the
+    discarded high bits, so recover the original operands before matching the
+    guarded table index.
+    """
+
+    expr = _resolve_vex_expr(expr, definitions)
+    bound = _resolve_vex_expr(bound, definitions)
+    if not (
+        isinstance(expr, pyvex.expr.Binop)
+        and isinstance(bound, pyvex.expr.Binop)
+        and expr.op.startswith("Iop_Shl")
+        and bound.op == expr.op
+    ):
+        return expr, bound
+    shift = _vex_const_value(expr.args[1], definitions)
+    if shift is None or shift != _vex_const_value(bound.args[1], definitions):
+        return expr, bound
+    source = _resolve_vex_expr(expr.args[0], definitions)
+    source_bits = source.result_size(vex.tyenv)
+    while (
+        (conversion := _vex_width_conversion(source)) is not None
+        and conversion[2] == "U"
+        and conversion[1] == source_bits
+    ):
+        source_bits = conversion[0]
+        source = _resolve_vex_expr(source.args[0], definitions)
+    result_bits = expr.result_size(vex.tyenv)
+    if shift <= 0 or shift >= result_bits or source_bits > result_bits - shift:
+        return expr, bound
+    return source, _resolve_vex_expr(bound.args[0], definitions)
 
 
 def _vex_guard_expression_upper_bound(

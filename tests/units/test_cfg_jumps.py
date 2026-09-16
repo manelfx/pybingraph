@@ -378,6 +378,15 @@ def test_guarded_jump_table_bound_tracks_a_narrowed_register_view() -> None:
     assert _vex_guarded_index_upper_bound(vex, 0x1006, (80, 64)) == 17
 
 
+def test_guarded_jump_table_bound_tracks_a_16_bit_register_view() -> None:
+    """Normalize VEX's shifted unsigned comparison for an x86 ``ax`` guard."""
+
+    # cmp ax, 0x2b; jbe 0x1006
+    vex = pyvex.lift(bytes.fromhex("6683f82b7600"), 0x1000, archinfo.ArchAMD64())
+
+    assert _vex_guarded_index_upper_bound(vex, 0x1006, (16, 16)) == 43
+
+
 def test_guarded_jump_table_bound_tracks_a_post_decrement_byte_selector() -> None:
     """Match VEX's masked flags against the byte index after decrementing."""
 

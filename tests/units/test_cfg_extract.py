@@ -838,6 +838,26 @@ def test_extract_resolves_guarded_post_decrement_byte_tables() -> None:
     assert cfg.extract_stats.static_jump_plans_resolved >= 2
 
 
+def test_extract_resolves_16_bit_guarded_relative_tables() -> None:
+    """Recover signed-relative tables guarded through x86's ``ax`` view."""
+
+    project = project_module.load_project(
+        Path(
+            "angr-binaries/tests/x86_64/"
+            "1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51"
+        )
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x421770)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+
+    for source_addr, successor_count in ((0x4217AF, 44), (0x421864, 5)):
+        successors = tuple(cfg.graph.successors(nodes[source_addr]))
+        assert len(successors) == successor_count
+        assert all(not successor.is_simprocedure for successor in successors)
+
+    assert cfg.extract_stats.static_jump_plans_resolved >= 2
+
+
 def test_extract_resolves_mips_pic_table_guarded_before_local_scale() -> None:
     """Use a range guard and table base carried by the predecessor delay slot."""
 
