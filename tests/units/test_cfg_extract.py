@@ -531,6 +531,37 @@ def test_extract_recovers_mips_pic_relative_jump_table() -> None:
     assert session.unresolved_dispatcher_reasons.get(0x40FFD4) is None
 
 
+def test_extract_recovers_a_masked_affine_x86_relative_jump_table() -> None:
+    """Recover only the ordered low-nibble entries of an x86-64 table."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/static"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x42C6B0
+    )
+
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+
+    assert session.static_targets[0x42C723] == (
+        0x42C7E0,
+        0x42C900,
+        0x42CA20,
+        0x42CB40,
+        0x42CC60,
+        0x42CD80,
+        0x42CEA0,
+        0x42CFC0,
+        0x42D0E0,
+        0x42D200,
+        0x42D320,
+        0x42D440,
+        0x42D560,
+        0x42D680,
+        0x42D7A0,
+    )
+    assert session.unresolved_dispatcher_reasons.get(0x42C723) is None
+
+
 def test_extract_recovers_mips_pic_table_with_inline_scaled_index() -> None:
     """Accept a selector shifted in the dispatcher, not only its predecessor."""
 

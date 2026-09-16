@@ -366,6 +366,35 @@ def _vex_table_index(
     return None, _vex_finite_index_values(expr, definitions)
 
 
+def _vex_affine_difference_index(
+    expr, definitions: dict[int, Any], vex
+) -> tuple[tuple[int, int], tuple[int, int], int] | None:
+    """Describe ``2^n - 1 + left - right`` table indices.
+
+    The bounded proof for this form is intentionally separate from ordinary
+    register indices.  Arithmetic alone does not make a finite table domain;
+    callers must still prove masked operands and their ordering on every path.
+    """
+
+    expr = _resolve_vex_expr(expr, definitions)
+    if not isinstance(expr, pyvex.expr.Binop) or not expr.op.startswith("Iop_Sub"):
+        return None
+
+    left = _vex_register_with_displacement(expr.args[0], definitions, vex)
+    right = _vex_get_key(expr.args[1], definitions, vex)
+    if left is None or right is None:
+        return None
+    left_key, displacement = left
+    if left_key[1] != right[1] or displacement <= 0:
+        return None
+    if (
+        displacement + 1 > MAX_STATIC_JUMPTABLE_ENTRIES
+        or (displacement + 1) & displacement
+    ):
+        return None
+    return left_key, right, displacement
+
+
 def _vex_static_int(expr, definitions: dict[int, Any]) -> int | None:
     """Evaluate the small constant-only VEX expressions used in branch guards."""
 
@@ -869,6 +898,294 @@ def _vex_is_right_shift_narrowed_value(
     )
 
 
+def _vex_last_put(vex, offset: int):
+    """Return the last local VEX register definition for one offset."""
+
+    return next(
+        (
+            statement
+            for statement in reversed(vex.statements)
+            if isinstance(statement, pyvex.stmt.Put) and statement.offset == offset
+        ),
+        None,
+    )
+
+
+def _vex_register_value_at_block_entry(
+    vex, register_key: tuple[int, int]
+) -> tuple[int, int] | None:
+    """Trace one unchanged register value through a short VEX block."""
+
+    definitions = _vex_tmp_definitions(vex)
+    statement = _vex_last_put(vex, register_key[0])
+    if statement is None:
+        return register_key
+
+    expression = _resolve_vex_expr(statement.data, definitions)
+    while (conversion := _vex_width_conversion(expression)) is not None:
+        source_bits, destination_bits, _ = conversion
+        if source_bits <= 0 or destination_bits <= 0:
+            return None
+        expression = _resolve_vex_expr(expression.args[0], definitions)
+    key = _vex_get_key(expression, definitions, vex)
+    return key if key is not None and key[1] >= register_key[1] else None
+
+
+def _vex_low_masked_register(
+    expr, definitions: dict[int, Any], vex
+) -> tuple[tuple[int, int], int] | None:
+    """Return a register and width for a value masked to its low ``n`` bits."""
+
+    expression = _resolve_vex_expr(expr, definitions)
+    while expression is not None:
+        masked = _vex_low_masked_source(expression, definitions, vex.tyenv)
+        if masked is not None:
+            source, bits = masked
+            key = _vex_get_key(source, definitions, vex)
+            if key is not None:
+                return key, bits
+        conversion = _vex_width_conversion(expression)
+        if conversion is None:
+            return None
+        expression = _resolve_vex_expr(expression.args[0], definitions)
+    return None
+
+
+def _vex_low_width_key(
+    expr, definitions: dict[int, Any], vex, bits: int
+) -> tuple[Any, ...] | None:
+    """Return an expression key after preserving only its low ``bits`` bits."""
+
+    source = _vex_low_bits_source(expr, definitions, vex.tyenv, bits)
+    return _vex_expr_key(source, definitions) if source is not None else None
+
+
+def _x86_cc_offsets(vex) -> tuple[int, int, int] | None:
+    """Return the VEX flag pseudo-register offsets for an x86-family block."""
+
+    arch = getattr(vex, "arch", None)
+    if arch is None or getattr(arch, "name", None) not in {"AMD64", "X86"}:
+        return None
+    try:
+        registers = arch.registers
+        return tuple(registers[name][0] for name in ("cc_op", "cc_dep1", "cc_dep2"))
+    except (AttributeError, KeyError):
+        return None
+
+
+def _x86_unsigned_branch_relation(vex, target_addr: int) -> str | None:
+    """Return the unsigned relation selected by one x86 conditional edge."""
+
+    offsets = _x86_cc_offsets(vex)
+    if offsets is None:
+        return None
+    definitions = _vex_tmp_definitions(vex)
+    exits = [
+        statement
+        for statement in vex.statements
+        if isinstance(statement, pyvex.stmt.Exit)
+    ]
+    if len(exits) != 1:
+        return None
+    exit_statement = exits[0]
+    exit_target = getattr(exit_statement.dst, "value", None)
+    if target_addr == exit_target:
+        taken = True
+    elif target_addr == _vex_const_value(vex.next, definitions):
+        taken = False
+    else:
+        return None
+    if any(_vex_last_put(vex, offset) is not None for offset in offsets):
+        return None
+
+    guard = _resolve_vex_expr(exit_statement.guard, definitions)
+    while isinstance(guard, pyvex.expr.Unop):
+        guard = _resolve_vex_expr(guard.args[0], definitions)
+    if not isinstance(guard, pyvex.expr.CCall):
+        return None
+    if getattr(guard.callee, "name", None) not in {
+        "amd64g_calculate_condition",
+        "x86g_calculate_condition",
+    }:
+        return None
+    condition = _vex_const_value(guard.args[0], definitions)
+    if len(guard.args) != 5 or condition not in {
+        2,
+        3,
+        6,
+        7,
+    }:
+        return None
+    flag_keys = tuple(
+        _vex_get_key(argument, definitions, vex) for argument in guard.args[1:4]
+    )
+    if (
+        any(key is None for key in flag_keys)
+        or tuple(key[0] for key in flag_keys if key is not None) != offsets
+    ):
+        return None
+
+    assert condition is not None
+    relation = {2: "lt", 3: "ge", 6: "le", 7: "gt"}[condition]
+    if taken:
+        return relation
+    return {"lt": "ge", "ge": "lt", "le": "gt", "gt": "le"}[relation]
+
+
+def _x86_affine_compare_anchor(
+    vex, successor_addr: int
+) -> tuple[tuple[int, int], tuple[int, int], int, bool] | None:
+    """Return masked ``cmp`` operands and whether its fallthrough excludes equality."""
+
+    offsets = _x86_cc_offsets(vex)
+    if offsets is None:
+        return None
+    definitions = _vex_tmp_definitions(vex)
+    cc_op, cc_dep1, cc_dep2 = offsets
+    op_statement = _vex_last_put(vex, cc_op)
+    dep1_statement = _vex_last_put(vex, cc_dep1)
+    dep2_statement = _vex_last_put(vex, cc_dep2)
+    if op_statement is None or dep1_statement is None or dep2_statement is None:
+        return None
+    # x86 VEX encodes byte, word, dword, and qword subtraction as 5 through 8.
+    if _vex_static_int(op_statement.data, definitions) not in {5, 6, 7, 8}:
+        return None
+    dep1 = _vex_low_masked_register(dep1_statement.data, definitions, vex)
+    dep2 = _vex_low_masked_register(dep2_statement.data, definitions, vex)
+    if dep1 is None or dep2 is None or dep1[1] != dep2[1]:
+        return None
+
+    equality_guarded = False
+    if _vex_const_value(vex.next, definitions) == successor_addr:
+        dep1_key = _vex_low_width_key(dep1_statement.data, definitions, vex, dep1[1])
+        dep2_key = _vex_low_width_key(dep2_statement.data, definitions, vex, dep2[1])
+        for statement in vex.statements:
+            if not isinstance(statement, pyvex.stmt.Exit):
+                continue
+            guard = _resolve_vex_expr(statement.guard, definitions)
+            while isinstance(guard, pyvex.expr.Unop):
+                guard = _resolve_vex_expr(guard.args[0], definitions)
+            if not isinstance(guard, pyvex.expr.Binop) or not guard.op.startswith(
+                "Iop_CmpEQ"
+            ):
+                continue
+            left = _vex_low_width_key(guard.args[0], definitions, vex, dep1[1])
+            right = _vex_low_width_key(guard.args[1], definitions, vex, dep1[1])
+            if (left, right) in {(dep1_key, dep2_key), (dep2_key, dep1_key)}:
+                equality_guarded = True
+                break
+    return dep1[0], dep2[0], dep1[1], equality_guarded
+
+
+def _x86_affine_index_path_is_ordered(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    predecessor,
+    node_addr: int,
+    left_key: tuple[int, int],
+    right_key: tuple[int, int],
+    mask_bits: int,
+) -> bool:
+    """Prove one dispatcher predecessor leaves a masked affine index ordered."""
+
+    predecessor_vex = _node_vex(predecessor)
+    if predecessor_vex is None:
+        return False
+    left_at_entry = _vex_register_value_at_block_entry(predecessor_vex, left_key)
+    right_at_entry = _vex_register_value_at_block_entry(predecessor_vex, right_key)
+    if left_at_entry is None or right_at_entry is None:
+        return False
+
+    branch = predecessor
+    relation = _x86_unsigned_branch_relation(predecessor_vex, node_addr)
+    if relation is None:
+        branch_predecessors = [
+            candidate
+            for candidate in graph.predecessors(predecessor)
+            if _node_is_materialized_cfg_node(candidate)
+            and _node_intersects_bounds(candidate, bounds)
+        ]
+        if len(branch_predecessors) != 1:
+            return False
+        branch = branch_predecessors[0]
+        branch_vex = _node_vex(branch)
+        if branch_vex is None:
+            return False
+        relation = _x86_unsigned_branch_relation(branch_vex, predecessor.addr)
+        if relation is None:
+            return False
+
+    anchor_predecessors = [
+        candidate
+        for candidate in graph.predecessors(branch)
+        if _node_is_materialized_cfg_node(candidate)
+        and _node_intersects_bounds(candidate, bounds)
+    ]
+    if len(anchor_predecessors) != 1:
+        return False
+    anchor_vex = _node_vex(anchor_predecessors[0])
+    if anchor_vex is None:
+        return False
+    anchor = _x86_affine_compare_anchor(anchor_vex, branch.addr)
+    if anchor is None:
+        return False
+    dep1, dep2, bits, excludes_equality = anchor
+    if bits != mask_bits:
+        return False
+
+    if relation == "le" and excludes_equality:
+        relation = "lt"
+    elif relation == "ge" and excludes_equality:
+        relation = "gt"
+    if (left_at_entry, right_at_entry) == (dep1, dep2):
+        return relation == "lt"
+    if (left_at_entry, right_at_entry) == (dep2, dep1):
+        return relation == "gt"
+    return False
+
+
+def _guarded_affine_difference_index_values(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    table: StaticJumpTable,
+) -> tuple[int, ...] | None:
+    """Return exact values for a masked, ordered x86 affine table index."""
+
+    difference = table.index_affine_difference
+    if difference is None:
+        return None
+    left_key, right_key, displacement = difference
+    if (
+        displacement + 1 > MAX_STATIC_JUMPTABLE_ENTRIES
+        or (displacement + 1) & displacement
+    ):
+        return None
+    mask_bits = displacement.bit_length()
+    predecessors = [
+        predecessor
+        for predecessor in graph.predecessors(node)
+        if _node_is_materialized_cfg_node(predecessor)
+        and _node_intersects_bounds(predecessor, bounds)
+    ]
+    if not predecessors:
+        return None
+    if not all(
+        _x86_affine_index_path_is_ordered(
+            graph,
+            bounds,
+            predecessor,
+            node.addr,
+            left_key,
+            right_key,
+            mask_bits,
+        )
+        for predecessor in predecessors
+    ):
+        return None
+    return tuple(range(displacement))
+
+
 def _guarded_jump_table_entry_count(
     graph: CFGGraph,
     bounds: FunctionBounds,
@@ -1041,6 +1358,9 @@ def _vex_relative_jump_table(
         index_key: tuple[int, int] | None = None
         index_bits: int | None = None
         index_values: tuple[int, ...] | None = None
+        index_affine_difference: tuple[tuple[int, int], tuple[int, int], int] | None = (
+            None
+        )
         for term in address_terms:
             value = _vex_const_value(term, definitions)
             if value is not None:
@@ -1066,17 +1386,28 @@ def _vex_relative_jump_table(
                 allow_inline_index_values=allow_inline_index_values,
                 allow_masked_index_values=allow_masked_index_values,
             )
+            candidate_affine_difference = None
+            if candidate_key is None and candidate_values is None:
+                candidate_affine_difference = _vex_affine_difference_index(
+                    term.args[0], definitions, vex
+                )
             if (
                 shift is None
-                or (candidate_key is None and candidate_values is None)
+                or (
+                    candidate_key is None
+                    and candidate_values is None
+                    and candidate_affine_difference is None
+                )
                 or 1 << shift != entry_size
                 or index_key is not None
                 or index_values is not None
+                or index_affine_difference is not None
             ):
                 break
             index_key = candidate_key
             index_bits = candidate_key[1] if candidate_key is not None else None
             index_values = candidate_values
+            index_affine_difference = candidate_affine_difference
         else:
             if static_base_addr is not None:
                 mask = (1 << base_bits) - 1
@@ -1084,7 +1415,11 @@ def _vex_relative_jump_table(
                 saw_base = True
             else:
                 displacement = constant_total
-            if saw_base and (index_key is not None or index_values is not None):
+            if saw_base and (
+                index_key is not None
+                or index_values is not None
+                or index_affine_difference is not None
+            ):
                 offset = base_key[0] if base_key is not None else None
                 table_displacement = displacement & ((1 << base_bits) - 1)
                 return StaticJumpTable(
@@ -1101,6 +1436,7 @@ def _vex_relative_jump_table(
                     target_displacement=target_displacement,
                     static_base_addr=static_base_addr,
                     index_values=index_values,
+                    index_affine_difference=index_affine_difference,
                 )
 
     return None
@@ -2705,6 +3041,12 @@ def plan_static_jump_table(
         return None, "no_table_shape"
 
     entry_indices = table.index_values
+    if table.index_affine_difference is not None:
+        entry_indices = _guarded_affine_difference_index_values(
+            graph, bounds, node, table
+        )
+        if entry_indices is None:
+            return None, "no_table_shape"
     entry_count = _guarded_jump_table_entry_count(graph, bounds, node, table)
     if table.index_expression is not None and entry_count is None:
         # The optional expression matcher is only safe when its matching

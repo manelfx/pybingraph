@@ -86,6 +86,7 @@ class StaticJumpTable:
     static_base_addr: int | None = None
     index_values: tuple[int, ...] | None = None
     index_expression: tuple[Any, ...] | None = None
+    index_affine_difference: tuple[tuple[int, int], tuple[int, int], int] | None = None
 
 
 @dataclass(frozen=True)
