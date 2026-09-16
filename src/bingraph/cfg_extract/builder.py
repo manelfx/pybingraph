@@ -670,7 +670,7 @@ class _ExtractionSession:
         self.stats.sweep_candidate_components += audit.candidate_components
         self.stats.sweep_decode_failures += audit.decode_failures
         self.stats.sweep_non_executable_bytes += audit.non_executable_bytes
-        selected = select_reconnecting_components(sweep, recovered_blocks)
+        selected = select_reconnecting_components(self.project, sweep, recovered_blocks)
         if dispatcher_addr not in selected.blocks:
             # The sweep changed the source whose unknown targets would be
             # attached. Keep the original graph rather than mix a stale

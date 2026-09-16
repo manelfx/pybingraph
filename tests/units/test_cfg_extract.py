@@ -828,6 +828,21 @@ def test_extract_does_not_reconnect_an_unbounded_table_dispatcher() -> None:
     assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
 
 
+def test_extract_rejects_swept_transparent_padding_root() -> None:
+    """Do not attach a scanned alignment NOP as an indirect-jump candidate."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/static"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x47A4D0)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+
+    dispatcher = nodes[0x47A508]
+    successors = tuple(cfg.graph.successors(dispatcher))
+    assert len(successors) == 1
+    assert successors[0].is_simprocedure
+    assert successors[0].name == "UnresolvableJumpTarget"
+    assert 0x47A513 not in nodes
+
+
 def test_extract_resolves_a_guarded_x86_64_expression_table() -> None:
     """Resolve a zero-extended memory selector narrowed by its guard."""
 
@@ -1135,6 +1150,7 @@ def test_reconnecting_component_cycle_gets_a_dispatcher_root() -> None:
     )
 
     selected = select_reconnecting_components(
+        None,
         sweep,
         {addr: blocks[addr] for addr in (0x1000, 0x1010, 0x1040)},
     )

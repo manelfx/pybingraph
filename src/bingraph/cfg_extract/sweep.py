@@ -10,6 +10,7 @@ from typing import Mapping
 from angr import Project
 import networkx as nx
 
+from bingraph.cfg.graph import vex_is_transparent_fallthrough_padding
 from bingraph.cfg.jumps import static_jump_target_rejection_reason
 from bingraph.cfg.models import BlockSpec, FunctionBounds
 from bingraph.cfg.decode import (
@@ -92,6 +93,25 @@ def _disconnected_component_count(
     return nx.number_weakly_connected_components(
         _direct_flow_graph(blocks).subgraph(disconnected_addrs)
     )
+
+
+def _is_transparent_fallthrough_padding(
+    project: Project | None, block: BlockSpec
+) -> bool:
+    """Return whether a swept block is non-informative alignment padding."""
+
+    if project is None:
+        return False
+    try:
+        vex = project.factory.block(
+            block.addr,
+            size=block.size,
+            strict_block_end=True,
+            cross_insn_opt=False,
+        ).vex
+    except Exception:
+        return False
+    return vex_is_transparent_fallthrough_padding(vex, block.addr, block.size)
 
 
 def _recover_direct_closure(
@@ -298,6 +318,7 @@ def recover_executable_components(
 
 
 def select_reconnecting_components(
+    project: Project | None,
     sweep: ExecutableSweep,
     recovered_blocks: Mapping[int, BlockSpec],
 ) -> ReconnectingComponents:
@@ -346,15 +367,27 @@ def select_reconnecting_components(
         if not has_rejoin or has_nested_unresolved or has_mid_block_target:
             continue
 
-        component_count += 1
-        selected_blocks.update((addr, sweep.blocks[addr]) for addr in component)
         component_graph = disconnected_graph.subgraph(component)
         condensation = nx.condensation(component_graph)
+        component_roots: set[int] = set()
         for source in condensation.nodes:
             if condensation.in_degree(source) != 0:
                 continue
             members = condensation.nodes[source]["members"]
-            roots.add(min(members))
+            component_roots.add(min(members))
+        # A component whose only roots are swept alignment NOPs merely falls
+        # through into recovered code; it supplies no indirect-target evidence.
+        # Keep mixed-root components intact so no retained block becomes
+        # unreachable through a suppressed entry root.
+        if component_roots and all(
+            _is_transparent_fallthrough_padding(project, sweep.blocks[root])
+            for root in component_roots
+        ):
+            continue
+
+        component_count += 1
+        selected_blocks.update((addr, sweep.blocks[addr]) for addr in component)
+        roots.update(component_roots)
 
     return ReconnectingComponents(selected_blocks, frozenset(roots), component_count)
 

@@ -113,23 +113,22 @@ def node_ends_in_indirect_jump(node) -> bool:
     )
 
 
-def node_is_transparent_fallthrough_padding(node) -> bool:
-    """Return whether ``node`` only self-assigns registers before falling through.
+def vex_is_transparent_fallthrough_padding(vex: Any, addr: int, size: int) -> bool:
+    """Return whether VEX only self-assigns registers before falling through.
 
     Compilers commonly use instructions such as ``mov reg, reg`` and
     ``lea reg, [reg]`` for alignment.  Their VEX blocks contain only IMarks,
     temporary GETs, and PUTs that write the same register value back.  These
-    nodes are safe to skip as *unresolved* indirect-jump candidates, but not
+    blocks are safe to skip as *unresolved* indirect-jump candidates, but not
     when a known branch or table entry explicitly targets them.
     """
 
-    if getattr(node, "size", 0) <= 0:
+    if size <= 0:
         return False
-    vex = node_vex(node)
-    if vex is None or vex.jumpkind != "Ijk_Boring":
+    if vex.jumpkind != "Ijk_Boring":
         return False
     next_addr = getattr(getattr(vex.next, "con", None), "value", None)
-    if next_addr != node_range_end(node):
+    if next_addr != addr + size:
         return False
 
     definitions: dict[int, Any] = {}
@@ -155,6 +154,15 @@ def node_is_transparent_fallthrough_padding(node) -> bool:
             return False
 
     return saw_instruction
+
+
+def node_is_transparent_fallthrough_padding(node) -> bool:
+    """Return whether ``node`` is transparent padding before its fallthrough."""
+
+    vex = node_vex(node)
+    return vex is not None and vex_is_transparent_fallthrough_padding(
+        vex, node.addr, getattr(node, "size", 0)
+    )
 
 
 def node_is_materialized_cfg_node(node) -> bool:
