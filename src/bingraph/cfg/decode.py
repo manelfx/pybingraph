@@ -450,6 +450,20 @@ def _mips_gp_relative_indirect_slot(
 ) -> tuple[int, str] | None:
     """Resolve a MIPS PIC indirect transfer through ``Load($gp + offset)``."""
 
+    target_expr = _indirect_target_load(project, vex)
+    if target_expr is None:
+        return None
+    return _mips_gp_relative_slot_from_load(project, bounds, vex, target_expr)
+
+
+def _mips_gp_relative_slot_from_load(
+    project: Project,
+    bounds: FunctionBounds,
+    vex,
+    target_expr: pyvex.expr.Load,
+) -> tuple[int, str] | None:
+    """Return a static ``$gp``-relative load slot used for a MIPS target."""
+
     global_pointer = _mips_entry_global_pointer(project, bounds)
     if global_pointer is None:
         return None
@@ -459,13 +473,10 @@ def _mips_gp_relative_indirect_slot(
     except KeyError:
         return None
 
-    definitions = _temporary_definitions(vex)
-    target_expr = _indirect_target_load(project, vex)
-    if target_expr is None:
-        return None
     if not isinstance(target_expr.addr, pyvex.expr.RdTmp):
         return None
 
+    definitions = _temporary_definitions(vex)
     slot_expr = definitions.get(target_expr.addr.tmp)
     if not isinstance(slot_expr, pyvex.expr.Binop) or not slot_expr.op.startswith(
         "Iop_Add"
@@ -487,6 +498,71 @@ def _mips_gp_relative_indirect_slot(
 
     mask = (1 << project.arch.bits) - 1
     return ((global_pointer + constant.con.value) & mask, target_expr.end)
+
+
+def _mips_gp_relative_adjusted_indirect_jump_target(
+    project: Project, bounds: FunctionBounds, vex
+) -> int | None:
+    """Resolve ``lw $t9, offset($gp); addiu $t9, $t9, imm; jr $t9``."""
+
+    if vex.jumpkind != "Ijk_Boring" or not project.arch.name.startswith("MIPS"):
+        return None
+    try:
+        t9_offset = project.arch.registers["t9"][0]
+    except KeyError:
+        return None
+
+    definitions = _temporary_definitions(vex)
+    if not isinstance(vex.next, pyvex.expr.RdTmp):
+        return None
+    target_expr = definitions.get(vex.next.tmp)
+    if not isinstance(target_expr, pyvex.expr.Get) or target_expr.offset != t9_offset:
+        return None
+
+    assignments = [
+        statement.data.tmp
+        for statement in vex.statements
+        if isinstance(statement, pyvex.stmt.Put)
+        and statement.offset == t9_offset
+        and isinstance(statement.data, pyvex.expr.RdTmp)
+    ]
+    if len(assignments) < 2:
+        return None
+
+    adjusted = definitions.get(assignments[-1])
+    if not isinstance(adjusted, pyvex.expr.Binop) or not adjusted.op.startswith(
+        "Iop_Add"
+    ):
+        return None
+    left, right = adjusted.args
+    constant, register = (
+        (left, right) if isinstance(left, pyvex.expr.Const) else (right, left)
+    )
+    if not isinstance(constant, pyvex.expr.Const) or not isinstance(
+        register, pyvex.expr.RdTmp
+    ):
+        return None
+    register_source = definitions.get(register.tmp)
+    if not isinstance(register_source, pyvex.expr.Get) or (
+        register_source.offset != t9_offset
+    ):
+        return None
+
+    load = definitions.get(assignments[-2])
+    if not isinstance(load, pyvex.expr.Load):
+        return None
+    slot = _mips_gp_relative_slot_from_load(project, bounds, vex, load)
+    if slot is None:
+        return None
+
+    slot_addr, endness = slot
+    target = _read_static_pointer_target(
+        project, slot_addr, project.arch.bytes, endness
+    )
+    if target is None:
+        return None
+    mask = (1 << project.arch.bits) - 1
+    return (target + constant.con.value) & mask
 
 
 def _indirect_target_load(project: Project, vex) -> pyvex.expr.Load | None:
@@ -561,15 +637,37 @@ def _is_known_synthetic_function_target(project: Project, addr: int) -> bool:
     )
 
 
-def static_memory_indirect_jump_target(project: Project, vex) -> int | None:
-    """Resolve an exact static-memory indirect jump target, if present.
+def _is_static_pointer_call_target(project: Project, addr: int) -> bool:
+    """Return whether a static pointer supplies a safe concrete call target."""
+
+    if not _is_trusted_direct_call_target(project, addr):
+        return False
+    try:
+        obj = project.loader.find_object_containing(addr)
+    except Exception:
+        return False
+    if obj is None:
+        return False
+    if obj is getattr(project.loader, "extern_object", None):
+        return _is_known_synthetic_function_target(project, addr)
+
+    for method_name in ("find_section_containing", "find_segment_containing"):
+        method = getattr(obj, method_name, None)
+        region = method(addr) if callable(method) else None
+        if region is not None:
+            return bool(getattr(region, "is_executable", False))
+    return False
+
+
+def _static_memory_indirect_target(project: Project, vex, jumpkind: str) -> int | None:
+    """Resolve an exact constant-slot indirect transfer target, if present.
 
     This recognizes only ``next = Load(Const(slot))``.  In particular, it does
     not follow register-derived addresses or table indices, which remain the
     responsibility of the bounded static jump-table planner.
     """
 
-    if vex.jumpkind != "Ijk_Boring" or not isinstance(vex.next, pyvex.expr.RdTmp):
+    if vex.jumpkind != jumpkind or not isinstance(vex.next, pyvex.expr.RdTmp):
         return None
 
     definitions = _temporary_definitions(vex)
@@ -587,6 +685,21 @@ def static_memory_indirect_jump_target(project: Project, vex) -> int | None:
     return _read_static_pointer_target(project, slot_addr, entry_size, load.end)
 
 
+def static_memory_indirect_jump_target(project: Project, vex) -> int | None:
+    """Resolve an exact static-memory indirect jump target, if present."""
+
+    return _static_memory_indirect_target(project, vex, "Ijk_Boring")
+
+
+def static_memory_indirect_call_target(project: Project, vex) -> int | None:
+    """Resolve an exact static-memory indirect call target, if present."""
+
+    target = _static_memory_indirect_target(project, vex, "Ijk_Call")
+    if target is None or not _is_static_pointer_call_target(project, target):
+        return None
+    return target
+
+
 def _mips_gp_relative_indirect_jump_target(
     project: Project, bounds: FunctionBounds, vex
 ) -> int | None:
@@ -596,15 +709,10 @@ def _mips_gp_relative_indirect_jump_target(
         return None
     slot = _mips_gp_relative_indirect_slot(project, bounds, vex)
     if slot is None:
-        return None
+        return _mips_gp_relative_adjusted_indirect_jump_target(project, bounds, vex)
 
     slot_addr, endness = slot
-    return _read_static_pointer_target(
-        project,
-        slot_addr,
-        project.arch.bytes,
-        endness,
-    )
+    return _read_static_pointer_target(project, slot_addr, project.arch.bytes, endness)
 
 
 def _static_memory_nonreturning_call_target(
@@ -819,6 +927,7 @@ def lift_block_terminator(
     preserve_conditional_return_fallthrough: bool = False,
     split_syscall_blocks: bool = False,
     resolve_declared_nonreturning: bool = False,
+    resolve_static_memory_calls: bool = False,
 ) -> TerminatorInfo:
     """Lift decoded block bytes and derive their control-flow shape."""
 
@@ -942,6 +1051,15 @@ def lift_block_terminator(
             # such unnamed callees, allowing later render policy to decide
             # whether it should be visible.
             direct_targets = (default_target,)
+        static_memory_target = (
+            static_memory_indirect_call_target(project, vex)
+            if resolve_static_memory_calls
+            else None
+        )
+        if static_memory_target is not None and not direct_targets:
+            # A constant-address pointer load proves the same exact callee as
+            # a direct VEX call while preserving the ordinary FakeRet edge.
+            direct_targets = (static_memory_target,)
         nonreturning_vex = vex
         if project.arch.name.startswith("MIPS") and tail_addr != block_addr:
             # The tail lift intentionally excludes preceding instructions, but
@@ -1083,6 +1201,7 @@ def decode_bounded_block(
     preserve_conditional_return_fallthrough: bool = False,
     split_syscall_blocks: bool = False,
     resolve_declared_nonreturning: bool = False,
+    resolve_static_memory_calls: bool = False,
     split_unclassified_indirect_vex_transfers: bool = False,
     allow_vex_linear_fallback: bool = False,
     on_linear_direct_transfer: Callable[[int], None] | None = None,
@@ -1217,6 +1336,7 @@ def decode_bounded_block(
             preserve_conditional_return_fallthrough=preserve_conditional_return_fallthrough,
             split_syscall_blocks=split_syscall_blocks,
             resolve_declared_nonreturning=resolve_declared_nonreturning,
+            resolve_static_memory_calls=resolve_static_memory_calls,
         )
     block = BlockSpec(
         addr=start_addr,
@@ -1244,6 +1364,7 @@ def decode_bounded_block(
             preserve_conditional_return_fallthrough=preserve_conditional_return_fallthrough,
             split_syscall_blocks=split_syscall_blocks,
             resolve_declared_nonreturning=resolve_declared_nonreturning,
+            resolve_static_memory_calls=resolve_static_memory_calls,
             split_unclassified_indirect_vex_transfers=(
                 split_unclassified_indirect_vex_transfers
             ),

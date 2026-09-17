@@ -339,6 +339,48 @@ def test_extract_suppresses_fakeret_for_a_static_nonreturning_call() -> None:
     assert block.fallthrough_addr is None
 
 
+def test_extract_resolves_returning_static_memory_call_targets() -> None:
+    """Keep exact returning calls made through constant GOT slots."""
+
+    cases = (
+        (
+            "angr-binaries/tests/x86_64/"
+            "1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
+            0x41DC10,
+            0x41DC53,
+            0x500190,
+        ),
+        (
+            "angr-binaries/tests/x86_64/rust_hello_world",
+            0x4075D0,
+            0x407662,
+            0x5000F0,
+        ),
+    )
+
+    for binary, function_addr, call_addr, target in cases:
+        project = project_module.load_project(Path(binary))
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), function_addr
+        )
+        block = decode_bounded_block(
+            project,
+            session.bounds,
+            call_addr,
+            set(),
+            resolve_static_memory_calls=True,
+        )
+
+        assert block is not None
+        assert block.jumpkind == "Ijk_Call"
+        assert block.direct_targets == (target,)
+        assert block.fallthrough_addr is not None
+
+        cfg = session.build()
+        source = next(node for node in cfg.graph.nodes() if node.addr == call_addr)
+        assert target in {node.addr for node in cfg.graph.successors(source)}
+
+
 def test_extract_models_static_memory_tail_jump_as_explicit_exit() -> None:
     """Render a proven GOT tail target as an explicit jump exit."""
 
@@ -496,6 +538,26 @@ def test_extract_models_mips_pic_tail_jump_as_explicit_exit() -> None:
 
     assert in_function.jumpkind == "Ijk_Boring"
     assert in_function.direct_targets == (0x40D6A0,)
+
+
+def test_extract_resolves_adjusted_mips_pic_tail_jump() -> None:
+    """Resolve a MIPS PIC tail jump with one post-load target adjustment."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/btrfs-tools_btrfs-calc-size")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x43B414
+    )
+    block = decode_bounded_block(project, session.bounds, 0x43B528, set())
+
+    assert block is not None
+    assert block.jumpkind == "Ijk_Boring"
+    assert block.direct_targets == (0x43B100,)
+
+    cfg = session.build()
+    source = next(node for node in cfg.graph.nodes() if node.addr == 0x43B528)
+    assert {node.addr for node in cfg.graph.successors(source)} == {0x43B100}
 
 
 def test_extract_models_mips_pic_import_tail_jump_as_explicit_exit() -> None:

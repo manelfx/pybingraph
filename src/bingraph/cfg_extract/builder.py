@@ -307,6 +307,7 @@ class _ExtractionSession:
                 preserve_conditional_return_fallthrough=True,
                 split_syscall_blocks=True,
                 resolve_declared_nonreturning=True,
+                resolve_static_memory_calls=True,
                 split_unclassified_indirect_vex_transfers=True,
                 allow_vex_linear_fallback=True,
                 on_linear_direct_transfer=self._record_linear_direct_transfer,
