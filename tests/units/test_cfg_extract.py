@@ -356,6 +356,18 @@ def test_extract_resolves_returning_static_memory_call_targets() -> None:
             0x407662,
             0x5000F0,
         ),
+        (
+            "angr-binaries/tests/mips/dir",
+            0x419AC0,
+            0x419B28,
+            0x500064,
+        ),
+        (
+            "angr-binaries/tests/mipsel/btrfs-tools_btrfs-calc-size",
+            0x41A380,
+            0x41A3E8,
+            0x50011C,
+        ),
     )
 
     for binary, function_addr, call_addr, target in cases:

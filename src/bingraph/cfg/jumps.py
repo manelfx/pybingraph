@@ -2060,6 +2060,118 @@ def _path_constrained_pc_targets(
     return tuple(sorted(targets))
 
 
+def _unconditional_pc_arithmetic_dispatch_shape(vex) -> bool:
+    """Return whether one computed-PC update has a static arithmetic shape.
+
+    The final VEX ``next`` may read a register directly or set an architecture
+    mode bit on it. The register itself must have been assigned from a static
+    base plus a shifted register in the same block. This deliberately excludes
+    values loaded from memory, even when a path solver could otherwise choose
+    a finite set of concrete targets.
+    """
+
+    if vex.jumpkind != "Ijk_Boring":
+        return False
+
+    definitions = _vex_tmp_definitions(vex)
+    next_expr = _resolve_vex_expr(vex.next, definitions)
+    target_key = _vex_get_key(next_expr, definitions, vex)
+    if target_key is None and isinstance(next_expr, pyvex.expr.Binop):
+        if not next_expr.op.startswith("Iop_Or"):
+            return False
+        register_terms = [
+            _vex_get_key(term, definitions, vex) for term in next_expr.args
+        ]
+        constant_terms = [
+            _vex_const_value(term, definitions) for term in next_expr.args
+        ]
+        keys = [key for key in register_terms if key is not None]
+        constants = [value for value in constant_terms if value is not None]
+        if len(keys) != 1 or constants != [1]:
+            return False
+        target_key = keys[0]
+    if target_key is None:
+        return False
+
+    for index in range(len(vex.statements) - 1, -1, -1):
+        statement = vex.statements[index]
+        if (
+            not isinstance(statement, pyvex.stmt.Put)
+            or statement.offset != target_key[0]
+        ):
+            continue
+        assignment = _resolve_vex_expr(statement.data, definitions)
+        if not isinstance(assignment, pyvex.expr.Binop) or not assignment.op.startswith(
+            "Iop_Add"
+        ):
+            return False
+
+        terms = _vex_add_terms(assignment, definitions)
+        if terms is None or len(terms) != 2:
+            return False
+        shifted_terms = []
+        base_terms = []
+        for term in terms:
+            resolved = _resolve_vex_expr(term, definitions)
+            if isinstance(resolved, pyvex.expr.Binop) and resolved.op.startswith(
+                "Iop_Shl"
+            ):
+                shifted_terms.append(resolved)
+            else:
+                base_terms.append(term)
+        if len(shifted_terms) != 1 or len(base_terms) != 1:
+            return False
+        shifted = shifted_terms[0]
+        if (
+            _vex_get_key(shifted.args[0], definitions, vex) is None
+            or _vex_const_value(shifted.args[1], definitions) is None
+        ):
+            return False
+
+        base = base_terms[0]
+        if _vex_const_value(base, definitions) is not None:
+            return True
+        base_key = _vex_get_key(base, definitions, vex)
+        if base_key is None:
+            return False
+        for preceding in reversed(vex.statements[:index]):
+            if (
+                isinstance(preceding, pyvex.stmt.Put)
+                and preceding.offset == base_key[0]
+            ):
+                return _vex_const_value(preceding.data, definitions) is not None
+        return False
+    return False
+
+
+def unconditional_arithmetic_pc_dispatch_targets(
+    project: Project,
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node: CFGNode,
+) -> tuple[int, ...] | None:
+    """Return finite targets for a uniquely constrained arithmetic PC update."""
+
+    try:
+        vex = project.factory.block(
+            node.addr,
+            size=node.size,
+            strict_block_end=True,
+            cross_insn_opt=False,
+        ).vex
+    except Exception:
+        return None
+    if not _unconditional_pc_arithmetic_dispatch_shape(vex):
+        return None
+
+    targets = _path_constrained_pc_targets(project, graph, bounds, node)
+    if targets is None or not all(
+        is_direct_target_valid(bounds, target) for target in targets
+    ):
+        return None
+    return targets
+
+
 def conditional_pc_dispatch_targets(
     project: Project,
     bounds: FunctionBounds,

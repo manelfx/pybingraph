@@ -86,6 +86,24 @@ def test_extract_recovers_a_clz_derived_arithmetic_pc_dispatch() -> None:
     assert cfg.extract_stats.conditional_pc_targets_recovered == 31
 
 
+def test_extract_recovers_an_unconditional_clz_arithmetic_pc_dispatch() -> None:
+    """Recover a bounded Thumb ``mov pc`` dispatch from its unique path."""
+
+    project = load_project(Path("angr-binaries/tests/armhf/float_int_conversion.elf"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0xEF19)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    source = nodes[0xEF2F]
+    successors = {node.addr for node in cfg.graph.successors(source)}
+
+    assert successors == set(range(0xEF61, 0xF142, 0x10))
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert not any(
+        node.simprocedure_name == "UnresolvableJumpTarget"
+        for node in cfg.graph.nodes()
+        if node.is_simprocedure
+    )
+
+
 def test_extract_recovers_a_scaled_static_byte_table() -> None:
     """Recover VEX-scaled byte-table targets without an ARM mnemonic rule."""
 

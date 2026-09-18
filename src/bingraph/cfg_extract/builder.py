@@ -29,6 +29,7 @@ from bingraph.cfg.jumps import (
     plan_mips_pic_relative_jump_table,
     plan_static_jump_table,
     static_jump_target_rejection_reason,
+    unconditional_arithmetic_pc_dispatch_targets,
 )
 from bingraph.cfg.models import BlockSpec, EdgeJumpKind, FunctionBounds
 from bingraph.cfg.decode import (
@@ -428,7 +429,11 @@ class _ExtractionSession:
                 )
                 if targets is not None:
                     conditional_sources.add(addr)
-                elif reason in {"not_conditional_pc", "no_vex"}:
+                if targets is None and reason == "not_conditional_pc":
+                    targets = unconditional_arithmetic_pc_dispatch_targets(
+                        self.project, graph, self.bounds, node
+                    )
+                if targets is None and reason in {"not_conditional_pc", "no_vex"}:
                     plan, reason = plan_static_jump_table(
                         self.project,
                         graph,

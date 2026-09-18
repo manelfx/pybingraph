@@ -715,6 +715,21 @@ def _mips_gp_relative_indirect_jump_target(
     return _read_static_pointer_target(project, slot_addr, project.arch.bytes, endness)
 
 
+def _mips_gp_relative_indirect_call_target(
+    project: Project, bounds: FunctionBounds, vex
+) -> int | None:
+    """Resolve an exact MIPS PIC ``jalr $t9`` target through its GOT slot."""
+
+    if vex.jumpkind != "Ijk_Call":
+        return None
+    slot = _mips_gp_relative_indirect_slot(project, bounds, vex)
+    if slot is None:
+        return None
+
+    slot_addr, endness = slot
+    return _read_static_pointer_target(project, slot_addr, project.arch.bytes, endness)
+
+
 def _static_memory_nonreturning_call_target(
     project: Project,
     bounds: FunctionBounds,
@@ -1051,23 +1066,36 @@ def lift_block_terminator(
             # such unnamed callees, allowing later render policy to decide
             # whether it should be visible.
             direct_targets = (default_target,)
-        static_memory_target = (
-            static_memory_indirect_call_target(project, vex)
-            if resolve_static_memory_calls
-            else None
-        )
-        if static_memory_target is not None and not direct_targets:
-            # A constant-address pointer load proves the same exact callee as
-            # a direct VEX call while preserving the ordinary FakeRet edge.
-            direct_targets = (static_memory_target,)
-        nonreturning_vex = vex
+        call_vex = vex
         if project.arch.name.startswith("MIPS") and tail_addr != block_addr:
             # The tail lift intentionally excludes preceding instructions, but
             # MIPS PIC calls load $t9 through $gp before the call itself.
             try:
-                nonreturning_vex = _lift(block_addr, block_size)
+                call_vex = _lift(block_addr, block_size)
             except Exception:
                 pass
+        static_memory_target = (
+            static_memory_indirect_call_target(project, call_vex)
+            if resolve_static_memory_calls
+            else None
+        )
+        if (
+            static_memory_target is None
+            and resolve_static_memory_calls
+            and project.arch.name.startswith("MIPS")
+        ):
+            candidate = _mips_gp_relative_indirect_call_target(
+                project, bounds, call_vex
+            )
+            if candidate is not None and _is_static_pointer_call_target(
+                project, candidate
+            ):
+                static_memory_target = candidate
+        if static_memory_target is not None and not direct_targets:
+            # A constant-address pointer load proves the same exact callee as
+            # a direct VEX call while preserving the ordinary FakeRet edge.
+            direct_targets = (static_memory_target,)
+        nonreturning_vex = call_vex
         nonreturning_target = known_nonreturning_call_target(
             project,
             bounds,
