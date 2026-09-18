@@ -46,6 +46,7 @@ class ExtractedCFGStats:
     static_jump_unresolved_dispatcher_attempts: int = 0
     static_jump_no_vex: int = 0
     static_jump_no_table_shape: int = 0
+    static_jump_dynamic_memory_target: int = 0
     static_jump_unknown_base: int = 0
     static_jump_unbounded_index: int = 0
     static_jump_table_unreadable: int = 0

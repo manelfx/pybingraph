@@ -902,6 +902,42 @@ def test_extract_does_not_reconnect_an_unbounded_table_dispatcher() -> None:
     assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
 
 
+def test_extract_does_not_reconnect_dynamic_memory_dispatch() -> None:
+    """Keep vtable-style jumps behind their unresolved target leaf."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/i386/bronze_ropchain")
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x8055B80)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    dispatcher = nodes[0x8055BFA]
+
+    successors = tuple(cfg.graph.successors(dispatcher))
+    assert len(successors) == 1
+    assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
+    assert 0x8055C06 not in nodes
+    assert cfg.extract_stats.static_jump_dynamic_memory_target == 1
+    assert cfg.extract_stats.sweep_runs == 0
+    assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
+
+
+def test_extract_keeps_static_memory_dispatch_eligible_for_recovery() -> None:
+    """Do not mistake a statically based jump table for a dynamic vtable."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/static"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x451F40)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    dispatcher = nodes[0x45279C]
+
+    successors = tuple(cfg.graph.successors(dispatcher))
+    assert len(successors) > 1
+    assert any(
+        node.simprocedure_name == "UnresolvableJumpTarget" for node in successors
+    )
+    assert cfg.extract_stats.static_jump_dynamic_memory_target == 0
+    assert cfg.extract_stats.sweep_runs == 1
+
+
 def test_extract_rejects_swept_transparent_padding_root() -> None:
     """Do not attach a scanned alignment NOP as an indirect-jump candidate."""
 

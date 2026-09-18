@@ -109,6 +109,39 @@ def _resolve_vex_expr(expr, definitions: dict[int, Any]):
     return expr
 
 
+def is_direct_memory_indirect_jump(project: Project, node: CFGNode) -> bool:
+    """Return whether an indirect jump loads its target from dynamic memory.
+
+    A direct load through a register or stack address is a dynamic dispatch,
+    such as a vtable slot, rather than evidence that arbitrary disconnected
+    code is a target.  A load whose effective address has a mapped static base
+    remains eligible for static-table recovery, even when its finite index
+    proof is not available yet.
+    """
+
+    vex = _node_vex(node)
+    if vex is None or vex.jumpkind != "Ijk_Boring":
+        return False
+    definitions = _vex_tmp_definitions(vex)
+    next_expr = _resolve_vex_expr(vex.next, definitions)
+    if not isinstance(next_expr, pyvex.expr.Load):
+        return False
+
+    address_terms = _vex_add_terms(next_expr.addr, definitions)
+    if address_terms is None:
+        return True
+    address_mask = (1 << next_expr.addr.result_size(vex.tyenv)) - 1
+    static_base = (
+        sum(
+            value
+            for term in address_terms
+            if (value := _vex_const_value(term, definitions)) is not None
+        )
+        & address_mask
+    )
+    return project.loader.find_object_containing(static_base) is None
+
+
 def _vex_const_value(expr, definitions: dict[int, Any]) -> int | None:
     """Return a VEX constant's value after resolving local temporaries."""
 

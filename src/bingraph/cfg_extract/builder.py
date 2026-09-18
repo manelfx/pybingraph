@@ -26,6 +26,7 @@ from bingraph.cfg.graph import CFGGraph, add_successor_edge
 from bingraph.cfg.jumps import (
     _read_static_jump_table_targets,
     conditional_pc_dispatch_targets,
+    is_direct_memory_indirect_jump,
     plan_mips_pic_relative_jump_table,
     plan_static_jump_table,
     static_jump_target_rejection_reason,
@@ -461,6 +462,10 @@ class _ExtractionSession:
                             plan.entry_indices,
                         )
                 if targets is None:
+                    if reason == "no_table_shape" and is_direct_memory_indirect_jump(
+                        self.project, node
+                    ):
+                        reason = "dynamic_memory_target"
                     unresolved_reasons[addr] = reason
                     self.stats.static_jump_unresolved_dispatcher_attempts += 1
                     if reason is not None:
