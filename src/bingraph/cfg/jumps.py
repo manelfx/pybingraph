@@ -37,6 +37,7 @@ from .graph import (
     node_vex as _node_vex,
 )
 from .models import (
+    BlockSpec,
     CFGAnomaly,
     FunctionBounds,
     JumpSuccessorAnalysis,
@@ -49,6 +50,7 @@ from .models import (
 # Static table recovery is deliberately bounded. Larger index domains require a
 # stronger range proof than the local VEX matcher currently provides.
 MAX_STATIC_JUMPTABLE_ENTRIES = 256
+MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES = 4096
 
 
 def is_direct_target_valid(bounds: FunctionBounds, target: int | None) -> bool:
@@ -201,6 +203,249 @@ def _vex_add_terms(expr, definitions: dict[int, Any]) -> list[Any] | None:
             return None
         return [*left, *right]
     return [expr]
+
+
+def _amd64_sysv_register_layout(
+    project: Project,
+) -> tuple[dict[int, int], set[int]] | None:
+    """Return AMD64 SysV alias writes and canonical callee-saved offsets."""
+
+    if project.arch.name != "AMD64":
+        return None
+    object_os = getattr(project.loader.main_object, "os", "")
+    if not isinstance(object_os, str) or not object_os.startswith("UNIX"):
+        return None
+
+    general_registers = [
+        register
+        for register in project.arch.register_list
+        if register.general_purpose and register.name != "rip"
+    ]
+    offsets = {register.name: register.vex_offset for register in general_registers}
+    if not {"rbx", "rbp", "r12", "r13", "r14", "r15"} <= offsets.keys():
+        return None
+
+    alias_writes: dict[int, int] = {}
+    for register in general_registers:
+        alias_writes[register.vex_offset] = register.vex_offset
+        for _, relative_offset, _ in register.subregisters:
+            alias_writes[register.vex_offset + relative_offset] = register.vex_offset
+    return alias_writes, {
+        offsets[name] for name in ("rbx", "rbp", "r12", "r13", "r14", "r15")
+    }
+
+
+def _abi_static_target_is_valid(project: Project, target: int) -> bool:
+    """Return whether one propagated address is a materializable code target."""
+
+    rejection = static_jump_target_rejection_reason(project, target)
+    if rejection is None:
+        return True
+    if rejection != "synthetic":
+        return False
+    symbol = project.loader.find_symbol(target)
+    return bool(symbol is not None and getattr(symbol, "is_function", False))
+
+
+def _abi_static_pointer_target(project: Project, vex, load) -> int | None:
+    """Read one exact static pointer load when it names executable code."""
+
+    if not isinstance(load.addr, pyvex.expr.Const):
+        return None
+    slot_addr = load.addr.con.value
+    entry_size = load.result_size(vex.tyenv) // 8
+    if not isinstance(slot_addr, int) or entry_size not in {4, 8}:
+        return None
+    try:
+        raw = project.loader.memory.load(slot_addr, entry_size)
+    except Exception:
+        return None
+    byteorder = "little" if "LE" in load.end else "big"
+    target = int.from_bytes(raw, byteorder=byteorder)
+    return target if _abi_static_target_is_valid(project, target) else None
+
+
+def _abi_static_expression_target(
+    project: Project,
+    vex,
+    expr,
+    definitions: dict[int, Any],
+    state: dict[int, int],
+    alias_writes: dict[int, int],
+) -> int | None:
+    """Evaluate one VEX expression in the small static-target domain."""
+
+    expr = _resolve_vex_expr(expr, definitions)
+    if isinstance(expr, pyvex.expr.Const):
+        value = expr.con.value
+        return (
+            value
+            if isinstance(value, int) and _abi_static_target_is_valid(project, value)
+            else None
+        )
+    if isinstance(expr, pyvex.expr.Get):
+        canonical_offset = alias_writes.get(expr.offset)
+        if (
+            canonical_offset != expr.offset
+            or expr.result_size(vex.tyenv) != project.arch.bits
+        ):
+            return None
+        return state.get(canonical_offset)
+    if isinstance(expr, pyvex.expr.Load):
+        return _abi_static_pointer_target(project, vex, expr)
+    return None
+
+
+def _abi_transfer_static_targets(
+    project: Project,
+    block: BlockSpec,
+    alias_writes: dict[int, int],
+    state: dict[int, int],
+) -> tuple[dict[int, int], int | None]:
+    """Apply one block's VEX register writes and return its indirect target."""
+
+    try:
+        vex = project.factory.block(
+            block.addr,
+            size=block.size,
+            strict_block_end=True,
+            cross_insn_opt=False,
+        ).vex
+    except Exception:
+        return {}, None
+
+    definitions = _vex_tmp_definitions(vex)
+    output = dict(state)
+    for statement in vex.statements:
+        if not isinstance(statement, pyvex.stmt.Put):
+            continue
+        canonical_offset = alias_writes.get(statement.offset)
+        if canonical_offset is None:
+            continue
+        if statement.data.result_size(vex.tyenv) != project.arch.bits:
+            output.pop(canonical_offset, None)
+            continue
+        target = _abi_static_expression_target(
+            project, vex, statement.data, definitions, output, alias_writes
+        )
+        if target is None:
+            output.pop(canonical_offset, None)
+        else:
+            output[canonical_offset] = target
+    next_expr = _resolve_vex_expr(vex.next, definitions)
+    if not isinstance(next_expr, pyvex.expr.Get):
+        return output, None
+    target = _abi_static_expression_target(
+        project, vex, next_expr, definitions, output, alias_writes
+    )
+    return output, target
+
+
+def _abi_successor_addrs(
+    blocks: dict[int, BlockSpec], block: BlockSpec
+) -> tuple[int, ...]:
+    """Return intraprocedural continuations used by must-dataflow analysis."""
+
+    if block.jumpkind == "Ijk_Call":
+        candidates = (block.fallthrough_addr,)
+    else:
+        candidates = (*block.direct_targets, block.fallthrough_addr)
+    return tuple(target for target in candidates if target in blocks)
+
+
+def _abi_join_static_states(states: Iterable[dict[int, int]]) -> dict[int, int]:
+    """Keep only target values established by every incoming path."""
+
+    iterator = iter(states)
+    try:
+        joined = dict(next(iterator))
+    except StopIteration:
+        return {}
+    for state in iterator:
+        joined = {
+            offset: target
+            for offset, target in joined.items()
+            if state.get(offset) == target
+        }
+    return joined
+
+
+def abi_static_register_transfer_targets(
+    project: Project,
+    bounds: FunctionBounds,
+    blocks: dict[int, BlockSpec],
+) -> tuple[dict[int, int], bool, bool]:
+    """Resolve register transfers proven by the active function ABI.
+
+    The analysis is deliberately a must-analysis over exact code addresses.
+    Unknown values and disagreeing predecessors are discarded, while calls
+    preserve only registers guaranteed by the selected ABI.  It returns no
+    partial answers when its bounded worklist is exhausted.  The final flag
+    reports whether the ABI profile and at least one candidate were present.
+    """
+
+    profile = _amd64_sysv_register_layout(project)
+    if profile is None:
+        return {}, False, False
+    alias_writes, preserved_offsets = profile
+    candidates = {
+        addr: block
+        for addr, block in blocks.items()
+        if block.jumpkind in {"Ijk_Boring", "Ijk_Call"} and not block.direct_targets
+    }
+    if not candidates:
+        return {}, False, False
+
+    successors = {
+        addr: _abi_successor_addrs(blocks, block) for addr, block in blocks.items()
+    }
+    predecessors: dict[int, set[int]] = {addr: set() for addr in blocks}
+    for source, targets in successors.items():
+        for target in targets:
+            predecessors[target].add(source)
+
+    in_states: dict[int, dict[int, int]] = {bounds.addr: {}}
+    out_states: dict[int, dict[int, int]] = {}
+    transfer_targets: dict[int, int] = {}
+    pending = deque([bounds.addr])
+    updates = 0
+    while pending:
+        addr = pending.popleft()
+        updates += 1
+        if updates > MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES:
+            return {}, True, True
+        block = blocks[addr]
+        output, target = _abi_transfer_static_targets(
+            project, block, alias_writes, in_states[addr]
+        )
+        if block.jumpkind == "Ijk_Call":
+            output = {
+                offset: value
+                for offset, value in output.items()
+                if offset in preserved_offsets
+            }
+        if out_states.get(addr) == output:
+            continue
+        out_states[addr] = output
+        if addr in candidates and target is not None:
+            transfer_targets[addr] = target
+        else:
+            transfer_targets.pop(addr, None)
+        for successor in successors[addr]:
+            if successor == bounds.addr:
+                continue
+            incoming = [
+                out_states[pred]
+                for pred in predecessors[successor]
+                if pred in out_states
+            ]
+            if not incoming:
+                continue
+            joined = _abi_join_static_states(incoming)
+            if in_states.get(successor) != joined:
+                in_states[successor] = joined
+                pending.append(successor)
+    return transfer_targets, False, True
 
 
 def _mips_entry_global_pointer(project: Project, bounds: FunctionBounds) -> int | None:

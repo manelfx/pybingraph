@@ -30,6 +30,10 @@ class ExtractedCFGStats:
     static_syscall_resolution_attempts: int = 0
     static_syscalls_resolved: int = 0
     static_syscall_fallthroughs_suppressed: int = 0
+    abi_static_target_analysis_runs: int = 0
+    abi_static_target_analysis_budget_exhausted: int = 0
+    abi_static_call_targets_resolved: int = 0
+    abi_static_jump_targets_resolved: int = 0
     linear_direct_transfers_continued: int = 0
     unresolved_indirect_targets: int = 0
     unresolved_call_targets: int = 0

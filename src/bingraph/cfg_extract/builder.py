@@ -25,6 +25,7 @@ from bingraph.cfg.anomalies import _lookup_function_bounds
 from bingraph.cfg.graph import CFGGraph, add_successor_edge
 from bingraph.cfg.jumps import (
     _read_static_jump_table_targets,
+    abi_static_register_transfer_targets,
     conditional_pc_dispatch_targets,
     is_direct_memory_indirect_jump,
     plan_mips_pic_relative_jump_table,
@@ -407,6 +408,35 @@ class _ExtractionSession:
                 )
         return graph, nodes
 
+    def _resolve_abi_static_register_transfers(self) -> None:
+        """Materialize ABI-preserved register transfers proven by VEX dataflow."""
+
+        while True:
+            targets, exhausted, ran = abi_static_register_transfer_targets(
+                self.project, self.bounds, self.blocks
+            )
+            self.stats.abi_static_target_analysis_runs += ran
+            self.stats.abi_static_target_analysis_budget_exhausted += exhausted
+            if exhausted or not targets:
+                return
+
+            discovered = False
+            for addr, target in targets.items():
+                block = self.blocks[addr]
+                self.blocks[addr] = replace(block, direct_targets=(target,))
+                if block.jumpkind == "Ijk_Call":
+                    self.stats.abi_static_call_targets_resolved += 1
+                else:
+                    self.stats.abi_static_jump_targets_resolved += 1
+                if self.bounds.addr <= target < self.bounds.end_addr:
+                    self._claim_code_target(target)
+                    before = target in self.blocks or target in self.pending_addrs
+                    if self._add_leader(target):
+                        discovered |= not before
+            if not discovered:
+                return
+            self._decode_all_blocks()
+
     def _discover_static_jump_targets(self) -> None:
         """Use shared VEX table proofs to add further in-function leaders."""
 
@@ -756,6 +786,7 @@ class _ExtractionSession:
         """Recover the bounded function graph and expose it to rendering."""
 
         self._decode_all_blocks()
+        self._resolve_abi_static_register_transfers()
         self._discover_static_jump_targets()
         self._recover_reconnecting_components()
         self._materialize_edges()

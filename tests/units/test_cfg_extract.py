@@ -938,6 +938,28 @@ def test_extract_keeps_static_memory_dispatch_eligible_for_recovery() -> None:
     assert cfg.extract_stats.sweep_runs == 1
 
 
+def test_extract_resolves_abi_preserved_register_tail_target() -> None:
+    """Propagate a static AMD64 SysV callback target across its calls."""
+
+    project = project_module.load_project(
+        Path(
+            "angr-binaries/tests/x86_64/"
+            "1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51"
+        )
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x413630)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+
+    first_call = nodes[0x413645]
+    tail_jump = nodes[0x41367F]
+    assert 0x41C030 in {node.addr for node in cfg.graph.successors(first_call)}
+    assert {node.addr for node in cfg.graph.successors(tail_jump)} == {0x41C030}
+    assert cfg.extract_stats.abi_static_target_analysis_runs == 1
+    assert cfg.extract_stats.abi_static_call_targets_resolved == 8
+    assert cfg.extract_stats.abi_static_jump_targets_resolved == 1
+    assert cfg.extract_stats.abi_static_target_analysis_budget_exhausted == 0
+
+
 def test_extract_rejects_swept_transparent_padding_root() -> None:
     """Do not attach a scanned alignment NOP as an indirect-jump candidate."""
 
