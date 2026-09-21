@@ -644,6 +644,117 @@ def _vex_table_index(
     return None, _vex_finite_index_values(expr, definitions)
 
 
+def _vex_scaled_table_index(
+    expr, definitions: dict[int, Any]
+) -> tuple[Any, int, tuple[int, ...] | None, int | None] | None:
+    """Normalize a VEX-scaled table selector to its source and shift.
+
+    Besides an ordinary left shift, s390x lifts ``risbg``/``risbgn`` as a
+    rotate followed by a mask. Accept only the form whose mask removes the
+    rotated-in low bits and retains a contiguous low selector domain. That is
+    exactly a masked left shift, not a general rotate-based computation.
+    """
+
+    expr = _resolve_vex_expr(expr, definitions)
+    if isinstance(expr, pyvex.expr.Binop) and expr.op.startswith("Iop_Shl"):
+        shift = _vex_const_value(expr.args[1], definitions)
+        return (expr.args[0], shift, None, None) if shift is not None else None
+
+    if not isinstance(expr, pyvex.expr.Binop) or not expr.op.startswith("Iop_And"):
+        return None
+    left, right = expr.args
+    left_value = _vex_const_value(left, definitions)
+    right_value = _vex_const_value(right, definitions)
+    if (left_value is None) == (right_value is None):
+        return None
+    mask, rotated = (
+        (left_value, right) if left_value is not None else (right_value, left)
+    )
+    rotated = _resolve_vex_expr(rotated, definitions)
+    if (
+        mask is None
+        or not isinstance(rotated, pyvex.expr.Binop)
+        or not rotated.op.startswith("Iop_Or")
+    ):
+        return None
+
+    shifts = tuple(_resolve_vex_expr(term, definitions) for term in rotated.args)
+    left_shift = next(
+        (
+            term
+            for term in shifts
+            if isinstance(term, pyvex.expr.Binop) and term.op.startswith("Iop_Shl")
+        ),
+        None,
+    )
+    right_shift = next(
+        (
+            term
+            for term in shifts
+            if isinstance(term, pyvex.expr.Binop) and term.op.startswith("Iop_Shr")
+        ),
+        None,
+    )
+    if left_shift is None or right_shift is None:
+        return None
+    shift = _vex_const_value(left_shift.args[1], definitions)
+    inverse_shift = _vex_const_value(right_shift.args[1], definitions)
+    source = _resolve_vex_expr(left_shift.args[0], definitions)
+    inverse_source = _resolve_vex_expr(right_shift.args[0], definitions)
+    width = source.result_size(None) if source is not None else 0
+    if (
+        shift is None
+        or inverse_shift is None
+        or source is None
+        or inverse_source is None
+        or source != inverse_source
+        or shift <= 0
+        or shift >= width
+        or inverse_shift != width - shift
+    ):
+        return None
+
+    if mask & ((1 << shift) - 1):
+        return None
+    index_mask = mask >> shift
+    if index_mask <= 0 or index_mask & (index_mask + 1):
+        return None
+    if mask != index_mask << shift:
+        return None
+    values = (
+        tuple(range(index_mask + 1))
+        if index_mask + 1 <= MAX_STATIC_JUMPTABLE_ENTRIES
+        else None
+    )
+    return source, shift, values, index_mask.bit_length()
+
+
+def _vex_low_register_view_keys(
+    register_key: tuple[int, int], minimum_bits: int, vex
+) -> tuple[tuple[int, int], ...]:
+    """Return byte-addressable aliases representing a register's low bits."""
+
+    if minimum_bits <= 0 or minimum_bits > register_key[1]:
+        return ()
+    arch = getattr(vex, "arch", None)
+    registers = getattr(arch, "registers", {})
+    parent_offset, parent_bits = register_key
+    parent_bytes = parent_bits // 8
+    candidates: set[tuple[int, int]] = set()
+    for offset, size in registers.values():
+        view_bits = size * 8
+        if not minimum_bits <= view_bits < parent_bits:
+            continue
+        view_offset = (
+            parent_offset + parent_bytes - size
+            if getattr(arch, "register_endness", None) == "Iend_BE"
+            else parent_offset
+        )
+        if offset == view_offset:
+            candidates.add((offset, view_bits))
+    return tuple(sorted(candidates))
+
+
 def _vex_affine_difference_index(
     expr, definitions: dict[int, Any], vex
 ) -> tuple[tuple[int, int], tuple[int, int], int] | None:
@@ -873,6 +984,30 @@ def _vex_guarded_expression_upper_bound(
     return next(iter(bounds)) if len(bounds) == 1 else None
 
 
+def _vex_unsigned_guard_comparison(guard, definitions: dict[int, Any]):
+    """Unwrap VEX's nonzero test around an unsigned branch comparison."""
+
+    guard = _resolve_vex_expr(guard, definitions)
+    while isinstance(guard, pyvex.expr.Unop):
+        guard = _resolve_vex_expr(guard.args[0], definitions)
+    if not isinstance(guard, pyvex.expr.Binop) or not guard.op.startswith("Iop_CmpNE"):
+        return guard
+
+    left, right = guard.args
+    left_value = _vex_const_value(left, definitions)
+    right_value = _vex_const_value(right, definitions)
+    if left_value == 0 and right_value is None:
+        condition = right
+    elif right_value == 0 and left_value is None:
+        condition = left
+    else:
+        return guard
+    condition = _resolve_vex_expr(condition, definitions)
+    while isinstance(condition, pyvex.expr.Unop):
+        condition = _resolve_vex_expr(condition.args[0], definitions)
+    return condition
+
+
 def _vex_guard_upper_bound(
     guard,
     index_key: tuple[int, int],
@@ -884,9 +1019,7 @@ def _vex_guard_upper_bound(
 ) -> int | None:
     """Return an unsigned bound implied when ``guard`` has the given truth."""
 
-    guard = _resolve_vex_expr(guard, definitions)
-    while isinstance(guard, pyvex.expr.Unop):
-        guard = _resolve_vex_expr(guard.args[0], definitions)
+    guard = _vex_unsigned_guard_comparison(guard, definitions)
     if not isinstance(guard, pyvex.expr.Binop) or not guard.op.endswith("U"):
         return None
 
@@ -1488,11 +1621,19 @@ def _guarded_jump_table_entry_count(
                 vex, node.addr, table.index_expression
             )
         elif table.index_register_offset is not None and table.index_bits is not None:
-            upper_bound = _vex_guarded_index_upper_bound(
-                vex,
-                node.addr,
-                (table.index_register_offset, table.index_bits),
-            )
+            index_key = (table.index_register_offset, table.index_bits)
+            upper_bound = _vex_guarded_index_upper_bound(vex, node.addr, index_key)
+            if upper_bound is None and table.index_low_bits is not None:
+                alias_bounds = {
+                    bound
+                    for alias in _vex_low_register_view_keys(
+                        index_key, table.index_low_bits, vex
+                    )
+                    if (bound := _vex_guarded_index_upper_bound(vex, node.addr, alias))
+                    is not None
+                }
+                if len(alias_bounds) == 1:
+                    upper_bound = next(iter(alias_bounds))
         else:
             continue
         if upper_bound is not None:
@@ -1573,15 +1714,16 @@ def _vex_relative_jump_table(
     allow_full_width_index: bool = False,
     allow_inline_index_values: bool = False,
     allow_masked_index_values: bool = False,
+    allow_guarded_expression_index: bool = False,
 ) -> StaticJumpTable | None:
     """
     Describe a bounded relative jump table encoded in one VEX indirect jump.
 
     The accepted form is intentionally narrow: ``next`` must add a register
     base to a loaded (optionally sign-extended) table entry, while the load
-    address must be that same base plus an index scaled by the entry size. This
-    covers common PIC tables without treating arbitrary computed jumps as CFG
-    targets.
+    address must be that same base plus an index scaled by the entry size. The
+    optional expression form accepts a memory-reading selector only when a
+    predecessor separately proves its finite range.
     """
 
     if vex.jumpkind != "Ijk_Boring":
@@ -1636,9 +1778,11 @@ def _vex_relative_jump_table(
         index_key: tuple[int, int] | None = None
         index_bits: int | None = None
         index_values: tuple[int, ...] | None = None
+        index_expression: tuple[Any, ...] | None = None
         index_affine_difference: tuple[tuple[int, int], tuple[int, int], int] | None = (
             None
         )
+        preserve_unresolved_fallback = False
         for term in address_terms:
             value = _vex_const_value(term, definitions)
             if value is not None:
@@ -1650,42 +1794,67 @@ def _vex_relative_jump_table(
             ):
                 saw_base = True
                 continue
-            term = _resolve_vex_expr(term, definitions)
-            if not isinstance(term, pyvex.expr.Binop) or not term.op.startswith(
-                "Iop_Shl"
-            ):
+            scaled_index = _vex_scaled_table_index(term, definitions)
+            if scaled_index is None:
                 break
-            shift = _vex_const_value(term.args[1], definitions)
+            index_expr, shift, bounded_values, masked_index_bits = scaled_index
             candidate_key, candidate_values = _vex_table_index(
-                term.args[0],
+                index_expr,
                 definitions,
                 vex,
                 allow_full_width=allow_full_width_index,
                 allow_inline_index_values=allow_inline_index_values,
                 allow_masked_index_values=allow_masked_index_values,
             )
+            if candidate_key is None and masked_index_bits is not None:
+                # The rotate-mask pattern establishes a finite low-bit domain.
+                # Retain its full register solely to intersect that domain with
+                # a predecessor guard expressed through a byte-sized alias.
+                candidate_key = _vex_index_key(
+                    index_expr, definitions, vex, allow_full_width=True
+                )
+            if candidate_values is None:
+                candidate_values = bounded_values
+            preserve_unresolved_fallback |= (
+                masked_index_bits is not None and bounded_values is None
+            )
             candidate_affine_difference = None
             if candidate_key is None and candidate_values is None:
                 candidate_affine_difference = _vex_affine_difference_index(
-                    term.args[0], definitions, vex
+                    index_expr, definitions, vex
                 )
+            candidate_expression = None
+            if (
+                candidate_key is None
+                and candidate_values is None
+                and candidate_affine_difference is None
+                and allow_guarded_expression_index
+            ):
+                candidate_expression = _vex_expr_key(index_expr, definitions)
+                if candidate_expression is None or not _vex_key_reads_memory(
+                    candidate_expression
+                ):
+                    candidate_expression = None
             if (
                 shift is None
                 or (
                     candidate_key is None
                     and candidate_values is None
                     and candidate_affine_difference is None
+                    and candidate_expression is None
                 )
                 or 1 << shift != entry_size
                 or index_key is not None
                 or index_values is not None
                 or index_affine_difference is not None
+                or index_expression is not None
             ):
                 break
             index_key = candidate_key
             index_bits = candidate_key[1] if candidate_key is not None else None
             index_values = candidate_values
             index_affine_difference = candidate_affine_difference
+            index_expression = candidate_expression
         else:
             if static_base_addr is not None:
                 mask = (1 << base_bits) - 1
@@ -1697,6 +1866,7 @@ def _vex_relative_jump_table(
                 index_key is not None
                 or index_values is not None
                 or index_affine_difference is not None
+                or index_expression is not None
             ):
                 offset = base_key[0] if base_key is not None else None
                 table_displacement = displacement & ((1 << base_bits) - 1)
@@ -1714,7 +1884,10 @@ def _vex_relative_jump_table(
                     target_displacement=target_displacement,
                     static_base_addr=static_base_addr,
                     index_values=index_values,
+                    index_low_bits=masked_index_bits,
+                    index_expression=index_expression,
                     index_affine_difference=index_affine_difference,
+                    preserve_unresolved_fallback=preserve_unresolved_fallback,
                 )
 
     return None
@@ -3383,6 +3556,7 @@ def plan_static_jump_table(
             vex,
             allow_inline_index_values=allow_inline_index_values,
             allow_masked_index_values=allow_masked_index_values,
+            allow_guarded_expression_index=allow_guarded_expression_indices,
         )
         or _vex_scaled_relative_jump_table(
             vex,
@@ -3407,6 +3581,7 @@ def plan_static_jump_table(
                 allow_full_width_index=True,
                 allow_inline_index_values=allow_inline_index_values,
                 allow_masked_index_values=allow_masked_index_values,
+                allow_guarded_expression_index=allow_guarded_expression_indices,
             )
             or _vex_scaled_relative_jump_table(
                 vex,
@@ -3470,7 +3645,10 @@ def plan_static_jump_table(
         # base only if every bounded VEX definition agrees on its value.
         base_addr = _unique_static_register_value(graph, bounds, base_register_offset)
     if base_addr is None:
-        return None, "unknown_base"
+        return (
+            None,
+            "no_table_shape" if table.preserve_unresolved_fallback else "unknown_base",
+        )
 
     if (
         entry_indices is None
@@ -3483,7 +3661,12 @@ def plan_static_jump_table(
         if entry_count is not None:
             entry_indices = tuple(range(entry_count))
     if not entry_indices:
-        return None, "unbounded_index"
+        return (
+            None,
+            "no_table_shape"
+            if table.preserve_unresolved_fallback
+            else "unbounded_index",
+        )
 
     return StaticJumpTablePlan(table, base_addr, entry_indices), None
 

@@ -902,6 +902,23 @@ def test_extract_does_not_reconnect_an_unbounded_table_dispatcher() -> None:
     assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
 
 
+def test_extract_preserves_sweep_for_unbounded_rotated_table_index() -> None:
+    """Keep the prior fallback when a new rotate matcher lacks a range proof."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/s390x/cfg_2"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x400840)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    dispatcher = nodes[0x4008AC]
+
+    assert 0x4008C2 in nodes
+    assert (
+        len({addr for node in nodes.values() for addr in node.instruction_addrs}) == 59
+    )
+    assert len(tuple(cfg.graph.successors(dispatcher))) == 12
+    assert cfg.extract_stats.static_jump_no_table_shape == 1
+    assert cfg.extract_stats.sweep_runs == 1
+
+
 def test_extract_does_not_reconnect_dynamic_memory_dispatch() -> None:
     """Keep vtable-style jumps behind their unresolved target leaf."""
 
@@ -1131,6 +1148,62 @@ def test_extract_resolves_a_guarded_x86_64_stack_selector() -> None:
     assert all(not successor.is_simprocedure for successor in successors)
     assert cfg.extract_stats.static_jump_plans_resolved == 1
     assert cfg.extract_stats.unresolved_indirect_targets == 0
+
+
+def test_extract_resolves_guarded_memory_relative_tables() -> None:
+    """Use a predecessor range proof for a stack-loaded relative-table index."""
+
+    cases = (
+        (
+            "x86_64/traffic_light_addsensor_x86-64/Traffic_Light_addsensor_x86-64.so",
+            0x406AA1,
+            0x406AB2,
+            20,
+        ),
+        ("x86_64/multiarch_main_main.o", 0x403173, 0x403188, 21),
+    )
+    for binary, function_addr, source_addr, successor_count in cases:
+        project = project_module.load_project(Path("angr-binaries/tests") / binary)
+        cfg = build_extracted_cfg(project, KnowledgeBase(project), function_addr)
+        nodes = {
+            node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure
+        }
+        successors = tuple(cfg.graph.successors(nodes[source_addr]))
+
+        assert len(successors) == successor_count
+        assert all(not successor.is_simprocedure for successor in successors)
+        assert cfg.extract_stats.static_jump_plans_resolved == 1
+        assert cfg.extract_stats.unresolved_indirect_targets == 0
+
+
+def test_extract_resolves_s390x_rotated_relative_table_index() -> None:
+    """Normalize s390x's masked rotate encoding of an eight-byte index."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/s390x/libc.so.6"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x48EE08)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x48EE94]))
+
+    assert len(successors) == 9
+    assert all(not successor.is_simprocedure for successor in successors)
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert cfg.extract_stats.unresolved_indirect_targets == 0
+
+
+def test_extract_honors_s390x_rotated_table_predecessor_guard() -> None:
+    """Do not read adjacent data past a guarded rotated-index table."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/s390x/test-instr_s390x")
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x80067160)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x80067188]))
+
+    assert len(successors) == 8
+    assert all(not successor.is_simprocedure for successor in successors)
+    assert not {0x800674A4, 0x80067572, 0x800675B8} & nodes.keys()
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
 
 
 def test_extract_resolves_a_guarded_sign_extended_byte_selector() -> None:
