@@ -887,6 +887,50 @@ def test_extract_recovers_reconnecting_components_from_one_dispatcher() -> None:
     assert not tuple(cfg.graph.successors(unresolved))
 
 
+def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
+    """Keep proven table closure when another dispatcher remains unresolved."""
+
+    cases = (
+        (
+            "x86_64/rust_hello_world",
+            0x4207F0,
+            0x4208F7,
+            (0x4208A8, 0x420A0C),
+            41,
+        ),
+        ("x86_64/cvs", 0x47F600, 0x47FBD0, (0x47FD00, 0x47FE60), 6),
+        (
+            "x86_64/1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
+            0x427320,
+            0x42A0FA,
+            (0x42A125, 0x42A171),
+            5,
+        ),
+    )
+    for (
+        binary,
+        function_addr,
+        dispatcher_addr,
+        expected_targets,
+        successor_count,
+    ) in cases:
+        project = project_module.load_project(Path("angr-binaries/tests") / binary)
+        cfg = build_extracted_cfg(project, KnowledgeBase(project), function_addr)
+        nodes = {
+            node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure
+        }
+        successors = tuple(cfg.graph.successors(nodes[dispatcher_addr]))
+
+        assert len(successors) == successor_count
+        assert set(expected_targets) <= nodes.keys()
+        assert all(not successor.is_simprocedure for successor in successors)
+        assert not any(
+            node.is_simprocedure and node.name == "UndecodableInstructionTarget"
+            for node in cfg.graph.nodes()
+        )
+        assert cfg.extract_stats.sweep_runs == 1
+
+
 def test_extract_does_not_reconnect_an_unbounded_table_dispatcher() -> None:
     """Keep unknown targets behind a recognized but unbounded jump table."""
 
@@ -1391,7 +1435,7 @@ def test_extract_keeps_original_graph_when_sweep_loses_dispatcher(monkeypatch) -
     monkeypatch.setattr(
         builder_module,
         "select_reconnecting_components",
-        lambda *_: ReconnectingComponents(
+        lambda *_, **__: ReconnectingComponents(
             {0x1010: selected_block}, frozenset({0x1010}), 1
         ),
     )

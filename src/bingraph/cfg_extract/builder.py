@@ -711,7 +711,12 @@ class _ExtractionSession:
         self.stats.sweep_candidate_components += audit.candidate_components
         self.stats.sweep_decode_failures += audit.decode_failures
         self.stats.sweep_non_executable_bytes += audit.non_executable_bytes
-        selected = select_reconnecting_components(self.project, sweep, recovered_blocks)
+        selected = select_reconnecting_components(
+            self.project,
+            sweep,
+            recovered_blocks,
+            static_targets=self.static_targets,
+        )
         if dispatcher_addr not in selected.blocks:
             # The sweep changed the source whose unknown targets would be
             # attached. Keep the original graph rather than mix a stale
@@ -730,11 +735,10 @@ class _ExtractionSession:
         self.sweep_dispatcher_addr = dispatcher_addr
         self.sweep_component_roots = selected.roots
         self.stats.sweep_reconnecting_components += selected.component_count
-        reconnecting_block_count = len(selected.blocks) - len(sweep.reachable_addrs)
-        self.stats.sweep_reconnecting_blocks += reconnecting_block_count
+        self.stats.sweep_reconnecting_blocks += selected.reconnecting_block_count
         logger.info(
             f"Extract CFG recovery for {self.func_addr:#x}: selected "
-            f"{reconnecting_block_count} block(s) from "
+            f"{selected.reconnecting_block_count} block(s) from "
             f"{selected.component_count} "
             f"reconnecting component(s) behind {dispatchers[0]:#x}"
         )

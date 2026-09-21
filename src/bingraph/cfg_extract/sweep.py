@@ -48,6 +48,7 @@ class ReconnectingComponents:
     blocks: Mapping[int, BlockSpec]
     roots: frozenset[int]
     component_count: int
+    reconnecting_block_count: int = 0
 
 
 def _covering_end(blocks: Mapping[int, BlockSpec], addr: int) -> int | None:
@@ -81,6 +82,27 @@ def _reachable_addrs(
     if bounds.addr not in graph:
         return set()
     return nx.descendants(graph, bounds.addr) | {bounds.addr}
+
+
+def _reachable_with_static_targets(
+    blocks: Mapping[int, BlockSpec],
+    directly_reachable: frozenset[int],
+    static_targets: Mapping[int, tuple[int, ...]],
+) -> set[int]:
+    """Return blocks reached by direct flow or already-proven table edges."""
+
+    graph = _direct_flow_graph(blocks)
+    reachable = set(directly_reachable)
+    pending = deque(reachable)
+    while pending:
+        source = pending.popleft()
+        targets = (*graph.successors(source), *static_targets.get(source, ()))
+        for target in targets:
+            if target not in graph or target in reachable:
+                continue
+            reachable.add(target)
+            pending.append(target)
+    return reachable
 
 
 def _disconnected_component_count(
@@ -321,6 +343,8 @@ def select_reconnecting_components(
     project: Project | None,
     sweep: ExecutableSweep,
     recovered_blocks: Mapping[int, BlockSpec],
+    *,
+    static_targets: Mapping[int, tuple[int, ...]] | None = None,
 ) -> ReconnectingComponents:
     """Select direct-flow components that rejoin known function code.
 
@@ -333,14 +357,18 @@ def select_reconnecting_components(
     """
 
     graph = _direct_flow_graph(sweep.blocks)
-    disconnected_graph = graph.subgraph(sweep.disconnected_addrs)
+    known_reachable = _reachable_with_static_targets(
+        sweep.blocks, sweep.reachable_addrs, static_targets or {}
+    )
+    disconnected_graph = graph.subgraph(set(sweep.blocks) - known_reachable)
     recovered_addrs = set(recovered_blocks)
-    # Preserve leader-closed revisions of entry-reachable blocks. A selected
-    # component can branch into the middle of an original block, so retaining
-    # the pre-sweep block would undo the exact-target split.
-    selected_blocks = {addr: sweep.blocks[addr] for addr in sweep.reachable_addrs}
+    # Preserve leader-closed revisions of known blocks, including static-table
+    # closure. A selected component can branch into the middle of an original
+    # block, so retaining the pre-sweep block would undo an exact-target split.
+    selected_blocks = {addr: sweep.blocks[addr] for addr in known_reachable}
     roots: set[int] = set()
     component_count = 0
+    reconnecting_block_count = 0
 
     for component in nx.weakly_connected_components(disconnected_graph):
         has_rejoin = any(
@@ -386,10 +414,16 @@ def select_reconnecting_components(
             continue
 
         component_count += 1
+        reconnecting_block_count += len(component)
         selected_blocks.update((addr, sweep.blocks[addr]) for addr in component)
         roots.update(component_roots)
 
-    return ReconnectingComponents(selected_blocks, frozenset(roots), component_count)
+    return ReconnectingComponents(
+        selected_blocks,
+        frozenset(roots),
+        component_count,
+        reconnecting_block_count,
+    )
 
 
 def audit_executable_range(
