@@ -98,6 +98,74 @@ Review http://127.0.0.1:8000/cfg?filepath=x86_64/fmt-rust&function=0x4ad760
 Check in extract how `UnresolvedJumpTarget` node is connected with dispatcher
 (e.g., http://127.0.0.1:8000/cfg?filepath=x86_64/rust_hello_world&function=0x43cff0&mode=extract).
 
+=== Experiment: bounded symbolic resolver for indirect jumps
+
+Purpose
+
+Extract mode has accumulated several narrowly shaped unresolved-jump (UJ)
+resolvers as corpus cases exposed new ways of materializing a static target.
+They are deliberately conservative, but each one duplicates parts of the same
+question: can the values reaching an indirect transfer be proven to select a
+complete, finite set of executable targets? Evaluate whether a small symbolic
+resolver can answer that question more generally, while retaining extract
+mode's stronger rule that a solid edge requires proof rather than a plausible
+candidate. The goal is to improve CFG accuracy, not merely to make extract
+artifacts resemble custom CFGFast output.
+
+Experiment
+
+Implement an opt-in, local symbolic-resolution fallback after the existing
+cheap exact resolvers and before `UnresolvableJumpTarget` materialization. Do
+not run `CFGEmulated` or `CFGFast` over the function. Instead, when a transfer
+has a recognized static-memory/table shape, construct a bounded slice of the
+relevant predecessor region, symbolize its unknown inputs, and execute only
+the expressions needed to derive the transfer target and its index bounds.
+
+- Use only direct control-flow and already-proven exact edges as slice input;
+  never use dashed candidate edges or UJT edges to justify an exact result.
+- Prove a finite selector domain, enumerate its table/memory values, and
+  validate every resulting target as executable before returning an exact
+  target set.
+- Impose strict, deterministic caps on slice blocks, states, path forks,
+  solver queries, table entries, and elapsed work. Reject unknown calls,
+  unsupported side effects, symbolic table bases, or any budget exhaustion.
+- Return no result unless the engine proves that the set is complete. The
+  ordinary candidate recovery and UJT fallback must remain unchanged for all
+  rejected or inconclusive cases.
+- Add diagnostics for attempts, resolutions, target counts, rejection reasons,
+  and budget use. Audit the full corpus against current extract, extract.bak,
+  and custom artifacts before considering a broader rollout.
+
+Success outcome
+
+The experiment succeeds only if it produces a net corpus accuracy gain with
+no invalid solid edges, disconnected blocks, lost instruction coverage, or
+meaningful corpus-runtime regression. Its exact results must be independently
+checkable from the recovered slice and static memory, and it should resolve a
+diverse family of existing UJs rather than merely reproducing one artifact's
+bespoke pattern. Focused tests must cover successful proofs, inconclusive
+cases, cap exhaustion, calls/side effects, and architecture normalization.
+
+Migration plan if successful
+
+1. Keep the engine in diagnostic/shadow mode first and compare every result
+   with the current resolver pipeline across the corpus without changing
+   goldens.
+2. Move one resolver family at a time to a shared proof description consumed
+   by the engine, retaining the existing resolver as a comparison oracle and
+   fallback until focused and corpus checks demonstrate equivalent or broader
+   exact recovery.
+3. Remove a bespoke resolver only when the engine subsumes its proven cases
+   and its architecture-specific requirements are represented by the shared
+   model. Keep truly cheap direct-memory and platform-specific recognizers as
+   front-end shape detection when that improves clarity or performance.
+4. Preserve the conservative candidate and UJT mechanisms permanently: the
+   resolver engine replaces exact-resolution implementation, not the policy
+   for unknown indirect transfers.
+5. After each migration, measure corpus runtime and audit target sets,
+   reachability, and instruction coverage before promoting artifacts or
+   retiring more specialized code.
+
 -- (this is slightly deprecated)
 
 Static jump-table recovery is intentionally bounded and VEX-driven. The

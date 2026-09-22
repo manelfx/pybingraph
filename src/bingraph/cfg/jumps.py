@@ -51,6 +51,9 @@ from .models import (
 # stronger range proof than the local VEX matcher currently provides.
 MAX_STATIC_JUMPTABLE_ENTRIES = 256
 MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES = 4096
+# Cross-block selector proofs are must analyses. Cap their walk so one
+# pathological function cannot make otherwise local table recovery expensive.
+MAX_CROSS_BLOCK_SELECTOR_PROOF_NODES = 128
 
 
 def is_direct_target_valid(bounds: FunctionBounds, target: int | None) -> bool:
@@ -891,8 +894,20 @@ def _vex_is_zero_extension_from(
     """Return whether ``expr`` zero-extends exactly ``bits`` into a register."""
 
     expr = _resolve_vex_expr(expr, definitions)
-    conversion = _vex_width_conversion(expr)
-    return conversion == (bits, register_bits, "U")
+    current_bits = register_bits
+    while True:
+        conversion = _vex_width_conversion(expr)
+        if conversion is None:
+            return False
+        source_bits, destination_bits, signedness = conversion
+        if destination_bits != current_bits or signedness != "U":
+            return False
+        if source_bits == bits:
+            return True
+        if source_bits < bits:
+            return False
+        current_bits = source_bits
+        expr = _resolve_vex_expr(expr.args[0], definitions)
 
 
 def _vex_guarded_index_upper_bound(
@@ -1639,11 +1654,406 @@ def _guarded_jump_table_entry_count(
         if upper_bound is not None:
             bounds_found.add(upper_bound)
 
-    if len(bounds_found) != 1:
+    if len(bounds_found) == 1:
+        upper_bound = next(iter(bounds_found))
+        entry_count = upper_bound + 1
+        return entry_count if entry_count <= MAX_STATIC_JUMPTABLE_ENTRIES else None
+    if (
+        cross_block_entry_count := _cross_block_zero_extended_selector_entry_count(
+            graph, bounds, node, table
+        )
+    ) is not None:
+        return cross_block_entry_count
+    if table.index_expression is None:
         return None
-    upper_bound = next(iter(bounds_found))
+    return _zero_extended_stack_selector_entry_count(
+        graph, bounds, node, table.index_expression
+    )
+
+
+def _cross_block_zero_extended_selector_entry_count(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    table: StaticJumpTable,
+) -> int | None:
+    """Bound a later table index materialized after earlier exact dispatches.
+
+    A compiler can guard a narrow register, zero-extend it into the eventual
+    table index, and pass through another already-proven jump table before the
+    second dispatcher. This bounded reverse proof accepts that shape only when
+    every in-function path to the later table reaches one zext definition
+    without another index write or a call boundary.
+    """
+
+    if table.index_register_offset is None or table.index_bits is None:
+        return None
+    index_key = (table.index_register_offset, table.index_bits)
+    definition = _must_reaching_zero_extended_register_definition(
+        graph, bounds, node, index_key
+    )
+    if definition is None:
+        return None
+    definition_node, source_key = definition
+
+    upper_bounds: set[int] = set()
+    predecessors = tuple(graph.predecessors(definition_node))
+    if not predecessors:
+        return None
+    for predecessor in predecessors:
+        if not (
+            _node_is_materialized_cfg_node(predecessor)
+            and _node_intersects_bounds(predecessor, bounds)
+        ):
+            return None
+        vex = _node_vex(predecessor)
+        if vex is None:
+            return None
+        upper_bound = _vex_guarded_index_upper_bound(
+            vex, definition_node.addr, source_key
+        )
+        if upper_bound is None:
+            return None
+        upper_bounds.add(upper_bound)
+
+    if len(upper_bounds) != 1:
+        return None
+    entry_count = next(iter(upper_bounds)) + 1
+    return entry_count if entry_count <= MAX_STATIC_JUMPTABLE_ENTRIES else None
+
+
+def _must_reaching_zero_extended_register_definition(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    dispatcher,
+    index_key: tuple[int, int],
+) -> tuple[CFGNode, tuple[int, int]] | None:
+    """Find one zext definition reached by every bounded path to a dispatcher."""
+
+    pending = deque(graph.predecessors(dispatcher))
+    seen = set()
+    definitions: set[tuple[CFGNode, tuple[int, int]]] = set()
+    while pending:
+        candidate = pending.popleft()
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if len(seen) > MAX_CROSS_BLOCK_SELECTOR_PROOF_NODES:
+            return None
+        if not (
+            _node_is_materialized_cfg_node(candidate)
+            and _node_intersects_bounds(candidate, bounds)
+        ):
+            return None
+        vex = _node_vex(candidate)
+        if vex is None or vex.jumpkind != "Ijk_Boring":
+            return None
+
+        source_key = _vex_zero_extended_register_source(vex, index_key)
+        if source_key is not None:
+            definitions.add((candidate, source_key))
+            continue
+        if _vex_last_put(vex, index_key[0]) is not None:
+            return None
+        if candidate.addr == bounds.addr:
+            return None
+        predecessors = tuple(graph.predecessors(candidate))
+        if not predecessors:
+            return None
+        pending.extend(predecessors)
+
+    return next(iter(definitions)) if len(definitions) == 1 else None
+
+
+def _vex_zero_extended_register_source(
+    vex, index_key: tuple[int, int]
+) -> tuple[int, int] | None:
+    """Return the narrow source of a block's final full-width zext register put."""
+
+    statement = _vex_last_put(vex, index_key[0])
+    if statement is None:
+        return None
+    definitions = _vex_tmp_definitions(vex)
+    expression = _resolve_vex_expr(statement.data, definitions)
+    current_bits = index_key[1]
+    while True:
+        conversion = _vex_width_conversion(expression)
+        if conversion is None:
+            return None
+        source_bits, destination_bits, signedness = conversion
+        if destination_bits != current_bits or signedness != "U":
+            return None
+        expression = _resolve_vex_expr(expression.args[0], definitions)
+        source_key = _vex_get_key(expression, definitions, vex)
+        if source_key is not None:
+            return source_key if source_key[1] == source_bits else None
+        if source_bits >= current_bits:
+            return None
+        current_bits = source_bits
+
+
+def _zero_extended_stack_selector_entry_count(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    index_expression: tuple[Any, ...],
+) -> int | None:
+    """Bound a full-width stack selector proven to hold a narrow zext value."""
+
+    if (
+        len(index_expression) != 4
+        or index_expression[0] != "load"
+        or not isinstance(index_expression[2], int)
+        or index_expression[2] <= 8
+    ):
+        return None
+    endness, selector_bits, address_key = index_expression[1:]
+    dispatcher_vex = _node_vex(node)
+    if dispatcher_vex is None or _vex_writes_stack_pointer(dispatcher_vex):
+        return None
+
+    guard_nodes = [
+        predecessor
+        for predecessor in graph.predecessors(node)
+        if _node_is_materialized_cfg_node(predecessor)
+        and _node_intersects_bounds(predecessor, bounds)
+    ]
+    if not guard_nodes:
+        return None
+
+    guard_proofs: set[tuple[int, int]] = set()
+    for guard_node in guard_nodes:
+        guard_vex = _node_vex(guard_node)
+        if guard_vex is None or _vex_writes_stack_pointer(guard_vex):
+            return None
+        guard_bounds = {
+            (narrow_bits, upper_bound)
+            for narrow_bits in (8, 16, 32)
+            if narrow_bits < selector_bits
+            if (
+                upper_bound := _vex_guarded_stack_load_upper_bound(
+                    guard_vex,
+                    node.addr,
+                    ("load", endness, narrow_bits, address_key),
+                )
+            )
+            is not None
+        }
+        if len(guard_bounds) != 1:
+            return None
+        guard_proofs.update(guard_bounds)
+
+    if len(guard_proofs) != 1:
+        return None
+    source_bits, upper_bound = next(iter(guard_proofs))
+    if (
+        _zero_extended_stack_selector_store_node(
+            graph,
+            bounds,
+            node,
+            guard_nodes,
+            address_key,
+            endness,
+            source_bits,
+            selector_bits,
+        )
+        is None
+    ):
+        return None
     entry_count = upper_bound + 1
     return entry_count if entry_count <= MAX_STATIC_JUMPTABLE_ENTRIES else None
+
+
+def _vex_writes_stack_pointer(vex) -> bool:
+    """Return whether a block changes its stack-pointer register."""
+
+    sp_offset = getattr(getattr(vex, "arch", None), "sp_offset", None)
+    return sp_offset is not None and any(
+        isinstance(statement, pyvex.stmt.Put) and statement.offset == sp_offset
+        for statement in vex.statements
+    )
+
+
+def _vex_last_stack_store_is_zero_extension(
+    vex,
+    address_key: tuple[Any, ...],
+    endness: str,
+    source_bits: int,
+    destination_bits: int,
+) -> bool:
+    """Return whether the final write to one slot zero-extends its narrow value."""
+
+    definitions = _vex_tmp_definitions(vex)
+    stores = [
+        statement
+        for statement in vex.statements
+        if isinstance(statement, pyvex.stmt.Store)
+        and _vex_expr_key(statement.addr, definitions) == address_key
+    ]
+    if not stores:
+        return False
+    store = stores[-1]
+    return (
+        store.end == endness
+        and store.data.result_size(vex.tyenv) == destination_bits
+        and _vex_is_zero_extension_from(
+            store.data, definitions, source_bits, destination_bits
+        )
+    )
+
+
+def _zero_extended_stack_selector_store_node(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    dispatcher,
+    guard_nodes: list[CFGNode],
+    address_key: tuple[Any, ...],
+    endness: str,
+    source_bits: int,
+    destination_bits: int,
+):
+    """Return a must-reaching zext slot store through a bounded predecessor walk."""
+
+    pending = deque(
+        predecessor
+        for guard in guard_nodes
+        for predecessor in graph.predecessors(guard)
+    )
+    seen = set()
+    definitions = set()
+    while pending:
+        candidate = pending.popleft()
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if len(seen) > MAX_CROSS_BLOCK_SELECTOR_PROOF_NODES:
+            return None
+        if not (
+            _node_is_materialized_cfg_node(candidate)
+            and _node_intersects_bounds(candidate, bounds)
+        ):
+            return None
+        vex = _node_vex(candidate)
+        if (
+            vex is None
+            or vex.jumpkind not in {"Ijk_Boring", "Ijk_Call"}
+            # Calls return to the caller's frame. Ignore VEX's synthetic
+            # return-address push while rejecting selector-slot writes below.
+            or (vex.jumpkind != "Ijk_Call" and _vex_writes_stack_pointer(vex))
+        ):
+            return None
+        if _vex_writes_stack_slot(vex, address_key):
+            if not _vex_last_stack_store_is_zero_extension(
+                vex, address_key, endness, source_bits, destination_bits
+            ):
+                return None
+            definitions.add(candidate)
+            continue
+        if candidate.addr == bounds.addr:
+            return None
+        pending.extend(graph.predecessors(candidate))
+    return next(iter(definitions)) if len(definitions) == 1 else None
+
+
+def _vex_writes_stack_slot(vex, address_key: tuple[Any, ...]) -> bool:
+    """Return whether one block stores to the selected stack-slot address."""
+
+    definitions = _vex_tmp_definitions(vex)
+    return any(
+        isinstance(statement, pyvex.stmt.Store)
+        and _vex_expr_key(statement.addr, definitions) == address_key
+        for statement in vex.statements
+    )
+
+
+def _vex_guarded_stack_load_upper_bound(
+    vex, target_addr: int, narrow_load_key: tuple[Any, ...]
+) -> int | None:
+    """Return a guard bound for one narrowed load of a stack selector slot."""
+
+    definitions = _vex_tmp_definitions(vex)
+    bounds_found: set[int] = set()
+    for statement in vex.statements:
+        if not isinstance(statement, pyvex.stmt.Exit):
+            continue
+        if getattr(statement.dst, "value", None) == target_addr:
+            upper_bound = _vex_guard_stack_load_upper_bound(
+                statement.guard,
+                narrow_load_key,
+                definitions,
+                vex,
+                index_on_left=True,
+            )
+            if upper_bound is not None:
+                bounds_found.add(upper_bound)
+        elif _vex_const_value(vex.next, definitions) == target_addr:
+            upper_bound = _vex_guard_stack_load_upper_bound(
+                statement.guard,
+                narrow_load_key,
+                definitions,
+                vex,
+                index_on_left=False,
+            )
+            if upper_bound is not None:
+                bounds_found.add(upper_bound)
+    return next(iter(bounds_found)) if len(bounds_found) == 1 else None
+
+
+def _vex_guard_stack_load_upper_bound(
+    guard,
+    narrow_load_key: tuple[Any, ...],
+    definitions: dict[int, Any],
+    vex,
+    *,
+    index_on_left: bool,
+) -> int | None:
+    """Return an unsigned bound when a guard reads one narrowed stack slot."""
+
+    guard = _vex_unsigned_guard_comparison(guard, definitions)
+    if not isinstance(guard, pyvex.expr.Binop) or not guard.op.endswith("U"):
+        return None
+    index_expr, bound_expr = (
+        (guard.args[0], guard.args[1])
+        if index_on_left
+        else (guard.args[1], guard.args[0])
+    )
+    index_expr, bound_expr = _vex_unsigned_shifted_compare_operands(
+        index_expr, bound_expr, definitions, vex
+    )
+    if not _vex_guard_reads_stack_load(index_expr, narrow_load_key, definitions, vex):
+        return None
+    bound = _vex_static_int(bound_expr, definitions)
+    if bound is None:
+        return None
+    if "CmpLT" in guard.op:
+        upper_bound = bound - 1 if index_on_left else bound
+    elif "CmpLE" in guard.op:
+        upper_bound = bound if index_on_left else bound - 1
+    else:
+        return None
+    return upper_bound if upper_bound >= 0 else None
+
+
+def _vex_guard_reads_stack_load(
+    expr,
+    narrow_load_key: tuple[Any, ...],
+    definitions: dict[int, Any],
+    vex,
+) -> bool:
+    """Return whether one guard reads the specified narrow stack load."""
+
+    expr = _resolve_vex_expr(expr, definitions)
+    if _vex_expr_key(expr, definitions) == narrow_load_key:
+        return True
+    masked_source = _vex_low_masked_source(expr, definitions, vex.tyenv)
+    if masked_source is not None:
+        expr, bits = masked_source
+    else:
+        bits = narrow_load_key[2]
+    if bits != narrow_load_key[2]:
+        return False
+    source = _vex_low_bits_source(expr, definitions, vex.tyenv, bits)
+    return _vex_expr_key(source, definitions) == narrow_load_key
 
 
 def _vex_normalized_table_entry_load(
@@ -2956,6 +3366,66 @@ def _in_function_jump_table_entry_count(
             break
         count += 1
     return count if count >= 2 else None
+
+
+def _is_non_executable_static_data(project: Project, addr: int) -> bool:
+    """Return whether ``addr`` is mapped static data rather than code."""
+
+    obj = project.loader.find_object_containing(addr)
+    if obj is None or obj is getattr(project.loader, "extern_object", None):
+        return False
+    for method_name in ("find_section_containing", "find_segment_containing"):
+        method = getattr(obj, method_name, None)
+        region = method(addr) if callable(method) else None
+        if region is not None:
+            return not bool(getattr(region, "is_executable", False))
+    return False
+
+
+def plan_dynamic_selector_table_candidates(
+    project: Project,
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+) -> StaticJumpTablePlan | None:
+    """Return bounded candidate rows for an unguarded memory selector table.
+
+    This is intentionally weaker than :func:`plan_static_jump_table`: a
+    table's extent is inferred from its contiguous in-function entries, not
+    proven by the selector. Callers must retain an unresolved fallback and
+    render the resulting edges as candidates.
+    """
+
+    vex = _node_vex(node)
+    if vex is None:
+        return None
+    table = _vex_relative_jump_table(
+        vex,
+        allow_full_width_index=True,
+        allow_guarded_expression_index=True,
+    )
+    if (
+        table is None
+        or table.index_expression is None
+        or not table.entries_are_relative
+    ):
+        return None
+
+    base_addr = table.static_base_addr
+    if base_addr is None and table.base_register_offset is not None:
+        base_addr = _constant_register_from_predecessors(
+            graph, bounds, node, table.base_register_offset
+        )
+    if base_addr is None:
+        return None
+
+    table_addr = _jump_table_addr(base_addr, table)
+    if not _is_non_executable_static_data(project, table_addr):
+        return None
+    entry_count = _in_function_jump_table_entry_count(project, bounds, table, base_addr)
+    if entry_count is None:
+        return None
+    return StaticJumpTablePlan(table, base_addr, tuple(range(entry_count)))
 
 
 def _mips_static_value(

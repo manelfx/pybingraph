@@ -796,6 +796,7 @@ def test_extract_static_table_discovery_discards_stale_snapshot_plans(
         0x1100: BlockSpec(0x1100, 4, (0x1100,), "Ijk_Boring"),
     }
     session.static_targets = {}
+    session.static_target_candidates = {}
     session.stats = ExtractedCFGStats()
     session.project = SimpleNamespace()
     session.data_regions = SimpleNamespace(
@@ -808,7 +809,7 @@ def test_extract_static_table_discovery_discards_stale_snapshot_plans(
     monkeypatch.setattr(
         session,
         "_analysis_graph",
-        lambda: (nx.DiGraph(), {0x1100: dispatcher, 0x1000: stale_node}),
+        lambda *_args: (nx.DiGraph(), {0x1100: dispatcher, 0x1000: stale_node}),
     )
     monkeypatch.setattr(
         builder_module,
@@ -897,14 +898,23 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
             0x4208F7,
             (0x4208A8, 0x420A0C),
             41,
+            True,
         ),
-        ("x86_64/cvs", 0x47F600, 0x47FBD0, (0x47FD00, 0x47FE60), 6),
+        (
+            "x86_64/cvs",
+            0x47F600,
+            0x47FBD0,
+            (0x47FD00, 0x47FE60),
+            6,
+            True,
+        ),
         (
             "x86_64/1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
             0x427320,
             0x42A0FA,
             (0x42A125, 0x42A171),
             5,
+            False,
         ),
     )
     for (
@@ -913,6 +923,7 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
         dispatcher_addr,
         expected_targets,
         successor_count,
+        uses_sweep,
     ) in cases:
         project = project_module.load_project(Path("angr-binaries/tests") / binary)
         cfg = build_extracted_cfg(project, KnowledgeBase(project), function_addr)
@@ -928,7 +939,43 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
             node.is_simprocedure and node.name == "UndecodableInstructionTarget"
             for node in cfg.graph.nodes()
         )
-        assert cfg.extract_stats.sweep_runs == 1
+        assert bool(cfg.extract_stats.sweep_runs) is uses_sweep
+
+
+def test_extract_retains_static_table_plan_after_leader_splits() -> None:
+    """Reattach table plans and propagate a guarded selector across them."""
+
+    project = project_module.load_project(
+        Path(
+            "angr-binaries/tests/x86_64/"
+            "1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51"
+        )
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x423690)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    source = nodes[0x4239B8]
+
+    assert {node.addr for node in cfg.graph.successors(source)} == {
+        0x4239C1,
+        0x423A00,
+        0x423A50,
+        0x423AA0,
+        0x423B86,
+    }
+    later_source = nodes[0x42443D]
+    assert {node.addr for node in cfg.graph.successors(later_source)} == {
+        0x424456,
+        0x4244A4,
+        0x4244BF,
+        0x4244DF,
+        0x4244F5,
+    }
+    assert sum(len(node.instruction_addrs) for node in nodes.values()) == 969
+    assert not any(node.is_simprocedure for node in cfg.graph.nodes())
+    assert all(
+        node.addr == 0x423690 or tuple(cfg.graph.predecessors(node))
+        for node in nodes.values()
+    )
 
 
 def test_extract_does_not_reconnect_an_unbounded_table_dispatcher() -> None:
@@ -944,6 +991,58 @@ def test_extract_does_not_reconnect_an_unbounded_table_dispatcher() -> None:
     assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
     assert cfg.extract_stats.sweep_runs == 0
     assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
+
+
+def test_extract_recovers_memory_selector_table_candidates() -> None:
+    """Recover bounded candidate rows without claiming an enum table is exact."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x4B1040)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    source = nodes[0x4B1040]
+    successors = tuple(cfg.graph.successors(source))
+
+    assert {0x4B1057, 0x4B1067, 0x4B1075} <= {
+        node.addr for node in successors if not node.is_simprocedure
+    }
+    assert any(
+        node.is_simprocedure and node.name == "UnresolvableJumpTarget"
+        for node in successors
+    )
+    assert all(
+        cfg.graph.get_edge_data(source, node)["unresolved_indirect"]
+        for node in successors
+    )
+    assert cfg.extract_stats.static_jump_candidate_plans == 1
+    assert cfg.extract_stats.static_jump_candidate_targets_accepted == 3
+    assert cfg.extract_stats.sweep_runs == 1
+
+
+def test_extract_skips_ambiguous_memory_selector_table_candidates() -> None:
+    """Do not expand multiple unproven table dispatchers in one function."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x4F2AC0)
+
+    assert cfg.extract_stats.static_jump_candidate_plans == 0
+    assert cfg.extract_summary.normal_blocks == 260
+
+
+def test_extract_bounds_memory_selector_table_candidates() -> None:
+    """Keep large unproven table frontiers on the ordinary recovery path."""
+
+    cases = (
+        (
+            "x86_64/1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
+            0x431900,
+        ),
+        ("x86_64/rust_hello_world", 0x423360),
+    )
+    for binary, function_addr in cases:
+        project = project_module.load_project(Path("angr-binaries/tests") / binary)
+        cfg = build_extracted_cfg(project, KnowledgeBase(project), function_addr)
+
+        assert cfg.extract_stats.static_jump_candidate_plans == 0
 
 
 def test_extract_preserves_sweep_for_unbounded_rotated_table_index() -> None:
@@ -1220,6 +1319,31 @@ def test_extract_resolves_guarded_memory_relative_tables() -> None:
         assert cfg.extract_stats.unresolved_indirect_targets == 0
 
 
+def test_extract_resolves_zero_extended_stack_selector_table() -> None:
+    """Use a narrow stack guard after its value was stored as a full zext."""
+
+    project = project_module.load_project(
+        Path(
+            "angr-binaries/tests/x86_64/"
+            "1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51"
+        )
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x427320)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x42AD91]))
+
+    assert {successor.addr for successor in successors} == {
+        0x42ADA8,
+        0x42ADC4,
+        0x42ADE7,
+        0x42AE0F,
+        0x42AE48,
+        0x42BE0B,
+    }
+    assert all(not successor.is_simprocedure for successor in successors)
+    assert cfg.extract_stats.static_jump_plans_resolved >= 1
+
+
 def test_extract_resolves_s390x_rotated_relative_table_index() -> None:
     """Normalize s390x's masked rotate encoding of an eight-byte index."""
 
@@ -1423,6 +1547,7 @@ def test_extract_keeps_original_graph_when_sweep_loses_dispatcher(monkeypatch) -
     session.func_addr = 0x1000
     session.blocks = {0x1000: dispatcher}
     session.static_targets = {}
+    session.static_target_candidates = {}
     session.unresolved_dispatcher_reasons = {0x1000: "no_table_shape"}
     session.leaders = {0x1000}
     session.stats = ExtractedCFGStats()
