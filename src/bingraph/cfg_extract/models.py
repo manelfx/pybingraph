@@ -51,6 +51,10 @@ class ExtractedCFGStats:
     static_jump_candidate_entries_read: int = 0
     static_jump_candidate_targets_accepted: int = 0
     static_jump_candidate_edges_added: int = 0
+    exception_metadata_functions_scanned: int = 0
+    exception_call_sites_discovered: int = 0
+    exceptional_transfers_discovered: int = 0
+    exception_edges_added: int = 0
     static_jump_unresolved_dispatcher_attempts: int = 0
     static_jump_no_vex: int = 0
     static_jump_no_table_shape: int = 0

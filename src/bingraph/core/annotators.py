@@ -533,6 +533,12 @@ def _vex_boring_edge_type(edge) -> str:
 def _edge_type(edge) -> str:
     """Return the visual category for one CFG edge."""
 
+    # ELF LSDA metadata proves that a call transfers to this landing pad only
+    # while unwinding. Keep that known exceptional path distinct from both the
+    # normal call edge and its fake-return continuation.
+    if edge.meta.get("exceptional"):
+        return "EXCEPTION"
+
     # Custom CFG repair may flatten an UnresolvableJumpTarget placeholder into
     # direct candidate edges. The marker keeps that unresolved semantics
     # visible after the synthetic endpoint itself has been removed.

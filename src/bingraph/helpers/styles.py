@@ -11,6 +11,7 @@ STYLE_CLASSIC = {
         "EDGECOLOR_CALL": {"color": "gray"},
         "EDGECOLOR_RET": {"color": "gray", "style": "dotted"},
         "EDGECOLOR_FAKE_RET": {"color": "gray", "style": "dashed"},
+        "EDGECOLOR_EXCEPTION": {"color": "gray", "style": "dotted"},
         "EDGECOLOR_UNKNOWN": {"color": "purple"},
     }
 }
@@ -30,6 +31,7 @@ STYLE_THICK = {
         "EDGECOLOR_CALL": {"color": "gray", "penwidth": "2"},
         "EDGECOLOR_RET": {"color": "gray", "style": "dotted", "penwidth": "2"},
         "EDGECOLOR_FAKE_RET": {"color": "gray", "style": "dashed", "penwidth": "2"},
+        "EDGECOLOR_EXCEPTION": {"color": "gray", "style": "dotted", "penwidth": "2"},
         "EDGECOLOR_UNKNOWN": {"color": "purple", "penwidth": "2"},
     }
 }
@@ -45,6 +47,7 @@ STYLE_BLACK = {
         "EDGECOLOR_CALL": {"color": "gray"},
         "EDGECOLOR_RET": {"color": "gray", "style": "dotted"},
         "EDGECOLOR_FAKE_RET": {"color": "gray", "style": "dashed"},
+        "EDGECOLOR_EXCEPTION": {"color": "gray", "style": "dotted"},
         "EDGECOLOR_UNKNOWN": {"color": "purple"},
     }
 }
@@ -60,6 +63,7 @@ STYLE_DARK = {
         "EDGECOLOR_CALL": {"color": "#a9a9a9"},
         "EDGECOLOR_RET": {"color": "#a9a9a9", "style": "dotted"},
         "EDGECOLOR_FAKE_RET": {"color": "#a9a9a9", "style": "dashed"},
+        "EDGECOLOR_EXCEPTION": {"color": "#a9a9a9", "style": "dotted"},
         "EDGECOLOR_UNKNOWN": {"color": "#850A93"},
     }
 }
@@ -75,6 +79,7 @@ STYLE_LIGHT = {
         "EDGECOLOR_CALL": {"color": "#C0C0C0"},
         "EDGECOLOR_RET": {"color": "#C0C0C0", "style": "dotted"},
         "EDGECOLOR_FAKE_RET": {"color": "#C0C0C0", "style": "dashed"},
+        "EDGECOLOR_EXCEPTION": {"color": "#C0C0C0", "style": "dotted"},
         "EDGECOLOR_UNKNOWN": {"color": "#BE69B9"},
     }
 }

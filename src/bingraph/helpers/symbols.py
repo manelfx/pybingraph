@@ -12,6 +12,16 @@ from angr import Project, KnowledgeBase
 UNKNOWN_FUNC = "**UNKNOWN**"
 
 
+def plt_symbol_name(project: Project, addr: int) -> str | None:
+    """Resolve a PLT stub address to its imported function name."""
+
+    obj = project.loader.find_object_containing(addr)
+    if obj is None:
+        return None
+    name = getattr(obj, "reverse_plt", {}).get(addr)
+    return name if isinstance(name, str) and name else None
+
+
 class FunctionSymbol(BaseModel):
     addr: int
     name: str

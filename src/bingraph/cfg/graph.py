@@ -210,6 +210,7 @@ def add_successor_edge(
     jumpkind: EdgeJumpKind,
     *,
     unresolved_indirect: bool = False,
+    exceptional: bool = False,
 ) -> bool:
     """Add an edge if it is not already present with matching metadata."""
 
@@ -218,6 +219,7 @@ def add_successor_edge(
         if (
             edge_data.get("jumpkind") == jumpkind
             and edge_data.get("unresolved_indirect", False) == unresolved_indirect
+            and edge_data.get("exceptional", False) == exceptional
         ):
             return False
     graph.add_edge(
@@ -225,6 +227,7 @@ def add_successor_edge(
         dst,
         jumpkind=jumpkind,
         unresolved_indirect=unresolved_indirect,
+        exceptional=exceptional,
     )
     return True
 

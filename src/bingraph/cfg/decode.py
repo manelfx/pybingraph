@@ -19,6 +19,7 @@ from bingraph.helpers.capstone import (
     instruction_is_conditionally_executed,
     proven_unconditional_direct_target,
 )
+from bingraph.helpers.symbols import plt_symbol_name
 
 from .models import BlockSpec, FunctionBounds, TerminatorInfo
 
@@ -290,12 +291,26 @@ def _library_family(name: str) -> str:
     return match.group("family") if match is not None else basename
 
 
+_LINKED_NONRETURNING_RUNTIME_SYMBOLS = frozenset(
+    {"__assert_fail", "__libc_assert_fail", "__stack_chk_fail"}
+)
+
+
 def _symbol_is_declared_nonreturning(project: Project, addr: int) -> bool:
-    """Return whether a compatible SimLibrary declares an exact symbol as no-return."""
+    """Recognize exact no-return runtime symbols and compatible declarations."""
 
     symbol = project.loader.find_symbol(addr)
     if symbol is None or symbol.rebased_addr != addr or not symbol.is_function:
         return False
+
+    # A statically linked runtime has an application filename, so its libc
+    # declarations cannot be matched by the owning object's library name.
+    if (
+        symbol.owner is project.loader.main_object
+        and not symbol.is_import
+        and symbol.name in _LINKED_NONRETURNING_RUNTIME_SYMBOLS
+    ):
+        return True
 
     binary = project.loader.find_object_containing(addr)
     if binary is None:
@@ -327,9 +342,11 @@ def target_is_hooked_nonreturning(project: Project, addr: int) -> bool:
 def target_is_known_nonreturning(project: Project, addr: int) -> bool:
     """Return whether static information declares a target non-returning."""
 
-    return target_is_hooked_nonreturning(
-        project, addr
-    ) or _symbol_is_declared_nonreturning(project, addr)
+    return (
+        target_is_hooked_nonreturning(project, addr)
+        or _symbol_is_declared_nonreturning(project, addr)
+        or plt_symbol_name(project, addr) == "_Unwind_Resume"
+    )
 
 
 def _temporary_definitions(vex) -> dict[int, object]:

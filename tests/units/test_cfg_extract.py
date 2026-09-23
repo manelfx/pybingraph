@@ -8,11 +8,17 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from angr import KnowledgeBase
+from elftools.common.exceptions import ELFRelocationError
 import networkx as nx
 
 from bingraph.cfg_extract import build_extracted_cfg
 from bingraph.cfg_extract.anomalies import find_extracted_cfg_anomalies
 from bingraph.cfg_extract import builder as builder_module
+from bingraph.cfg_extract import exceptions as exceptions_module
+from bingraph.cfg_extract.exceptions import (
+    ExceptionalCallSite,
+    exceptional_call_sites_for_function,
+)
 from bingraph.cfg_extract.sweep import (
     ExecutableSweep,
     ExecutableSweepAudit,
@@ -22,7 +28,12 @@ from bingraph.cfg_extract.sweep import (
 )
 from bingraph.cfg.models import BlockSpec, FunctionBounds, StaticJumpTable
 from bingraph.cfg.models import StaticJumpTablePlan
-from bingraph.cfg.decode import decode_bounded_block, lift_block_terminator
+from bingraph.cfg.decode import (
+    decode_bounded_block,
+    decode_raw_capstone_insns,
+    lift_block_terminator,
+    target_is_known_nonreturning,
+)
 from bingraph.cfg_extract.models import ExtractedCFGStats, ExtractedCFGSummary
 from bingraph.core import project as project_module
 
@@ -71,6 +82,136 @@ def test_extract_mode_bypasses_fast_cfg(monkeypatch) -> None:
     cfg = project_module.get_cfg(project, 0x40043C, "extract")
 
     assert sum(not node.is_simprocedure for node in cfg.graph.nodes()) == 3
+
+
+def test_extract_recovers_elf_lsda_landing_pads() -> None:
+    """Recover Rust cleanup blocks from exact LSDA call-site metadata."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    kb = KnowledgeBase(project)
+    session = builder_module._ExtractionSession(project, kb, 0x4B1040)
+
+    assert exceptional_call_sites_for_function(project, session.bounds) == (
+        ExceptionalCallSite(0x4B106E, 0x4B1073, 0x4B10A5),
+        ExceptionalCallSite(0x4B107C, 0x4B1081, 0x4B1094),
+        ExceptionalCallSite(0x4B109E, 0x4B10B4, 0x4B10BC),
+    )
+
+    cfg = session.build()
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    assert {0x4B1094, 0x4B10A5, 0x4B10BC} <= nodes.keys()
+    for source_addr, target_addr in (
+        (0x4B1067, 0x4B10A5),
+        (0x4B1075, 0x4B1094),
+        (0x4B1094, 0x4B10BC),
+        (0x4B10A5, 0x4B10BC),
+    ):
+        edge = cfg.graph.get_edge_data(nodes[source_addr], nodes[target_addr])
+        assert edge is not None
+        assert edge["jumpkind"] == "Ijk_Boring"
+        assert edge["exceptional"] is True
+
+
+def test_extract_names_nonreturning_unwind_plt_call() -> None:
+    """Keep the unwind call while omitting its impossible continuation."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x4B1040
+    )
+    cfg = session.build()
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x4B10B4]))
+
+    assert target_is_known_nonreturning(project, 0x5725A0)
+    assert not target_is_known_nonreturning(project, 0x572590)
+    assert len(successors) == 1
+    assert successors[0].addr == 0x5725A0
+    assert successors[0].name == "_Unwind_Resume"
+    assert (
+        cfg.graph.get_edge_data(nodes[0x4B10B4], successors[0])["jumpkind"]
+        == "Ijk_Call"
+    )
+    assert 0x4B10BC in nodes
+
+
+def test_extract_keeps_lsda_cleanup_without_assertion_fakeret() -> None:
+    """An assertion failure cannot return into a separate cleanup landing pad."""
+
+    cases = (
+        ("x86_64/static", 0x40FD30, 0x401750, 0x4102B4, 0x410175, 0x4102CD),
+        (
+            "i386/bronze_ropchain",
+            0x8050750,
+            0x806F0B0,
+            0x8050D9E,
+            0x8050CD7,
+            0x8050DA3,
+        ),
+        (
+            "mipsel/mips_syscall_demo",
+            0x43EFD4,
+            0x42A660,
+            0x43F79C,
+            0x43F4E0,
+            0x43F7BC,
+        ),
+    )
+    for binary, entry, callee, assertion_block, call_block, landing_pad in cases:
+        project = project_module.load_project(Path("angr-binaries/tests") / binary)
+        cfg = build_extracted_cfg(project, KnowledgeBase(project), entry)
+        nodes = {
+            node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure
+        }
+
+        assert target_is_known_nonreturning(project, callee)
+        assert (
+            cfg.graph.get_edge_data(nodes[assertion_block], nodes[landing_pad]) is None
+        )
+        edge = cfg.graph.get_edge_data(nodes[call_block], nodes[landing_pad])
+        assert edge is not None and edge["exceptional"] is True
+
+
+def test_extract_skips_unlinked_elf_exception_metadata() -> None:
+    """PPC relocatable objects cannot supply linked LSDA addresses."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/ppc/partial.o"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x400000
+    )
+    assert exceptional_call_sites_for_function(project, session.bounds) == ()
+    cfg = session.build()
+    assert cfg.extract_stats.exception_edges_added == 0
+
+
+def test_extract_recovers_lsda_on_other_elf_architectures() -> None:
+    """Keep exceptional-flow recovery for linked i386 and MIPS binaries."""
+
+    for binary, function_addr in (
+        ("angr-binaries/tests/i386/bronze_ropchain", 0x804FCD0),
+        ("angr-binaries/tests/mipsel/mips_syscall_demo", 0x407470),
+    ):
+        project = project_module.load_project(Path(binary))
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), function_addr
+        )
+        assert exceptional_call_sites_for_function(project, session.bounds)
+        assert session.build().extract_stats.exception_edges_added > 0
+
+
+def test_extract_skips_elf_relocation_errors() -> None:
+    """An unsupported ELF relocation must not abort CFG extraction."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x4B1040
+    )
+    with patch.object(
+        exceptions_module,
+        "_exception_sites_by_elf",
+        side_effect=ELFRelocationError("Unsupported relocation type: 26"),
+    ):
+        assert exceptional_call_sites_for_function(project, session.bounds) == ()
 
 
 def test_extract_preserves_conditional_return_fallthrough() -> None:
@@ -1019,13 +1160,24 @@ def test_extract_recovers_memory_selector_table_candidates() -> None:
 
 
 def test_extract_skips_ambiguous_memory_selector_table_candidates() -> None:
-    """Do not expand multiple unproven table dispatchers in one function."""
+    """LSDA landing pads must not suppress an existing dispatcher sweep."""
 
     project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x4F2AC0)
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x4F2AC0
+    )
+    cfg = session.build()
 
     assert cfg.extract_stats.static_jump_candidate_plans == 0
-    assert cfg.extract_summary.normal_blocks == 260
+    assert cfg.extract_stats.sweep_reconnecting_blocks == 26
+    assert cfg.extract_stats.exceptional_transfers_discovered == 149
+    assert {0x4F2ED5, 0x4F31FB, 0x4F360F, 0x4F42E6} <= session.blocks.keys()
+    covered = {
+        insn.address
+        for block in session.blocks.values()
+        for insn in decode_raw_capstone_insns(project, block.addr, block.size)
+    }
+    assert len(covered) >= 1333
 
 
 def test_extract_bounds_memory_selector_table_candidates() -> None:

@@ -123,6 +123,19 @@ def test_explicit_unresolved_indirect_metadata_has_highest_precedence() -> None:
     assert _edge_type(edge) == "UNRESOLVED_INDIRECT"
 
 
+def test_exceptional_metadata_uses_its_own_known_flow_style() -> None:
+    """Render LSDA-proven unwinding separately from ordinary call flow."""
+
+    edge = _edge(
+        _node(0x1000),
+        _node(0x2000),
+        jumpkind="Ijk_Boring",
+        exceptional=True,
+    )
+
+    assert _edge_type(edge) == "EXCEPTION"
+
+
 @pytest.mark.parametrize("placeholder_side", ["source", "destination"])
 def test_unresolvable_jump_target_edges_remain_unresolved(
     placeholder_side: str,

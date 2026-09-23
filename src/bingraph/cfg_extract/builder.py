@@ -41,11 +41,15 @@ from bingraph.cfg.models import BlockSpec, EdgeJumpKind, FunctionBounds
 from bingraph.cfg.decode import (
     alternate_block_entry_rejoin_addr,
     decode_bounded_block,
+    decode_raw_capstone_insns,
     is_valid_block_entry,
 )
+from bingraph.helpers.capstone import InsnSemantics
+from bingraph.helpers.symbols import plt_symbol_name
 
 from .anomalies import find_extracted_cfg_anomalies
 from .data import StaticDataRegions
+from .exceptions import ExceptionalCallSite, exceptional_call_sites_for_function
 from .models import (
     ExtractedCFG,
     ExtractedCFGNode,
@@ -107,7 +111,9 @@ def _external_target_name(project: Project, addr: int) -> str:
 
     symbol = project.loader.find_symbol(addr)
     name = getattr(symbol, "name", None)
-    return name if isinstance(name, str) and name else f"ExternalTarget_{addr:#x}"
+    if isinstance(name, str) and name:
+        return name
+    return plt_symbol_name(project, addr) or f"ExternalTarget_{addr:#x}"
 
 
 def _make_leaf_node(
@@ -156,6 +162,7 @@ class _ExtractionSession:
         self.leaf_nodes: dict[tuple[int, str], CFGNode] = {}
         self.static_targets: dict[int, tuple[int, ...]] = {}
         self.static_target_candidates: dict[int, tuple[int, ...]] = {}
+        self.exceptional_targets: dict[int, tuple[int, ...]] = {}
         self.unresolved_dispatcher_reasons: dict[int, str | None] = {}
         self.sweep_dispatcher_addr: int | None = None
         self.sweep_component_roots: frozenset[int] = frozenset()
@@ -431,6 +438,63 @@ class _ExtractionSession:
                     "Ijk_Call" if block.jumpkind == "Ijk_Call" else "Ijk_Boring",
                 )
         return graph, nodes
+
+    def _call_block_matches_lsda_site(
+        self, block: BlockSpec, site: ExceptionalCallSite
+    ) -> bool:
+        """Return whether this recovered call terminator lies in one LSDA range."""
+
+        if block.jumpkind != "Ijk_Call":
+            return False
+        insns = decode_raw_capstone_insns(self.project, block.addr, block.size)
+        call = next(
+            (insn for insn in reversed(insns) if InsnSemantics(insn).is_call()),
+            None,
+        )
+        return call is not None and (
+            site.start_addr <= call.address
+            and call.address + call.size <= site.end_addr
+        )
+
+    def _discover_elf_exceptional_edges(self) -> None:
+        """Queue LSDA-proven in-function landing pads through a small fixpoint.
+
+        A landing pad may contain another call with its own cleanup action, so
+        new leaders are decoded before their call-site records are considered.
+        The LSDA is the sole authority here: ordinary calls without a matching
+        record never gain an exceptional edge.
+        """
+
+        self.stats.exception_metadata_functions_scanned += 1
+        call_sites = exceptional_call_sites_for_function(self.project, self.bounds)
+        self.stats.exception_call_sites_discovered += len(call_sites)
+        if not call_sites:
+            return
+
+        while True:
+            targets_by_source: dict[int, set[int]] = {}
+            for block in tuple(self.blocks.values()):
+                for site in call_sites:
+                    if not self._call_block_matches_lsda_site(block, site):
+                        continue
+                    target = site.landing_pad_addr
+                    if not self.bounds.addr <= target < self.bounds.end_addr:
+                        continue
+                    self._claim_code_target(target)
+                    self._add_leader(target)
+                    if target not in self.leaders:
+                        continue
+                    targets_by_source.setdefault(block.addr, set()).add(target)
+            if not self.pending:
+                self.exceptional_targets = {
+                    source: tuple(sorted(targets))
+                    for source, targets in targets_by_source.items()
+                }
+                self.stats.exceptional_transfers_discovered = sum(
+                    len(targets) for targets in targets_by_source.values()
+                )
+                return
+            self._decode_all_blocks()
 
     def _resolve_abi_static_register_transfers(self) -> None:
         """Materialize ABI-preserved register transfers proven by VEX dataflow."""
@@ -758,6 +822,17 @@ class _ExtractionSession:
                 if add_successor_edge(self.graph, source, destination, "Ijk_Boring"):
                     self.stats.static_jump_target_edges_added += 1
 
+            for target in self.exceptional_targets.get(addr, ()):
+                destination = self._target_node(target)
+                if add_successor_edge(
+                    self.graph,
+                    source,
+                    destination,
+                    "Ijk_Boring",
+                    exceptional=True,
+                ):
+                    self.stats.exception_edges_added += 1
+
             if block.fallthrough_addr is not None:
                 destination = self._fallthrough_target_node(block.fallthrough_addr)
                 if destination is not None:
@@ -953,7 +1028,12 @@ class _ExtractionSession:
         self._resolve_abi_static_register_transfers()
         self._discover_static_jump_targets()
         # Stage 3: only shape-free unresolved flow may gain dashed recovery.
+        # Run this before LSDA discovery: cleanup pads can contain additional
+        # unresolved jumps, but must not hide a pre-existing sweep dispatcher.
         self._recover_reconnecting_components()
+        # LSDA records attach to the stabilized call blocks, including those
+        # reached through a recovered component or another landing pad.
+        self._discover_elf_exceptional_edges()
         # Stage 4: materialize the stabilized graph and its conservative edges.
         self._materialize_edges()
         self._attach_static_jump_table_candidates()
