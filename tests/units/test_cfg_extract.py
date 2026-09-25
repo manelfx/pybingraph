@@ -26,6 +26,7 @@ from bingraph.cfg_extract.sweep import (
     recover_executable_components,
     select_reconnecting_components,
 )
+from bingraph.cfg.jumps import plan_static_jump_table
 from bingraph.cfg.models import BlockSpec, FunctionBounds, StaticJumpTable
 from bingraph.cfg.models import StaticJumpTablePlan
 from bingraph.cfg.decode import (
@@ -294,6 +295,63 @@ def test_extract_preserves_powerpc_conditional_return_fallthrough() -> None:
     assert block.fallthrough_addr == 0x10019140
 
 
+def test_extract_resolves_ppc64_toc_relative_ctr_tables() -> None:
+    """Use guarded table rows, not swept padding roots, as CTR destinations."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/ppc64el/fauxware_static")
+    )
+    for entry, dispatcher_addr, table_addr, row_count, target_count in (
+        (0x10002390, 0x100027D0, 0x100027F0, 11, 11),
+        (0x10096F90, 0x1009707C, 0x10097094, 48, 27),
+        (0x100985E0, 0x10098660, 0x10098678, 239, 27),
+    ):
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), entry
+        )
+        cfg = session.build()
+        dispatcher = next(
+            node for node in cfg.graph.nodes() if node.addr == dispatcher_addr
+        )
+        targets = {
+            (
+                table_addr
+                + int.from_bytes(
+                    project.loader.memory.load(table_addr + 4 * index, 4),
+                    "little",
+                    signed=True,
+                )
+            )
+            & ~3
+            for index in range(row_count)
+        }
+        successors = tuple(cfg.graph.successors(dispatcher))
+
+        assert len(targets) == target_count
+        assert {node.addr for node in successors} == targets
+        assert not any(node.is_simprocedure for node in successors)
+        assert cfg.extract_stats.unresolved_indirect_targets == 0
+
+
+def test_ppc64_ctr_table_rejects_unproven_high_index_bits() -> None:
+    """A low-word guard alone cannot bound an unmasked 64-bit table index."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/ppc64el/fauxware_static")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x10096F90
+    )
+    cfg = session.build()
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    # Omit the upstream byte load which establishes that r9 has zero high bits.
+    graph = nx.DiGraph([(nodes[0x10097074], nodes[0x1009707C])])
+
+    plan, _ = plan_static_jump_table(project, graph, session.bounds, nodes[0x1009707C])
+
+    assert plan is None
+
+
 def test_extract_keeps_powerpc_pc_materialization_in_one_block() -> None:
     """Retain a branch-and-link to its next instruction as linear code."""
 
@@ -478,6 +536,23 @@ def test_extract_suppresses_fakeret_for_a_static_nonreturning_call() -> None:
     assert block.jumpkind == "Ijk_Call"
     assert block.direct_targets == (0x500020,)
     assert block.fallthrough_addr is None
+
+
+def test_extract_suppresses_fakeret_after_malloc_assert() -> None:
+    """A linked glibc assertion cannot fall into the next function."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/static"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x41E920)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    successors = tuple(cfg.graph.successors(nodes[0x41EAB7]))
+
+    assert target_is_known_nonreturning(project, 0x4171E0)
+    assert len(successors) == 1
+    assert successors[0].addr == 0x4171E0
+    assert (
+        cfg.graph.get_edge_data(nodes[0x41EAB7], successors[0])["jumpkind"]
+        == "Ijk_Call"
+    )
 
 
 def test_extract_resolves_returning_static_memory_call_targets() -> None:
@@ -884,21 +959,34 @@ def test_extract_reclaims_direct_targets_previously_seen_as_data() -> None:
     assert [insn.mnemonic for insn in target.block.capstone.insns] == ["cmp.w", "beq"]
 
 
-def test_extract_keeps_s390_execute_relative_instruction_templates() -> None:
-    """Keep inline instructions fetched by S/390's execute-relative opcode."""
+def test_extract_keeps_s390_execute_relative_templates_out_of_control_flow() -> None:
+    """EXRL fetches templates without branching past a non-returning call."""
 
     project = project_module.load_project(
         Path("angr-binaries/tests/s390x/test-instr_s390x")
     )
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x80014A30)
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x80014A30
+    )
+    cfg = session.build()
     nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
 
-    template = nodes[0x80014E08]
-    assert [insn.mnemonic for insn in template.block.capstone.insns] == [
-        "xc",
-        "xc",
-        "xc",
-    ]
+    template_addrs = {0x80014E08, 0x80014E0E, 0x80014E14}
+    exrl_targets = {
+        int(insn.op_str.rsplit(", ", 1)[1], 16)
+        for node in nodes.values()
+        for insn in node.block.capstone.insns
+        if insn.mnemonic == "exrl"
+    }
+    assert exrl_targets == template_addrs
+    assert all(
+        not session.data_regions.contains(project, addr) for addr in template_addrs
+    )
+    assert 0x80014E08 not in nodes
+    for call_addr in (0x80014CA2, 0x80014DEC):
+        assert {node.addr for node in cfg.graph.successors(nodes[call_addr])} == {
+            0x8000F700
+        }
 
 
 def test_extract_leader_is_not_requeued_after_recovery() -> None:
