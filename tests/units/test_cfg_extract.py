@@ -333,6 +333,52 @@ def test_extract_resolves_ppc64_toc_relative_ctr_tables() -> None:
         assert cfg.extract_stats.unresolved_indirect_targets == 0
 
 
+def test_extract_resolves_ppc64_full_width_guarded_ctr_tables() -> None:
+    """A full-width predecessor guard can bound a non-byte table index."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/ppc64el/fauxware_static")
+    )
+    for entry, dispatcher_addr, row_count, target_count in (
+        (0x10036E40, 0x10036F8C, 31, 16),
+        (0x10093420, 0x10093518, 16, 7),
+        (0x10093D80, 0x10093E78, 16, 8),
+        (0x10099300, 0x1009940C, 6, 6),
+    ):
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), entry
+        )
+        cfg = session.build()
+        dispatcher = next(
+            node for node in cfg.graph.nodes() if node.addr == dispatcher_addr
+        )
+        plan, reason = plan_static_jump_table(
+            project, cfg.graph, session.bounds, dispatcher
+        )
+
+        assert reason is None
+        assert plan is not None
+        assert plan.entry_indices == tuple(range(row_count))
+        targets = {
+            (
+                plan.base_addr
+                + int.from_bytes(
+                    project.loader.memory.load(plan.base_addr + 4 * index, 4),
+                    "little",
+                    signed=True,
+                )
+            )
+            & ~3
+            for index in plan.entry_indices
+        }
+        successors = tuple(cfg.graph.successors(dispatcher))
+
+        assert len(targets) == target_count
+        assert {node.addr for node in successors} == targets
+        assert not any(node.is_simprocedure for node in successors)
+        assert cfg.extract_stats.unresolved_indirect_targets == 0
+
+
 def test_ppc64_ctr_table_rejects_unproven_high_index_bits() -> None:
     """A low-word guard alone cannot bound an unmasked 64-bit table index."""
 

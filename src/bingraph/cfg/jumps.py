@@ -4124,8 +4124,6 @@ def _plan_ppc64_toc_relative_ctr_table(
         zero_extended = _ppc64_index_is_zero_extended_on_all_paths(
             graph, bounds, node, index_key[0]
         )
-        if scaled[3] is None and not zero_extended:
-            continue
 
         predecessors = tuple(graph.predecessors(node))
         if not predecessors or len(predecessors) > 4:
@@ -4164,11 +4162,19 @@ def _plan_ppc64_toc_relative_ctr_table(
                 index_bits = scaled[3]
                 if zero_extended:
                     index_bits = min(8, index_bits or 8)
-                if index_bits is None or index_bits > 32:
+                else:
+                    # A full-width comparison in this predecessor can bound
+                    # an unmasked selector without an upstream byte load.
+                    index_bits = index_bits or 64
+                if index_bits > 64:
                     break
                 index = entering[0].registers.load(index_key[0], 8) & (
                     (1 << index_bits) - 1
                 )
+                if entering[0].solver.satisfiable(
+                    extra_constraints=[index >= MAX_STATIC_JUMPTABLE_ENTRIES - 1]
+                ):
+                    break
                 # One extra model detects an oversized domain without treating
                 # all rows below a maximum as reachable. A blank incoming
                 # state overapproximates actual caller states, so this cannot
