@@ -475,6 +475,28 @@ def test_guarded_table_bound_tracks_a_zero_extended_index_value() -> None:
     assert _vex_guarded_index_upper_bound(vex, 0x100F, (16, 64)) == 4
 
 
+def test_guarded_table_bound_tracks_a_low_byte_of_zero_extended_index() -> None:
+    """The narrow compare bounds a full index only after a zero extension."""
+
+    # add bl, -1; movzx eax, bl; cmp al, 11; ja default
+    vex = pyvex.lift(
+        bytes.fromhex("80c3ff0fb6c33c0b0f87c4070000"),
+        0x424F3D,
+        archinfo.ArchAMD64(),
+    )
+
+    assert _vex_guarded_index_upper_bound(vex, 0x424F4B, (16, 64)) == 11
+
+
+def test_low_byte_guard_does_not_bound_a_wider_modified_index() -> None:
+    """Writing ah after movzx can make rax larger without changing al."""
+
+    # movzx eax, bl; mov ah, 1; cmp al, 11; ja default
+    vex = pyvex.lift(bytes.fromhex("0fb6c3b4013c0b7702"), 0x1000, archinfo.ArchAMD64())
+
+    assert _vex_guarded_index_upper_bound(vex, 0x1009, (16, 64)) is None
+
+
 def test_guarded_table_bound_tracks_a_right_shifted_index_value() -> None:
     """Accept a guard on an x86-64 selector narrowed by a logical shift."""
 

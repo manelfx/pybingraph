@@ -44,7 +44,7 @@ from bingraph.cfg.decode import (
     decode_raw_capstone_insns,
     is_valid_block_entry,
 )
-from bingraph.helpers.capstone import InsnSemantics
+from bingraph.helpers.capstone import arch_has_delay_slot
 from bingraph.helpers.symbols import plt_symbol_name
 
 from .anomalies import find_extracted_cfg_anomalies
@@ -442,16 +442,23 @@ class _ExtractionSession:
     def _call_block_matches_lsda_site(
         self, block: BlockSpec, site: ExceptionalCallSite
     ) -> bool:
-        """Return whether this recovered call terminator lies in one LSDA range."""
+        """Match a recovered call instruction, excluding any delay slot."""
 
         if block.jumpkind != "Ijk_Call":
             return False
         insns = decode_raw_capstone_insns(self.project, block.addr, block.size)
-        call = next(
-            (insn for insn in reversed(insns) if InsnSemantics(insn).is_call()),
-            None,
-        )
-        return call is not None and (
+        if not insns or insns[-1].address + insns[-1].size != block.addr + block.size:
+            return False
+        # The block's call classification can come from VEX when Capstone's
+        # call group misses PPC branches, s390 BRASL, or MIPS BAL. MIPS also
+        # includes one delay-slot instruction after the call.
+        if arch_has_delay_slot(self.project.arch.name):
+            if len(insns) < 2:
+                return False
+            call = insns[-2]
+        else:
+            call = insns[-1]
+        return (
             site.start_addr <= call.address
             and call.address + call.size <= site.end_addr
         )

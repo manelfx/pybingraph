@@ -136,6 +136,143 @@ def test_extract_names_nonreturning_unwind_plt_call() -> None:
     assert 0x4B10BC in nodes
 
 
+def test_extract_omits_static_unwind_resume_fakerets() -> None:
+    """Static unwind calls cannot return, even when a following block exists."""
+
+    cases = (
+        ("mipsel/mips_syscall_demo", 0x408E1C, 0x40921C, 0x409228, 0x468B74),
+        ("s390x/test-instr_s390x", 0x80008200, 0x800083EE, 0x800083F8, 0x80069CB8),
+    )
+    for binary, entry, call_addr, continuation, callee in cases:
+        project = project_module.load_project(Path("angr-binaries/tests") / binary)
+        symbol = project.loader.find_symbol(callee)
+        assert symbol is not None and symbol.name == "_Unwind_Resume"
+        assert symbol.owner is project.loader.main_object and not symbol.is_import
+        assert target_is_known_nonreturning(project, callee)
+
+        cfg = build_extracted_cfg(project, KnowledgeBase(project), entry)
+        nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+        successors = tuple(cfg.graph.successors(nodes[call_addr]))
+        assert len(successors) == 1
+        assert successors[0].addr == callee
+        assert (
+            cfg.graph.get_edge_data(nodes[call_addr], successors[0])["jumpkind"]
+            == "Ijk_Call"
+        )
+        if continuation in nodes:
+            assert (
+                cfg.graph.get_edge_data(nodes[call_addr], nodes[continuation]) is None
+            )
+
+        if entry == 0x408E1C:
+            # The MIPS continuation has a genuine conditional-branch predecessor.
+            assert continuation in nodes
+            assert cfg.graph.has_edge(nodes[0x4091F8], nodes[continuation])
+
+
+def test_extract_recovers_s390_lsda_cleanup_after_nonreturning_call() -> None:
+    """Reach cleanup pads via LSDA, not a return from _Unwind_Resume."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/s390x/object_sensitivity_0")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x401488
+    )
+    assert exceptional_call_sites_for_function(project, session.bounds) == (
+        ExceptionalCallSite(0x4015AA, 0x4015B0, 0x4017C4),
+        ExceptionalCallSite(0x4016D0, 0x4016D6, 0x40178E),
+        ExceptionalCallSite(0x401748, 0x40174E, 0x4017C4),
+    )
+
+    cfg = session.build()
+    nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+    assert {0x4017C4, 0x4017CE, 0x4017DA} <= nodes.keys()
+    for source_addr, target_addr in (
+        (0x4015A6, 0x4017C4),
+        (0x4016C4, 0x40178E),
+        (0x40173C, 0x4017C4),
+    ):
+        edge = cfg.graph.get_edge_data(nodes[source_addr], nodes[target_addr])
+        assert edge is not None and edge["exceptional"] is True
+    assert cfg.graph.get_edge_data(nodes[0x4017BA], nodes[0x4017C4]) is None
+
+
+def test_extract_recovers_s390_float_lsda_cleanup() -> None:
+    """Retain Float::pp's cleanup path without a false unwind return."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/s390x/object_sensitivity_0")
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x401840)
+    nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+    assert {0x401AA4, 0x401AAE, 0x401ABA} <= nodes.keys()
+    for source_addr, target_addr in (
+        (0x401942, 0x401AA4),
+        (0x4019EA, 0x401A84),
+        (0x401A48, 0x401AA4),
+    ):
+        edge = cfg.graph.get_edge_data(nodes[source_addr], nodes[target_addr])
+        assert edge is not None and edge["exceptional"] is True
+    assert cfg.graph.get_edge_data(nodes[0x401A9A], nodes[0x401AA4]) is None
+
+
+def test_extract_matches_ppc_lsda_calls_without_capstone_call_group() -> None:
+    """VEX-identified PPC calls can enter LSDA cleanup pads."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/ppc64el/fauxware_static")
+    )
+    for entry, expected_edges in (
+        (
+            0x10011860,
+            ((0x10011A60, 0x10011B8C), (0x10011B80, 0x10011B8C)),
+        ),
+        (
+            0x10011C20,
+            (
+                (0x10011CC4, 0x10011DCC),
+                (0x10011D80, 0x10011DCC),
+                (0x10011DC0, 0x10011DCC),
+            ),
+        ),
+    ):
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), entry
+        )
+        cfg = session.build()
+        nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+        for source_addr, target_addr in expected_edges:
+            edge = cfg.graph.get_edge_data(nodes[source_addr], nodes[target_addr])
+            assert edge is not None and edge["exceptional"] is True
+        if entry == 0x10011860:
+            setup_only = ExceptionalCallSite(0x10011A60, 0x10011A64, 0x10011B8C)
+            assert not session._call_block_matches_lsda_site(
+                session.blocks[0x10011A60], setup_only
+            )
+
+
+def test_extract_matches_mips_bal_lsda_without_matching_delay_slot() -> None:
+    """Use the branch-and-link instruction, not its delay slot, for LSDA."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x407470
+    )
+    cfg = session.build()
+    nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+    for source_addr in (0x4074F8, 0x40768C, 0x40769C, 0x4076BC):
+        edge = cfg.graph.get_edge_data(nodes[source_addr], nodes[0x4076CC])
+        assert edge is not None and edge["exceptional"] is True
+
+    delay_only = ExceptionalCallSite(0x407690, 0x407694, 0x4076CC)
+    assert not session._call_block_matches_lsda_site(
+        session.blocks[0x40768C], delay_only
+    )
+
+
 def test_extract_keeps_lsda_cleanup_without_assertion_fakeret() -> None:
     """An assertion failure cannot return into a separate cleanup landing pad."""
 
@@ -1460,6 +1597,37 @@ def test_extract_resolves_guarded_post_decrement_byte_tables() -> None:
         )
 
     assert cfg.extract_stats.static_jump_plans_resolved >= 2
+
+
+def test_extract_resolves_low_byte_guarded_zero_extended_table() -> None:
+    """Keep a byte guard tied to the full-width index used by the table."""
+
+    project = project_module.load_project(
+        Path(
+            "angr-binaries/tests/x86_64/"
+            "1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51"
+        )
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x424910)
+    source = next(
+        node for node in cfg.graph if node.addr == 0x424F4B and not node.is_simprocedure
+    )
+
+    assert {node.addr for node in cfg.graph.successors(source)} == {
+        0x424F60,
+        0x4250E3,
+        0x425153,
+        0x42516D,
+        0x4251D3,
+        0x425243,
+        0x425290,
+        0x4252AA,
+        0x425307,
+        0x425373,
+        0x42538D,
+        0x425909,
+    }
+    assert cfg.extract_stats.unresolved_indirect_targets == 0
 
 
 def test_extract_resolves_16_bit_guarded_relative_tables() -> None:

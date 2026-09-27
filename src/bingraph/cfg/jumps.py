@@ -1282,8 +1282,15 @@ def _vex_guard_matches_index_register(
     guard_source = _vex_low_bits_source(
         resolved_expr, definitions, vex.tyenv, guard_bits
     )
+    low_view_key = _vex_get_key(guard_source, definitions, vex)
+    low_views = _vex_low_register_view_keys(index_key, guard_bits, vex)
+    later_alias_write = False
     for stmt in reversed(preceding_statements):
-        if not isinstance(stmt, pyvex.stmt.Put) or stmt.offset != index_key[0]:
+        if not isinstance(stmt, pyvex.stmt.Put):
+            continue
+        if stmt.offset != index_key[0]:
+            if index_key[0] < stmt.offset < index_key[0] + index_key[1] // 8:
+                later_alias_write = True
             continue
         value = _resolve_vex_expr(stmt.data, definitions)
         if value is resolved_expr or value == resolved_expr:
@@ -1295,6 +1302,16 @@ def _vex_guard_matches_index_register(
                 resolved_expr, definitions, vex.tyenv, guard_bits
             ):
                 return True
+        if (
+            not later_alias_write
+            and low_view_key in low_views
+            and low_view_key[1] == guard_bits
+            and _vex_is_zero_extension_from(
+                value, definitions, guard_bits, index_key[1]
+            )
+        ):
+            # A later low-register read observes the zero-extended full write.
+            return True
         if guard_source is None:
             return False
         value_source = _vex_low_bits_source(value, definitions, vex.tyenv, guard_bits)

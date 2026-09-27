@@ -292,7 +292,13 @@ def _library_family(name: str) -> str:
 
 
 _LINKED_NONRETURNING_RUNTIME_SYMBOLS = frozenset(
-    {"__assert_fail", "__libc_assert_fail", "__malloc_assert", "__stack_chk_fail"}
+    {
+        "_Unwind_Resume",
+        "__assert_fail",
+        "__libc_assert_fail",
+        "__malloc_assert",
+        "__stack_chk_fail",
+    }
 )
 
 
