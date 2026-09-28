@@ -1507,8 +1507,8 @@ def test_extract_does_not_reconnect_dynamic_memory_dispatch() -> None:
     assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
 
 
-def test_extract_keeps_static_memory_dispatch_eligible_for_recovery() -> None:
-    """Do not mistake a statically based jump table for a dynamic vtable."""
+def test_extract_proves_static_memory_dispatch_before_recovery() -> None:
+    """Resolve a two-level static table instead of sweeping its padding."""
 
     project = project_module.load_project(Path("angr-binaries/tests/x86_64/static"))
     cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x451F40)
@@ -1516,12 +1516,10 @@ def test_extract_keeps_static_memory_dispatch_eligible_for_recovery() -> None:
     dispatcher = nodes[0x45279C]
 
     successors = tuple(cfg.graph.successors(dispatcher))
-    assert len(successors) > 1
-    assert any(
-        node.simprocedure_name == "UnresolvableJumpTarget" for node in successors
-    )
+    assert len(successors) == 14
+    assert all(not node.is_simprocedure for node in successors)
     assert cfg.extract_stats.static_jump_dynamic_memory_target == 0
-    assert cfg.extract_stats.sweep_runs == 1
+    assert cfg.extract_stats.sweep_runs == 0
 
 
 def test_extract_resolves_abi_preserved_register_tail_target() -> None:
@@ -1870,8 +1868,8 @@ def test_extract_resolves_s390_table_loaded_register_branches() -> None:
         assert len(plan.entry_indices) == entry_count
 
 
-def test_extract_keeps_unbounded_s390_byte_map_dispatch_unresolved() -> None:
-    """A runtime-bounded byte map cannot prove every second-level target."""
+def test_extract_resolves_guarded_s390_byte_map_dispatch() -> None:
+    """The read-only guard and byte map prove all second-level targets."""
 
     project = project_module.load_project(
         Path("angr-binaries/tests/s390x/test-instr_s390x")
@@ -1884,9 +1882,13 @@ def test_extract_keeps_unbounded_s390_byte_map_dispatch_unresolved() -> None:
     source = next(node for node in cfg.graph if node.addr == source_addr)
 
     assert session.blocks[source_addr].jumpkind == "Ijk_Boring"
-    assert source_addr not in session.static_targets
-    assert any(node.is_simprocedure for node in cfg.graph.successors(source))
-    assert 0x8002BB14 not in session.blocks  # After non-returning __assert_fail.
+    assert len(session.static_targets[source_addr]) == 14
+    assert all(not node.is_simprocedure for node in cfg.graph.successors(source))
+    assert 0x8002A6DE in session.blocks
+    nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+    assert cfg.graph.has_edge(nodes[0x8002B86A], nodes[0x8002BB14])
+    assert session.blocks[0x8002BB14].fallthrough_addr is None
+    assert 0x8002BB5A not in session.blocks  # After non-returning __assert_fail.
 
 
 def test_extract_continues_after_valid_mips_vex_sigill() -> None:

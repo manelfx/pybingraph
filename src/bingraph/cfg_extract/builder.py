@@ -59,6 +59,7 @@ from .models import (
 )
 from .sweep import recover_executable_components, select_reconnecting_components
 from .syscalls import ResolvedSyscall, resolve_static_syscall, unknown_syscall_target
+from .two_level_tables import exact_two_level_table_targets
 
 
 _UNRESOLVABLE_CALL_ADDR = 0xFFFFFFFFFFFFFFD0
@@ -543,7 +544,8 @@ class _ExtractionSession:
         """Iteratively discover exact and candidate indirect jump targets.
 
         Exact resolvers run in priority order: conditional-PC forms,
-        arithmetic-PC forms, generic VEX tables, then the MIPS PIC fallback.
+        arithmetic-PC forms, generic VEX tables, the MIPS PIC fallback, then
+        guarded two-level byte-map/pointer tables.
         Only a fully bounded table becomes ``static_targets``. A weaker,
         unbounded memory-selector table may contribute dashed candidates, but
         never replaces the unresolved target.
@@ -631,6 +633,12 @@ class _ExtractionSession:
                             plan.base_addr,
                             plan.entry_indices,
                         )
+                if targets is None and reason in {"no_table_shape", "unbounded_index"}:
+                    targets = exact_two_level_table_targets(
+                        self.project, graph, self.bounds, node
+                    )
+                    if targets is not None:
+                        reason = None
                 if targets is None and reason == "no_table_shape":
                     candidate_plan = candidate_table_plans.get(addr)
                     if candidate_plan is not None:
