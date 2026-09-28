@@ -1,9 +1,12 @@
 """Unit tests for static jump-table target recovery helpers."""
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import archinfo
+from angr import KnowledgeBase
 import networkx as nx
 import pyvex
 
@@ -23,6 +26,8 @@ from bingraph.cfg.jumps import (
 )
 from bingraph.cfg import jumps as jumps_module
 from bingraph.cfg.models import BlockSpec, FunctionBounds, StaticJumpTable
+from bingraph.cfg_extract.builder import _ExtractionSession
+from bingraph.core.project import load_project
 
 
 @dataclass(frozen=True)
@@ -92,6 +97,66 @@ def test_amd64_sysv_alias_write_invalidates_a_static_register_target() -> None:
 
     assert rax_offset not in output
     assert target is None
+
+
+def test_mips_pic_join_requires_every_path_and_a_small_domain() -> None:
+    """Disagreement stays finite; unknown or oversized paths do not prove it."""
+
+    state = jumps_module._MipsPicState
+    first = state({108: frozenset({0x50000C})}, {16: frozenset({0x4CFAD0})})
+    second = state({108: frozenset({0x500104})}, {16: frozenset({0x4CFAD0})})
+
+    joined = jumps_module._mips_join_states((first, second))
+    assert joined.registers[108] == frozenset({0x50000C, 0x500104})
+    assert joined.stack[16] == frozenset({0x4CFAD0})
+    assert 108 not in jumps_module._mips_join_states((first, state({}, {}))).registers
+    assert (
+        jumps_module._mips_finite_union(
+            frozenset({value})
+            for value in range(jumps_module.MAX_ABI_STATIC_TARGET_VALUES + 1)
+        )
+        is None
+    )
+
+
+def test_mips_pic_call_clobbers_registers_but_keeps_frame_save() -> None:
+    """A following GP restore must use the saved slot, not a call assumption."""
+
+    project = load_project(Path("angr-binaries/tests/mipsel/busybox"))
+    gp = project.arch.registers["gp"][0]
+    sp = project.arch.registers["sp"][0]
+    t9 = project.arch.registers["t9"][0]
+    saved = frozenset({0x4CFAD0})
+    incoming = jumps_module._MipsPicState(
+        {gp: saved, t9: frozenset({0x50000C, 0x500104})},
+        {16: saved},
+    )
+    block = BlockSpec(0x473E80, 12, (0x473E80, 0x473E84, 0x473E88), "Ijk_Call")
+
+    output, targets = jumps_module._mips_pic_transfer(
+        project, block, incoming, gp, sp, {sp}
+    )
+
+    assert targets == frozenset({0x50000C, 0x500104})
+    assert gp not in output.registers
+    assert t9 not in output.registers
+    assert output.stack[16] == saved
+
+
+def test_mips_pic_budget_discards_partial_target_sets() -> None:
+    """An exhausted analysis must not turn any partial path into an edge."""
+
+    project = load_project(Path("angr-binaries/tests/mipsel/busybox"))
+    session = _ExtractionSession(project, KnowledgeBase(project), 0x473DCC)
+    session._decode_all_blocks()
+
+    with patch.object(jumps_module, "MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES", 0):
+        targets, exhausted, ran = jumps_module.abi_static_register_transfer_targets(
+            project, session.bounds, session.blocks
+        )
+
+    assert targets == {}
+    assert exhausted and ran
 
 
 def test_amd64_sysv_transfer_ignores_a_direct_vex_target() -> None:

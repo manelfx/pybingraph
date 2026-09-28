@@ -12,8 +12,8 @@ PIC code whose table base is not retained as a VEX constant.
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Iterable
-from dataclasses import replace
+from collections.abc import Iterable, Set
+from dataclasses import dataclass, replace
 from typing import Any, Literal
 
 from angr import Project, options as angr_options
@@ -51,6 +51,8 @@ from .models import (
 # stronger range proof than the local VEX matcher currently provides.
 MAX_STATIC_JUMPTABLE_ENTRIES = 256
 MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES = 4096
+MAX_ABI_STATIC_TARGET_VALUES = 8
+MAX_MIPS_PIC_TARGET_BLOCKS = 512
 # Cross-block selector proofs are must analyses. Cap their walk so one
 # pathological function cannot make otherwise local table recovery expensive.
 MAX_CROSS_BLOCK_SELECTOR_PROOF_NODES = 128
@@ -377,7 +379,7 @@ def abi_static_register_transfer_targets(
     project: Project,
     bounds: FunctionBounds,
     blocks: dict[int, BlockSpec],
-) -> tuple[dict[int, int], bool, bool]:
+) -> tuple[dict[int, tuple[int, ...]], bool, bool]:
     """Resolve register transfers proven by the active function ABI.
 
     The analysis is deliberately a must-analysis over exact code addresses.
@@ -386,6 +388,9 @@ def abi_static_register_transfer_targets(
     partial answers when its bounded worklist is exhausted.  The final flag
     reports whether the ABI profile and at least one candidate were present.
     """
+
+    if project.arch.name.startswith("MIPS"):
+        return _mips_pic_register_transfer_targets(project, bounds, blocks)
 
     profile = _amd64_sysv_register_layout(project)
     if profile is None:
@@ -448,7 +453,285 @@ def abi_static_register_transfer_targets(
             if in_states.get(successor) != joined:
                 in_states[successor] = joined
                 pending.append(successor)
-    return transfer_targets, False, True
+    return {addr: (target,) for addr, target in transfer_targets.items()}, False, True
+
+
+@dataclass
+class _MipsPicState:
+    """Must-known finite values and frame-private stack saves at one block edge."""
+
+    registers: dict[int, frozenset[int]]
+    stack: dict[int, frozenset[int]]
+
+
+def _mips_finite_union(values: Iterable[frozenset[int]]) -> frozenset[int] | None:
+    merged: set[int] = set()
+    for item in values:
+        merged.update(item)
+        if len(merged) > MAX_ABI_STATIC_TARGET_VALUES:
+            return None
+    return frozenset(merged) if merged else None
+
+
+def _mips_join_states(states: Iterable[_MipsPicState]) -> _MipsPicState:
+    """Keep a register or local save only if every incoming path knows it."""
+
+    incoming = tuple(states)
+    if not incoming:
+        return _MipsPicState({}, {})
+
+    def join_map(name: str) -> dict[int, frozenset[int]]:
+        maps = [getattr(state, name) for state in incoming]
+        common = set.intersection(*(set(mapping) for mapping in maps))
+        joined = {}
+        for key in common:
+            values = _mips_finite_union(mapping[key] for mapping in maps)
+            if values is not None:
+                joined[key] = values
+        return joined
+
+    return _MipsPicState(join_map("registers"), join_map("stack"))
+
+
+def _mips_register_displacement(
+    key: tuple[Any, ...] | None, offset: int, bits: int
+) -> int | None:
+    """Recognize only a full-width register plus static displacement."""
+
+    if key == ("get", offset, bits):
+        return 0
+    if key is None or key[:2] != ("binop", f"Iop_Add{bits}"):
+        return None
+    left, right = key[2:]
+    for base, displacement in ((left, right), (right, left)):
+        if base == ("get", offset, bits) and displacement[0] == "const":
+            value = displacement[1]
+            return value if value < 1 << (bits - 1) else value - (1 << bits)
+    return None
+
+
+def _mips_pic_transfer(
+    project: Project,
+    block: BlockSpec,
+    incoming: _MipsPicState,
+    gp_offset: int,
+    sp_offset: int,
+    preserved: Set[int],
+) -> tuple[_MipsPicState, frozenset[int] | None]:
+    """Replay bounded VEX value flow, including branch delay-slot writes."""
+
+    try:
+        vex = project.factory.block(
+            block.addr, size=block.size, strict_block_end=True, cross_insn_opt=False
+        ).vex
+    except Exception:
+        return _MipsPicState({}, {}), None
+
+    bits = project.arch.bits
+    mask = (1 << bits) - 1
+    definitions = _vex_tmp_definitions(vex)
+    if any(
+        isinstance(
+            statement,
+            (pyvex.stmt.Dirty, pyvex.stmt.CAS, pyvex.stmt.LLSC, pyvex.stmt.StoreG),
+        )
+        for statement in vex.statements
+    ):
+        return _MipsPicState({}, {}), None
+    for index, statement in enumerate(vex.statements):
+        if isinstance(statement, pyvex.stmt.Exit) and any(
+            isinstance(later, pyvex.stmt.Store)
+            or isinstance(later, pyvex.stmt.Put)
+            and later.offset != project.arch.ip_offset
+            for later in vex.statements[index + 1 :]
+        ):
+            return _MipsPicState({}, {}), None
+    registers = dict(incoming.registers)
+    stack = dict(incoming.stack)
+    temps: dict[int, frozenset[int]] = {}
+
+    def evaluate(expr) -> frozenset[int] | None:
+        if isinstance(expr, pyvex.expr.RdTmp):
+            return temps.get(expr.tmp)
+        if isinstance(expr, pyvex.expr.Const):
+            return frozenset({expr.con.value & mask})
+        if isinstance(expr, pyvex.expr.Get):
+            return (
+                registers.get(expr.offset)
+                if expr.result_size(vex.tyenv) == bits
+                else None
+            )
+        if isinstance(expr, pyvex.expr.Binop) and expr.op in {
+            f"Iop_Add{bits}",
+            f"Iop_Sub{bits}",
+        }:
+            left = evaluate(expr.args[0])
+            right = evaluate(expr.args[1])
+            if left is None or right is None:
+                return None
+            operation = (
+                (lambda a, b: a + b)
+                if expr.op == f"Iop_Add{bits}"
+                else (lambda a, b: a - b)
+            )
+            return _mips_finite_union(
+                frozenset({operation(a, b) & mask}) for a in left for b in right
+            )
+        if not isinstance(expr, pyvex.expr.Load):
+            return None
+        if expr.result_size(vex.tyenv) != bits:
+            return None
+        key = _vex_expr_key(expr.addr, definitions)
+        stack_offset = _mips_register_displacement(key, sp_offset, bits)
+        if stack_offset is not None:
+            return stack.get(stack_offset)
+        gp_displacement = _mips_register_displacement(key, gp_offset, bits)
+        gp_values = registers.get(gp_offset)
+        if gp_displacement is None or gp_values is None:
+            return None
+        byteorder = "little" if expr.end == "Iend_LE" else "big"
+        targets: set[int] = set()
+        for gp in gp_values:
+            slot = (gp + gp_displacement) & mask
+            try:
+                value = int.from_bytes(
+                    project.loader.memory.load(slot, project.arch.bytes), byteorder
+                )
+            except Exception:
+                return None
+            if not _abi_static_target_is_valid(project, value):
+                return None
+            targets.add(value)
+        return _mips_finite_union(frozenset({value}) for value in targets)
+
+    for statement in vex.statements:
+        if isinstance(statement, pyvex.stmt.WrTmp):
+            value = evaluate(statement.data)
+            if value is not None:
+                temps[statement.tmp] = value
+        elif isinstance(statement, pyvex.stmt.Store):
+            key = _vex_expr_key(statement.addr, definitions)
+            displacement = _mips_register_displacement(key, sp_offset, bits)
+            if displacement is None:
+                # The ABI treats this function's own stack frame as private.
+                continue
+            size = statement.data.result_size(vex.tyenv) // 8
+            for saved_offset in tuple(stack):
+                if (
+                    displacement < saved_offset + project.arch.bytes
+                    and saved_offset < displacement + size
+                ):
+                    stack.pop(saved_offset)
+            value = evaluate(statement.data)
+            if statement.data.result_size(vex.tyenv) == bits and value is not None:
+                stack[displacement] = value
+        elif isinstance(statement, pyvex.stmt.Put):
+            if statement.offset == sp_offset:
+                stack.clear()
+            value = (
+                evaluate(statement.data)
+                if statement.data.result_size(vex.tyenv) == bits
+                else None
+            )
+            if value is None:
+                registers.pop(statement.offset, None)
+            else:
+                registers[statement.offset] = value
+
+    target_expr = _resolve_vex_expr(vex.next, definitions)
+    target = evaluate(vex.next) if isinstance(target_expr, pyvex.expr.Get) else None
+    if block.jumpkind == "Ijk_Call":
+        registers = {
+            offset: value for offset, value in registers.items() if offset in preserved
+        }
+    return _MipsPicState(registers, stack), target
+
+
+def _mips_pic_register_transfer_targets(
+    project: Project, bounds: FunctionBounds, blocks: dict[int, BlockSpec]
+) -> tuple[dict[int, tuple[int, ...]], bool, bool]:
+    """Prove complete finite targets at MIPS PIC register calls and jumps."""
+
+    if len(blocks) > MAX_MIPS_PIC_TARGET_BLOCKS or bounds.addr not in blocks:
+        return {}, False, False
+    gp = _mips_entry_global_pointer(project, bounds)
+    if gp is None:
+        return {}, False, False
+    registers = project.arch.registers
+    try:
+        gp_offset = registers["gp"][0]
+        sp_offset = registers["sp"][0]
+        t9_offset = registers["t9"][0]
+        preserved = {
+            registers[name][0] for name in (*[f"s{i}" for i in range(8)], "s8", "sp")
+        }
+    except KeyError:
+        return {}, False, False
+
+    candidates = {
+        addr
+        for addr, block in blocks.items()
+        if block.jumpkind in {"Ijk_Call", "Ijk_Boring"}
+        and not block.direct_targets
+        and not (block.jumpkind == "Ijk_Boring" and block.fallthrough_addr is not None)
+    }
+    if not candidates:
+        return {}, False, False
+
+    successors = {
+        addr: _abi_successor_addrs(blocks, block) for addr, block in blocks.items()
+    }
+    predecessors: dict[int, set[int]] = {addr: set() for addr in blocks}
+    for source, targets in successors.items():
+        for target in targets:
+            predecessors[target].add(source)
+    if predecessors[bounds.addr]:
+        return {}, False, True
+
+    initial = _MipsPicState({t9_offset: frozenset({bounds.addr})}, {})
+    entry_output, _ = _mips_pic_transfer(
+        project, blocks[bounds.addr], initial, gp_offset, sp_offset, preserved
+    )
+    if entry_output.registers.get(gp_offset) != frozenset({gp}):
+        return {}, False, True
+    in_states = {bounds.addr: initial}
+    out_states: dict[int, _MipsPicState] = {}
+    pending = deque([bounds.addr])
+    updates = 0
+    while pending:
+        addr = pending.popleft()
+        updates += 1
+        if updates > MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES:
+            return {}, True, True
+        output, _ = _mips_pic_transfer(
+            project, blocks[addr], in_states[addr], gp_offset, sp_offset, preserved
+        )
+        if out_states.get(addr) == output:
+            continue
+        out_states[addr] = output
+        for successor in successors[addr]:
+            incoming = [
+                out_states[pred]
+                for pred in predecessors[successor]
+                if pred in out_states
+            ]
+            joined = _mips_join_states(incoming)
+            if in_states.get(successor) != joined:
+                in_states[successor] = joined
+                pending.append(successor)
+
+    proved = {}
+    for addr in candidates & in_states.keys():
+        if not predecessors[addr] <= out_states.keys():
+            continue
+        _, target = _mips_pic_transfer(
+            project, blocks[addr], in_states[addr], gp_offset, sp_offset, preserved
+        )
+        if target and all(
+            _abi_static_target_is_valid(project, value) for value in target
+        ):
+            proved[addr] = tuple(sorted(target))
+    return proved, False, True
 
 
 def _mips_entry_global_pointer(project: Project, bounds: FunctionBounds) -> int | None:

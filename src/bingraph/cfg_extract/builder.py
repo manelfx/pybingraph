@@ -524,18 +524,19 @@ class _ExtractionSession:
                 return
 
             discovered = False
-            for addr, target in targets.items():
+            for addr, exact_targets in targets.items():
                 block = self.blocks[addr]
-                self.blocks[addr] = replace(block, direct_targets=(target,))
+                self.blocks[addr] = replace(block, direct_targets=exact_targets)
                 if block.jumpkind == "Ijk_Call":
                     self.stats.abi_static_call_targets_resolved += 1
                 else:
                     self.stats.abi_static_jump_targets_resolved += 1
-                if self.bounds.addr <= target < self.bounds.end_addr:
-                    self._claim_code_target(target)
-                    before = target in self.blocks or target in self.pending_addrs
-                    if self._add_leader(target):
-                        discovered |= not before
+                for target in exact_targets:
+                    if self.bounds.addr <= target < self.bounds.end_addr:
+                        self._claim_code_target(target)
+                        before = target in self.blocks or target in self.pending_addrs
+                        if self._add_leader(target):
+                            discovered |= not before
             if not discovered:
                 return
             self._decode_all_blocks()

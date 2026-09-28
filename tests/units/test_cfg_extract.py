@@ -1544,6 +1544,23 @@ def test_extract_resolves_abi_preserved_register_tail_target() -> None:
     assert cfg.extract_stats.abi_static_target_analysis_budget_exhausted == 0
 
 
+def test_extract_proves_mips_pic_call_and_tail_targets_across_blocks() -> None:
+    """Keep both call paths and the delay-slot-loaded tail target exact."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/mipsel/busybox"))
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x473DCC)
+    nodes = {node.addr: node for node in cfg.graph.nodes()}
+
+    assert {node.addr for node in cfg.graph.successors(nodes[0x473E80])} == {
+        0x473E8C,
+        0x50000C,  # __fputc_unlocked from one incoming GOT load.
+        0x500104,  # fputc from the other incoming GOT load.
+    }
+    assert {node.addr for node in cfg.graph.successors(nodes[0x473EEC])} == {0x500104}
+    assert cfg.extract_stats.abi_static_call_targets_resolved >= 1
+    assert cfg.extract_stats.abi_static_jump_targets_resolved >= 1
+
+
 def test_extract_rejects_swept_transparent_padding_root() -> None:
     """Do not attach a scanned alignment NOP as an indirect-jump candidate."""
 
