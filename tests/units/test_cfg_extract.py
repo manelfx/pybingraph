@@ -1468,8 +1468,8 @@ def test_extract_bounds_memory_selector_table_candidates() -> None:
         assert cfg.extract_stats.static_jump_candidate_plans == 0
 
 
-def test_extract_preserves_sweep_for_unbounded_rotated_table_index() -> None:
-    """Keep the prior fallback when a new rotate matcher lacks a range proof."""
+def test_extract_resolves_guarded_rotated_table_without_sweep() -> None:
+    """A zero-extended ``clijle`` guard proves the rotated table bound."""
 
     project = project_module.load_project(Path("angr-binaries/tests/s390x/cfg_2"))
     cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x400840)
@@ -1480,9 +1480,12 @@ def test_extract_preserves_sweep_for_unbounded_rotated_table_index() -> None:
     assert (
         len({addr for node in nodes.values() for addr in node.instruction_addrs}) == 59
     )
-    assert len(tuple(cfg.graph.successors(dispatcher))) == 12
-    assert cfg.extract_stats.static_jump_no_table_shape == 1
-    assert cfg.extract_stats.sweep_runs == 1
+    successors = tuple(cfg.graph.successors(dispatcher))
+    assert len(successors) == 11
+    assert all(not node.is_simprocedure for node in successors)
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert cfg.extract_stats.unresolved_indirect_targets == 0
+    assert cfg.extract_stats.sweep_runs == 0
 
 
 def test_extract_does_not_reconnect_dynamic_memory_dispatch() -> None:
@@ -1826,6 +1829,82 @@ def test_extract_honors_s390x_rotated_table_predecessor_guard() -> None:
     assert all(not successor.is_simprocedure for successor in successors)
     assert not {0x800674A4, 0x80067572, 0x800675B8} & nodes.keys()
     assert cfg.extract_stats.static_jump_plans_resolved == 1
+
+
+def test_extract_resolves_s390_table_loaded_register_branches() -> None:
+    """A guarded table-loaded ``br`` is not an s390 return."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/s390x/test-instr_s390x")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x800555F8
+    )
+    cfg = session.build()
+    nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+
+    for source_addr, entry_count, target_count in (
+        (0x80055F88, 47, 7),
+        (0x80056228, 84, 15),
+        (0x80056252, 84, 15),
+    ):
+        assert session.blocks[source_addr].jumpkind == "Ijk_Boring"
+        assert len(session.static_targets[source_addr]) == target_count
+        source = nodes[source_addr]
+        assert {node.addr for node in cfg.graph.successors(source)} == set(
+            session.static_targets[source_addr]
+        )
+        graph, graph_nodes = session._analysis_graph()
+        plan, reason = plan_static_jump_table(
+            project,
+            graph,
+            session.bounds,
+            graph_nodes[source_addr],
+            allow_inline_index_values=True,
+            allow_masked_index_values=True,
+            allow_guarded_loads=True,
+            allow_static_bases=True,
+            allow_guarded_expression_indices=True,
+        )
+        assert reason is None and plan is not None
+        assert len(plan.entry_indices) == entry_count
+
+
+def test_extract_keeps_unbounded_s390_byte_map_dispatch_unresolved() -> None:
+    """A runtime-bounded byte map cannot prove every second-level target."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/s390x/test-instr_s390x")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x80029818
+    )
+    cfg = session.build()
+    source_addr = 0x8002A3DE
+    source = next(node for node in cfg.graph if node.addr == source_addr)
+
+    assert session.blocks[source_addr].jumpkind == "Ijk_Boring"
+    assert source_addr not in session.static_targets
+    assert any(node.is_simprocedure for node in cfg.graph.successors(source))
+    assert 0x8002BB14 not in session.blocks  # After non-returning __assert_fail.
+
+
+def test_extract_continues_after_valid_mips_vex_sigill() -> None:
+    """VEX's unsupported ``mthc1`` must not truncate the function."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x435C80
+    )
+    session.build()
+    block = session.blocks[0x435CE0]
+
+    assert {0x435D08, 0x435D0C, 0x435D14} <= set(block.instruction_addrs)
+    assert block.direct_targets == (0x4363B0,)
+    assert block.fallthrough_addr == 0x435D18
+    assert len(session.blocks) > 100
 
 
 def test_extract_resolves_a_guarded_sign_extended_byte_selector() -> None:

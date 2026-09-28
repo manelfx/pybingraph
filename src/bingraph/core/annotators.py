@@ -8,7 +8,7 @@ from bingraph.helpers.capstone import (
     control_transfer_index,
     proven_unconditional_direct_target,
 )
-from bingraph.cfg.decode import vex_jumpkind_is_terminal
+from bingraph.cfg.decode import decode_one, vex_jumpkind_is_terminal
 from .vis import NodeAnnotator, ContentAnnotator, EdgeAnnotator, Node
 
 
@@ -210,7 +210,20 @@ def _control_transfer_context(edge):
 
     source_node = edge.src.obj
     try:
-        insns = [wrapped.insn for wrapped in source_node.block.capstone.insns]
+        vex_sizes = getattr(source_node, "vex_linear_instruction_sizes", None)
+        if vex_sizes:
+            project = edge.src.project
+            max_bytes = getattr(project.arch, "max_inst_bytes", 16)
+            insns = []
+            for addr in source_node.instruction_addrs:
+                if addr in vex_sizes:
+                    continue
+                insn = decode_one(project, addr, max_bytes)
+                if insn is None:
+                    return None
+                insns.append(insn)
+        else:
+            insns = [wrapped.insn for wrapped in source_node.block.capstone.insns]
         ins_addr = edge.meta.get("ins_addr")
         if isinstance(ins_addr, int):
             for index, insn in enumerate(insns):

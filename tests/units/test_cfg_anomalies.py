@@ -1,16 +1,19 @@
 """Fast tests for custom-CFG anomaly classification and reporting."""
 
+from pathlib import Path
 from types import SimpleNamespace
 
 from capstone import CS_GRP_JUMP, CS_OP_IMM
 from capstone.x86 import X86_INS_UD2
 from loguru import logger
 import pyvex
+import pytest
 
 from bingraph.cfg import anomalies
 from bingraph.cfg import jumps
 from bingraph.cfg.decode import DecodedNode
 from bingraph.cfg.models import CFGAnomaly, FunctionBounds
+from bingraph.core import project as project_module
 
 
 def test_decoding_coverage_detects_zero_sized_nodes() -> None:
@@ -288,6 +291,71 @@ def test_terminal_vex_node_rejects_non_fallthrough_successor() -> None:
         "Node 0x1000 has terminal VEX jumpkind Ijk_Ret but retains "
         "successor(s): 0x2000",
     )
+
+
+def test_s390_table_return_allows_only_proven_successors(monkeypatch) -> None:
+    """Do not hide a stale edge beside the exact targets of an s390 ``br``."""
+
+    node = SimpleNamespace(
+        addr=0x1000,
+        block=SimpleNamespace(vex=SimpleNamespace(jumpkind="Ijk_Ret")),
+    )
+    successors = [SimpleNamespace(addr=0x2000)]
+    graph = SimpleNamespace(successors=lambda _node: successors)
+    project = SimpleNamespace()
+    bounds = SimpleNamespace()
+    plan = SimpleNamespace(table=object(), base_addr=0x3000, entry_indices=(0,))
+    monkeypatch.setattr(anomalies, "s390_table_loaded_branch", lambda _node: True)
+    monkeypatch.setattr(
+        anomalies, "plan_static_jump_table", lambda *_args: (plan, None)
+    )
+    monkeypatch.setattr(
+        anomalies, "_read_static_jump_table_targets", lambda *_args: (0x2000,)
+    )
+    monkeypatch.setattr(
+        anomalies, "static_jump_target_rejection_reason", lambda *_args: None
+    )
+
+    assert (
+        anomalies._terminal_successor_anomaly(
+            graph, node, project=project, bounds=bounds
+        )
+        is None
+    )
+
+    successors.append(SimpleNamespace(addr=0x4000))
+    assert anomalies._terminal_successor_anomaly(
+        graph, node, project=project, bounds=bounds
+    ) == CFGAnomaly(
+        "terminal_successor",
+        0x1000,
+        "Node 0x1000 has terminal VEX jumpkind Ijk_Ret but retains "
+        "successor(s): 0x4000",
+    )
+
+
+@pytest.mark.parametrize(
+    ("func_addr", "branch_addr", "target_count"),
+    (
+        (0x80015140, 0x800152D2, 6),
+        (0x8001B830, 0x8001B912, 16),
+        (0x80038918, 0x80038A98, 8),
+        (0x80038FB0, 0x80039190, 8),
+    ),
+)
+def test_custom_s390_table_branch_has_no_terminal_anomaly(
+    func_addr: int, branch_addr: int, target_count: int
+) -> None:
+    """The recovered table edges must not masquerade as return fallthroughs."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/s390x/test-instr_s390x")
+    )
+    cfg = project_module.get_cfg(project, func_addr, "custom")
+    branch = next(node for node in cfg.graph if node.addr == branch_addr)
+
+    assert len(tuple(cfg.graph.successors(branch))) == target_count
+    assert cfg.custom_stats.output_anomalies == 0
 
 
 def test_overlapping_instruction_entry_requires_an_external_predecessor(

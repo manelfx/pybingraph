@@ -1,5 +1,7 @@
 """Fast tests for control-flow edge classification used by render styles."""
 
+from pathlib import Path
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -8,6 +10,19 @@ from capstone.x86 import X86_INS_JMP
 
 import bingraph.core.annotators as annotators
 from bingraph.core.annotators import _edge_type
+from bingraph.core.project import load_project
+from bingraph.core.render import render_cfg
+
+
+def test_extract_styles_branch_after_vex_only_mips_instruction() -> None:
+    """A VEX-only span must not hide a later conditional branch from styling."""
+
+    project = load_project(Path("angr-binaries/tests/mipsel/mips_syscall_demo"))
+    dot = render_cfg(project, 0x435C80, False, False, "extract", "jump", "dot")
+
+    assert re.search(r'"0x435d18" -> "0x435d38"\s+\[color=red,', dot)
+    assert re.search(r'"0x435d18" -> "0x435de4"\s+\[color=green,', dot)
+    assert "color=purple" not in dot
 
 
 def _node(

@@ -37,6 +37,10 @@ from .jumps import (
     _constant_register_from_predecessors,
     _missing_jump_successor_anomaly,
     _missing_jump_successors,
+    _read_static_jump_table_targets,
+    plan_static_jump_table,
+    s390_table_loaded_branch,
+    static_jump_target_rejection_reason,
 )
 from .models import (
     CFGAnomaly,
@@ -672,12 +676,19 @@ def node_has_truncated_leaf(
     return has_later_function_node
 
 
-def _terminal_successor_anomaly(graph: CFGGraph, node) -> CFGAnomaly | None:
+def _terminal_successor_anomaly(
+    graph: CFGGraph,
+    node,
+    *,
+    project: Project | None = None,
+    bounds: FunctionBounds | None = None,
+) -> CFGAnomaly | None:
     """Return an anomaly when VEX-terminal code retains a stale successor.
 
     A conditional return can have ``Ijk_Ret`` as its default VEX jumpkind and
     an ``Ijk_Boring`` exit to the next instruction for its not-taken path.
-    That explicit fall-through is valid; only other successors are stale.
+    An s390 table-loaded ``br`` can also lift as ``Ijk_Ret``. Only its proven
+    table targets are valid; other successors are still stale.
     """
 
     try:
@@ -710,6 +721,24 @@ def _terminal_successor_anomaly(graph: CFGGraph, node) -> CFGAnomaly | None:
     )
     if not successors:
         return None
+
+    if project is not None and bounds is not None and s390_table_loaded_branch(node):
+        plan, _ = plan_static_jump_table(project, graph, bounds, node)
+        if plan is not None:
+            targets = _read_static_jump_table_targets(
+                project, plan.table, plan.base_addr, plan.entry_indices
+            )
+            if targets and all(
+                static_jump_target_rejection_reason(project, target) is None
+                for target in targets
+            ):
+                successors = tuple(
+                    successor
+                    for successor in successors
+                    if successor.addr not in targets
+                )
+                if not successors:
+                    return None
 
     targets = ", ".join(f"{successor.addr:#x}" for successor in successors)
     terminal_kind = (
@@ -841,7 +870,9 @@ class CFGAnomalyDetector:
     def check_terminal_successor(self, node) -> bool:
         """Check that a terminal VEX node has no stale CFG successor."""
 
-        anomaly = _terminal_successor_anomaly(self.graph, node)
+        anomaly = _terminal_successor_anomaly(
+            self.graph, node, project=self.project, bounds=self.bounds
+        )
         if anomaly is None:
             return False
         self._report(anomaly)

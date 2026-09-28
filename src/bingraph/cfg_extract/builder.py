@@ -34,6 +34,7 @@ from bingraph.cfg.jumps import (
     plan_dynamic_selector_table_candidates,
     plan_mips_pic_relative_jump_table,
     plan_static_jump_table,
+    s390_table_loaded_branch,
     static_jump_target_rejection_reason,
     unconditional_arithmetic_pc_dispatch_targets,
 )
@@ -341,6 +342,12 @@ class _ExtractionSession:
                     f"function {self.func_addr:#x}"
                 )
                 continue
+            if block.jumpkind == "Ijk_Ret" and self.project.arch.name == "S390X":
+                node = _make_block_node(
+                    self.model, self.project, self.func_addr, self.bounds, block
+                )
+                if s390_table_loaded_branch(node):
+                    block = replace(block, jumpkind="Ijk_Boring")
             block = self._resolve_syscall(block)
 
             alternate_rejoins: set[int] = set()

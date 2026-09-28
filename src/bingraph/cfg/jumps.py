@@ -1295,6 +1295,13 @@ def _vex_guard_matches_index_register(
         value = _resolve_vex_expr(stmt.data, definitions)
         if value is resolved_expr or value == resolved_expr:
             return True
+        if (
+            _vex_width_conversion(resolved_expr) == (index_key[1], guard_bits, "U")
+            and _resolve_vex_expr(resolved_expr.args[0], definitions) == value
+        ):
+            # The branch compares the zero-extended value just written to
+            # this narrow register view (for example s390 ``clijle``).
+            return True
         if _vex_is_zero_extension_from(value, definitions, guard_bits, index_key[1]):
             if _vex_guard_width_view_key(
                 value, definitions, vex.tyenv, guard_bits
@@ -2510,7 +2517,11 @@ def _vex_direct_jump_table(
     predecessor guard before it reads any finite number of table entries.
     """
 
-    if vex.jumpkind != "Ijk_Boring":
+    # VEX classifies s390 ``br`` through a register as a return even when
+    # that register holds an absolute jump-table entry.
+    if vex.jumpkind != "Ijk_Boring" and not (
+        vex.arch.name == "S390X" and vex.jumpkind == "Ijk_Ret"
+    ):
         return None
 
     definitions = _vex_tmp_definitions(vex)
@@ -2539,6 +2550,30 @@ def _vex_direct_jump_table(
         allow_full_width_index=allow_full_width_index,
         allow_inline_index_values=allow_inline_index_values,
         allow_masked_index_values=allow_masked_index_values,
+    )
+
+
+def s390_table_loaded_branch(node: CFGNode) -> bool:
+    """Distinguish a table-loaded s390 ``br`` from a saved-address return.
+
+    VEX labels both as ``Ijk_Ret``. This check only identifies the static
+    table shape; the normal table planner must still prove a finite selector.
+    """
+
+    vex = _node_vex(node)
+    return bool(
+        vex is not None
+        and vex.arch.name == "S390X"
+        and vex.jumpkind == "Ijk_Ret"
+        and _vex_direct_jump_table(
+            vex,
+            allow_full_width_index=True,
+            allow_inline_index_values=True,
+            allow_masked_index_values=True,
+            allow_static_base=True,
+            allow_guarded_expression_index=True,
+        )
+        is not None
     )
 
 
@@ -2623,6 +2658,7 @@ def _vex_direct_table_from_load(
     index_bits = None
     index_values = None
     index_expression = None
+    index_low_bits = None
     for term in address_terms:
         value = _vex_const_value(term, definitions)
         if value is not None:
@@ -2634,21 +2670,23 @@ def _vex_direct_table_from_load(
             base_key = register_key
             continue
 
-        term = _resolve_vex_expr(term, definitions)
-        if not isinstance(term, pyvex.expr.Binop) or not term.op.startswith("Iop_Shl"):
+        scaled = _vex_scaled_table_index(term, definitions)
+        if scaled is None:
             return None
-        shift = _vex_const_value(term.args[1], definitions)
+        source, shift, scaled_values, scaled_low_bits = scaled
         candidate_index, candidate_values = _vex_table_index(
-            term.args[0],
+            source,
             definitions,
             vex,
             allow_full_width=allow_full_width_index,
             allow_inline_index_values=allow_inline_index_values,
             allow_masked_index_values=allow_masked_index_values,
         )
+        if candidate_values is None:
+            candidate_values = scaled_values
         if candidate_index is None and candidate_values is None and guard is not None:
             candidate_values = _vex_guarded_expression_values(
-                guard, term.args[0], definitions
+                guard, source, definitions
             )
         candidate_expression = None
         if (
@@ -2656,7 +2694,7 @@ def _vex_direct_table_from_load(
             and candidate_values is None
             and allow_guarded_expression_index
         ):
-            candidate_expression = _vex_expr_key(term.args[0], definitions)
+            candidate_expression = _vex_expr_key(source, definitions)
             if candidate_expression is None or not _vex_key_reads_memory(
                 candidate_expression
             ):
@@ -2678,6 +2716,7 @@ def _vex_direct_table_from_load(
         index_bits = candidate_index[1] if candidate_index is not None else None
         index_values = candidate_values
         index_expression = candidate_expression
+        index_low_bits = scaled_low_bits
 
     if index_key is None and index_values is None and index_expression is None:
         return None
@@ -2713,6 +2752,7 @@ def _vex_direct_table_from_load(
         entries_are_relative=False,
         static_base_addr=static_base_addr,
         index_values=index_values,
+        index_low_bits=index_low_bits,
         index_expression=index_expression,
     )
 
@@ -4333,9 +4373,15 @@ def plan_static_jump_table(
     entry_count = _guarded_jump_table_entry_count(graph, bounds, node, table)
     if table.index_expression is not None and entry_count is None:
         # The optional expression matcher is only safe when its matching
-        # predecessor guard proves a finite table. Otherwise let extraction
-        # use its ordinary component-recovery path.
-        return None, "no_table_shape"
+        # predecessor guard proves a finite table. An s390 table-loaded
+        # register branch has a known shape but an unbounded selector; it
+        # must not seed speculative component reconnection.
+        reason = (
+            "unbounded_index"
+            if vex.arch.name == "S390X" and vex.jumpkind == "Ijk_Ret"
+            else "no_table_shape"
+        )
+        return None, reason
     if entry_indices is None:
         if entry_count is None and pic_base_addr is not None:
             entry_count = _x86_pc_thunk_guarded_entry_count(

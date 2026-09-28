@@ -851,6 +851,21 @@ def _exceptional_instruction_vex_jumpkind(project: Project, insn: CsInsn) -> str
     return None
 
 
+def _vex_sigill_is_linear(vex, insn: CsInsn) -> bool:
+    """Keep a valid linear instruction when VEX cannot model its operation."""
+
+    semantic = InsnSemantics(insn)
+    return (
+        vex.jumpkind == "Ijk_SigILL"
+        and not semantic.is_control_transfer()
+        and not semantic.is_undefined_instruction_trap()
+        and vex.instruction_addresses
+        and vex.instruction_addresses[-1] == insn.address
+        and isinstance(vex.next, pyvex.expr.Const)
+        and vex.next.con.value == insn.address + insn.size
+    )
+
+
 def _instruction_has_unclassified_vex_transfer(
     project: Project,
     insn: CsInsn,
@@ -907,6 +922,8 @@ def _instruction_has_unclassified_vex_transfer(
         )
         return None
 
+    if _vex_sigill_is_linear(vex, insn):
+        return None
     if vex.jumpkind == "Ijk_Call" or vex_jumpkind_is_terminal(vex.jumpkind):
         return vex.jumpkind
 
@@ -947,6 +964,13 @@ def _native_vex_transfer_end(
     end_addr = start_addr + size
     if not start_addr < end_addr <= bounds.end_addr:
         return None
+    if jumpkind == "Ijk_SigILL" and block.vex.instruction_addresses:
+        last_addr = block.vex.instruction_addresses[-1]
+        insn = decode_one(
+            project, last_addr, getattr(project.arch, "max_inst_bytes", 16)
+        )
+        if insn is not None and _vex_sigill_is_linear(block.vex, insn):
+            return None
     if (
         jumpkind == "Ijk_Call"
         or vex_jumpkind_is_terminal(jumpkind)
