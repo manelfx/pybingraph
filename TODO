@@ -98,6 +98,57 @@ Review http://127.0.0.1:8000/cfg?filepath=x86_64/fmt-rust&function=0x4ad760
 Check in extract how `UnresolvedJumpTarget` node is connected with dispatcher
 (e.g., http://127.0.0.1:8000/cfg?filepath=x86_64/rust_hello_world&function=0x43cff0&mode=extract).
 
+=== Unify exact jump-table proofs across architectures
+
+Purpose
+
+Recent MIPS64 and i386 table proofs recovered the intended artifacts, but
+introduced substantial architecture-specific code without changing other
+corpus artifacts. The shared `StaticJumpTablePlan` and row reader cover only
+the last step. Rework the earlier proofs of table address, finite selector
+domain, entry interpretation, and target completeness so new table flavors
+do not require another large, independent resolver. Improve CFG accuracy,
+not merely agreement with custom goldens.
+
+Proof targets to inventory and consolidate
+
+- MIPS/MIPS64 `$gp`-relative offset tables: prove the `$t9`/GOT-derived base,
+  including split constant additions and delay-slot effects; relate guarded
+  selectors to scaled or frame-reloaded indices. The recent MIPS64 examples
+  are `ld.so.1:dl_main`, `ld.so.1:_dl_sysdep_start`, and
+  `true:version_etc_arn`.
+- i386 PC-thunk-relative tables: prove the thunk-derived base through register
+  copies, ABI-preserved registers, and private stack spills; prove byte and
+  full-register guards and scaled selectors, including a second-level
+  dispatch. The recent examples are `bronze_ropchain:_nl_intern_locale_data`,
+  `execute_cfa_program`, `execute_stack_op`, and `uw_update_context_1`.
+- Existing x86/x86-64 direct and relative tables, including masked or
+  normalized selectors, and PPC64LE TOC-relative CTR tables: inventory which
+  proofs fit the same model before migrating them. Audit other architectures
+  such as s390x separately; do not force unlike transfers into one pattern.
+
+Approach
+
+Define a small, architecture-neutral dispatch description: table address,
+entry width/signedness, bounded index set, target-base expression, and the
+evidence supporting each fact. Feed it from conservative VEX/architecture
+adapters for PC thunks, `$gp`/delay slots, TOC/CTR, and condition flags. Use
+a bounded must-analysis for constants, affine addresses, and private stack
+slots; joins retain a fact only when every feasible incoming path agrees.
+Make memory aliasing and call-clobber assumptions explicit, invalidating
+facts rather than accepting an uncertain write. Keep the existing table-row
+validation and UJT fallback; never infer bounds by scanning for plausible
+code or use dashed candidate edges as proof.
+
+Start with the MIPS64 and i386 cases in shadow/comparison mode. Migrate a
+specialized resolver only after the shared proof reproduces its exact target
+sets. Then assess x86/x86-64 and PPC64LE one family at a time. The work is
+worth keeping only if it replaces meaningful duplicated code, preserves or
+improves target accuracy and instruction coverage across the corpus, and
+keeps analysis time within a measured budget. Add positive, negative,
+aliasing, budget-exhaustion, and cross-architecture tests. Do not claim a
+general corpus benefit until a full extract comparison demonstrates one.
+
 === Experiment: bounded symbolic resolver for indirect jumps
 
 Purpose

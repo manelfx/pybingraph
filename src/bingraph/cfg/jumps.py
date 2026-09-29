@@ -27,7 +27,7 @@ from bingraph.helpers.capstone import (
     control_transfer_index,
     proven_unconditional_direct_target,
 )
-from .decode import DecodedNode, lift_instruction_vex
+from .decode import DecodedNode, lift_instruction_vex, target_is_known_nonreturning
 from .graph import (
     CFGGraph,
     iter_graph_bound_nodes as _iter_graph_bound_nodes,
@@ -53,6 +53,7 @@ MAX_STATIC_JUMPTABLE_ENTRIES = 256
 MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES = 4096
 MAX_ABI_STATIC_TARGET_VALUES = 8
 MAX_MIPS_PIC_TARGET_BLOCKS = 512
+MAX_MIPS_NORETURN_CYCLE_PROOFS = 8
 # Cross-block selector proofs are must analyses. Cap their walk so one
 # pathological function cannot make otherwise local table recovery expensive.
 MAX_CROSS_BLOCK_SELECTOR_PROOF_NODES = 128
@@ -709,44 +710,53 @@ def _mips_pic_register_transfer_targets(
     successors = {
         addr: _abi_successor_addrs(blocks, block) for addr, block in blocks.items()
     }
-    predecessors: dict[int, set[int]] = {addr: set() for addr in blocks}
-    for source, targets in successors.items():
-        for target in targets:
-            predecessors[target].add(source)
-    if predecessors[bounds.addr]:
-        return {}, False, True
-
     initial = _MipsPicState({t9_offset: frozenset({bounds.addr})}, {})
     entry_output, _ = _mips_pic_transfer(
         project, blocks[bounds.addr], initial, gp_offset, sp_offset, preserved
     )
     if entry_output.registers.get(gp_offset) != frozenset({gp}):
         return {}, False, True
-    in_states = {bounds.addr: initial}
-    out_states: dict[int, _MipsPicState] = {}
-    pending = deque([bounds.addr])
-    updates = 0
-    while pending:
-        addr = pending.popleft()
-        updates += 1
-        if updates > MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES:
-            return {}, True, True
-        output, _ = _mips_pic_transfer(
-            project, blocks[addr], in_states[addr], gp_offset, sp_offset, preserved
-        )
-        if out_states.get(addr) == output:
-            continue
-        out_states[addr] = output
-        for successor in successors[addr]:
-            incoming = [
-                out_states[pred]
-                for pred in predecessors[successor]
-                if pred in out_states
-            ]
-            joined = _mips_join_states(incoming)
-            if in_states.get(successor) != joined:
-                in_states[successor] = joined
-                pending.append(successor)
+    updates_left = MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES
+
+    def propagate(edges: dict[int, tuple[int, ...]]):
+        nonlocal updates_left
+        predecessors: dict[int, set[int]] = {addr: set() for addr in blocks}
+        for source, targets in edges.items():
+            for target in targets:
+                predecessors[target].add(source)
+        if predecessors[bounds.addr]:
+            return None
+
+        in_states = {bounds.addr: initial}
+        out_states: dict[int, _MipsPicState] = {}
+        pending = deque([bounds.addr])
+        while pending:
+            updates_left -= 1
+            if updates_left < 0:
+                return None
+            addr = pending.popleft()
+            output, _ = _mips_pic_transfer(
+                project, blocks[addr], in_states[addr], gp_offset, sp_offset, preserved
+            )
+            if out_states.get(addr) == output:
+                continue
+            out_states[addr] = output
+            for successor in edges[addr]:
+                incoming = [
+                    out_states[pred]
+                    for pred in predecessors[successor]
+                    if pred in out_states
+                ]
+                joined = _mips_join_states(incoming)
+                if in_states.get(successor) != joined:
+                    in_states[successor] = joined
+                    pending.append(successor)
+        return in_states, out_states, predecessors
+
+    normal = propagate(successors)
+    if normal is None:
+        return {}, updates_left < 0, True
+    in_states, out_states, predecessors = normal
 
     proved = {}
     for addr in candidates & in_states.keys():
@@ -759,11 +769,55 @@ def _mips_pic_register_transfer_targets(
             _abi_static_target_is_valid(project, value) for value in target
         ):
             proved[addr] = tuple(sorted(target))
+
+    def return_reaches_call(addr: int) -> bool:
+        continuation = blocks[addr].fallthrough_addr
+        if continuation not in blocks:
+            return False
+        pending = deque([continuation])
+        seen: set[int] = set()
+        while pending:
+            current = pending.popleft()
+            if current == addr:
+                return True
+            if current in seen:
+                continue
+            seen.add(current)
+            pending.extend(successors[current])
+        return False
+
+    attempts = 0
+    for addr in sorted(candidates - proved.keys()):
+        if (
+            attempts >= MAX_MIPS_NORETURN_CYCLE_PROOFS
+            or blocks[addr].jumpkind != "Ijk_Call"
+            or not return_reaches_call(addr)
+        ):
+            continue
+        attempts += 1
+        # The first encounter of this call cannot have traversed its own
+        # return. If it must target a non-returning callee on those paths,
+        # the apparent return and every cycle through it are impossible.
+        without_return = dict(successors)
+        without_return[addr] = ()
+        alternative = propagate(without_return)
+        if alternative is None:
+            return {}, True, True
+        alternate_in, _, _ = alternative
+        if addr not in alternate_in:
+            continue
+        _, target = _mips_pic_transfer(
+            project, blocks[addr], alternate_in[addr], gp_offset, sp_offset, preserved
+        )
+        if target and len(target) == 1:
+            value = next(iter(target))
+            if target_is_known_nonreturning(project, value):
+                proved[addr] = (value,)
     return proved, False, True
 
 
 def _mips_entry_global_pointer(project: Project, bounds: FunctionBounds) -> int | None:
-    """Resolve the MIPS PIC global pointer established from entry ``$t9``."""
+    """Resolve an entry ``$gp`` defined as ``$t9`` plus constant terms."""
 
     if not project.arch.name.startswith("MIPS"):
         return None
@@ -777,27 +831,31 @@ def _mips_entry_global_pointer(project: Project, bounds: FunctionBounds) -> int 
         return None
 
     definitions = _vex_tmp_definitions(entry_vex)
-    for statement in entry_vex.statements:
-        if not isinstance(statement, pyvex.stmt.Put) or statement.offset != gp_offset:
-            continue
-        expression = _resolve_vex_expr(statement.data, definitions)
-        if not isinstance(expression, pyvex.expr.Binop) or not expression.op.startswith(
-            "Iop_Add"
-        ):
-            continue
-        left, right = expression.args
-        constant, register = (
-            (left, right) if isinstance(left, pyvex.expr.Const) else (right, left)
-        )
-        if not isinstance(constant, pyvex.expr.Const):
-            continue
-        if _vex_get_key(register, definitions, entry_vex) != (
-            t9_offset,
-            project.arch.bits,
-        ):
-            continue
-        return (bounds.addr + constant.con.value) & ((1 << project.arch.bits) - 1)
-    return None
+    gp_writes = [
+        (index, statement.data)
+        for index, statement in enumerate(entry_vex.statements)
+        if isinstance(statement, pyvex.stmt.Put) and statement.offset == gp_offset
+    ]
+    if not gp_writes or any(
+        isinstance(statement, pyvex.stmt.Put) and statement.offset == t9_offset
+        for statement in entry_vex.statements[: gp_writes[-1][0]]
+    ):
+        return None
+    terms = _vex_add_terms(gp_writes[-1][1], definitions)
+    if terms is None:
+        return None
+    t9_key = t9_offset, project.arch.bits
+    t9_reads = sum(
+        _vex_get_key(term, definitions, entry_vex) == t9_key for term in terms
+    )
+    constants = [_vex_const_value(term, definitions) for term in terms]
+    if t9_reads != 1 or any(
+        value is None and _vex_get_key(term, definitions, entry_vex) != t9_key
+        for term, value in zip(terms, constants, strict=True)
+    ):
+        return None
+    displacement = sum(value for value in constants if value is not None)
+    return (bounds.addr + displacement) & ((1 << project.arch.bits) - 1)
 
 
 def _vex_index_key(
@@ -3796,6 +3854,620 @@ def _x86_pc_thunk_guarded_entry_count(
     return entry_count if entry_count <= MAX_STATIC_JUMPTABLE_ENTRIES else None
 
 
+_X86_PIC_PROOF_MAX_NODES = 256
+_X86_PIC_PROOF_MAX_UPDATES = 1024
+_X86_PIC_PROOF_MAX_STACK_SLOTS = 64
+_X86PicValue = int | tuple[Any, ...]
+
+
+@dataclass
+class _X86PicState:
+    """Must-known register constants and private stack slots at one CFG edge."""
+
+    registers: dict[int, _X86PicValue]
+    stack: dict[int, _X86PicValue]
+
+
+def _x86_pic_join(states: Iterable[_X86PicState]) -> _X86PicState:
+    """Retain a fact only when every incoming path agrees on its value."""
+
+    incoming = tuple(states)
+    if not incoming:
+        return _X86PicState({}, {})
+
+    def common(name: str) -> dict[int, Any]:
+        mappings = [getattr(state, name) for state in incoming]
+        keys = set.intersection(*(set(mapping) for mapping in mappings))
+        return {
+            key: mappings[0][key]
+            for key in keys
+            if all(mapping[key] == mappings[0][key] for mapping in mappings[1:])
+        }
+
+    return _X86PicState(common("registers"), common("stack"))
+
+
+def _x86_pic_value(
+    expr,
+    vex,
+    state: _X86PicState,
+    temporaries: dict[int, _X86PicValue | None],
+) -> _X86PicValue | None:
+    """Evaluate only constants and addresses relative to this function's stack."""
+
+    if isinstance(expr, pyvex.expr.Const):
+        return expr.con.value if isinstance(expr.con.value, int) else None
+    if isinstance(expr, pyvex.expr.RdTmp):
+        return temporaries.get(expr.tmp)
+    if isinstance(expr, pyvex.expr.Get):
+        if expr.result_size(vex.tyenv) != 32:
+            return None
+        return state.registers.get(expr.offset)
+    if isinstance(expr, pyvex.expr.Load):
+        address = _x86_pic_value(expr.addr, vex, state, temporaries)
+        if (
+            isinstance(address, tuple)
+            and address[0] == "stack"
+            and expr.result_size(vex.tyenv) == 32
+        ):
+            return state.stack.get(address[1])
+        return None
+    if isinstance(expr, pyvex.expr.Binop) and expr.op in {
+        "Iop_Add32",
+        "Iop_Sub32",
+    }:
+        left = _x86_pic_value(expr.args[0], vex, state, temporaries)
+        right = _x86_pic_value(expr.args[1], vex, state, temporaries)
+        if isinstance(left, int) and isinstance(right, int):
+            return (
+                left + right if expr.op == "Iop_Add32" else left - right
+            ) & 0xFFFFFFFF
+        if isinstance(left, tuple) and left[0] == "stack" and isinstance(right, int):
+            displacement = right if right < 1 << 31 else right - (1 << 32)
+            return left[0], left[1] + (
+                displacement if expr.op == "Iop_Add32" else -displacement
+            )
+        if (
+            expr.op == "Iop_Add32"
+            and isinstance(left, int)
+            and isinstance(right, tuple)
+        ):
+            displacement = left if left < 1 << 31 else left - (1 << 32)
+            if right[0] == "stack":
+                return right[0], right[1] + displacement
+    if isinstance(expr, pyvex.expr.Binop) and expr.op == "Iop_Shl32":
+        source = _x86_pic_value(expr.args[0], vex, state, temporaries)
+        shift = _x86_pic_value(expr.args[1], vex, state, temporaries)
+        if isinstance(source, int) and isinstance(shift, int) and shift < 32:
+            return (source << shift) & 0xFFFFFFFF
+        if isinstance(source, tuple) and source[0] == "input" and shift == 2:
+            return "scaled", source, 4
+    return None
+
+
+def _x86_pic_transfer(
+    project: Project, node, incoming: _X86PicState
+) -> _X86PicState | None:
+    """Propagate a PIC thunk result through register copies and stack spills."""
+
+    vex = _node_vex(node)
+    if vex is None:
+        return None
+    state = _X86PicState(dict(incoming.registers), dict(incoming.stack))
+    temporaries: dict[int, _X86PicValue | None] = {}
+    tracked = {
+        project.arch.registers[name][0]
+        for name in ("eax", "ebx", "ecx", "edx", "esi", "edi", "ebp", "esp")
+    }
+    for statement in vex.statements:
+        if isinstance(statement, pyvex.stmt.WrTmp):
+            temporaries[statement.tmp] = _x86_pic_value(
+                statement.data, vex, state, temporaries
+            )
+        elif isinstance(statement, pyvex.stmt.Put):
+            value = _x86_pic_value(statement.data, vex, state, temporaries)
+            for offset in tracked:
+                if (
+                    statement.offset
+                    <= offset
+                    < statement.offset + statement.data.result_size(vex.tyenv) // 8
+                    or offset <= statement.offset < offset + 4
+                ):
+                    state.registers.pop(offset, None)
+            if (
+                statement.offset in tracked
+                and statement.data.result_size(vex.tyenv) == 32
+            ):
+                if value is not None:
+                    state.registers[statement.offset] = value
+        elif isinstance(statement, pyvex.stmt.Store):
+            address = _x86_pic_value(statement.addr, vex, state, temporaries)
+            if isinstance(address, tuple) and address[0] == "stack":
+                size = statement.data.result_size(vex.tyenv) // 8
+                for offset in tuple(state.stack):
+                    if offset < address[1] + size and address[1] < offset + 4:
+                        state.stack.pop(offset)
+                if size == 4:
+                    value = _x86_pic_value(statement.data, vex, state, temporaries)
+                    if value is not None:
+                        state.stack[address[1]] = value
+        elif isinstance(
+            statement,
+            (
+                pyvex.stmt.StoreG,
+                pyvex.stmt.CAS,
+                pyvex.stmt.LLSC,
+                pyvex.stmt.Dirty,
+            ),
+        ):
+            return None
+
+    if vex.jumpkind == "Ijk_Call":
+        # VEX models the call's return-address push, while this graph edge is
+        # its fake return after the callee has popped that address.
+        sp_offset = project.arch.sp_offset
+        stack_pointer = state.registers.get(sp_offset)
+        if (
+            sp_offset is not None
+            and isinstance(stack_pointer, tuple)
+            and stack_pointer[0] == "stack"
+        ):
+            state.stack.pop(stack_pointer[1], None)
+            state.registers[sp_offset] = ("stack", stack_pointer[1] + 4)
+        for name in ("eax", "ecx", "edx"):
+            state.registers.pop(project.arch.registers[name][0], None)
+        target = _vex_const_value(vex.next, _vex_tmp_definitions(vex))
+        symbol = project.loader.find_symbol(target) if target is not None else None
+        name = getattr(symbol, "name", "")
+        if target is not None and name.startswith("__x86.get_pc_thunk."):
+            register_name = "e" + name.rsplit(".", 1)[-1]
+            register = project.arch.registers.get(register_name)
+            if register is not None and _x86_pic_thunk_reads_return_address(
+                project, target, register[0]
+            ):
+                state.registers[register[0]] = node.addr + node.size
+
+    if len(state.stack) > _X86_PIC_PROOF_MAX_STACK_SLOTS:
+        return None
+    return state
+
+
+def _x86_pic_thunk_reads_return_address(
+    project: Project, target: int, register_offset: int
+) -> bool:
+    """Verify that a named PC thunk loads the return address and returns."""
+
+    try:
+        vex = project.factory.block(target).vex
+    except Exception:
+        return False
+    assignment = _vex_last_put(vex, register_offset)
+    if assignment is None or vex.jumpkind != "Ijk_Ret":
+        return False
+    definitions = _vex_tmp_definitions(vex)
+    value = _resolve_vex_expr(assignment.data, definitions)
+    return (
+        isinstance(value, pyvex.expr.Load)
+        and value.result_size(vex.tyenv) == 32
+        and _vex_get_key(value.addr, definitions, vex) == (project.arch.sp_offset, 32)
+    )
+
+
+def _x86_pic_state_at_node(
+    project: Project, graph: CFGGraph, bounds: FunctionBounds, node
+) -> _X86PicState | None:
+    """Find the same PIC base on all reachable paths, within a fixed budget."""
+
+    nodes = {
+        candidate.addr: candidate
+        for candidate in graph.nodes()
+        if _node_is_materialized_cfg_node(candidate)
+        and _node_intersects_bounds(candidate, bounds)
+    }
+    if len(nodes) > _X86_PIC_PROOF_MAX_NODES or node.addr not in nodes:
+        return None
+    entry = nodes.get(bounds.addr)
+    sp_offset = project.arch.sp_offset
+    if entry is None or sp_offset is None:
+        return None
+    # Caller arguments are stable until an explicit write to their slot.
+    initial = _X86PicState(
+        {sp_offset: ("stack", 0)},
+        {offset: ("input", offset) for offset in range(4, 68, 4)},
+    )
+    inputs = {entry: initial}
+    outputs: dict[Any, _X86PicState] = {}
+    pending = deque([entry])
+    updates = 0
+    while pending:
+        current = pending.popleft()
+        updates += 1
+        if updates > _X86_PIC_PROOF_MAX_UPDATES:
+            return None
+        output = _x86_pic_transfer(project, current, inputs[current])
+        if output is None:
+            return None
+        if outputs.get(current) == output:
+            continue
+        outputs[current] = output
+        for successor in graph.successors(current):
+            if successor.addr not in nodes or nodes[successor.addr] is not successor:
+                continue
+            incoming = [
+                outputs[parent]
+                for parent in graph.predecessors(successor)
+                if parent in outputs
+            ]
+            if successor is entry:
+                incoming.append(initial)
+            joined = _x86_pic_join(incoming)
+            if inputs.get(successor) != joined:
+                inputs[successor] = joined
+                pending.append(successor)
+    if node not in inputs or any(
+        parent not in outputs for parent in graph.predecessors(node)
+    ):
+        return None
+    return inputs[node]
+
+
+def _x86_pic_base_value(
+    vex, expression, definitions: dict[int, Any], state: _X86PicState
+) -> int | None:
+    """Resolve a dispatcher's register base or proven private-stack reload."""
+
+    expression = _resolve_vex_expr(expression, definitions)
+    if isinstance(expression, pyvex.expr.Get):
+        value = state.registers.get(expression.offset)
+        return value if isinstance(value, int) else None
+    if (
+        not isinstance(expression, pyvex.expr.Load)
+        or expression.result_size(vex.tyenv) != 32
+    ):
+        return None
+    address = _vex_register_with_displacement(expression.addr, definitions, vex)
+    if address is None:
+        return None
+    register, displacement = address
+    base = state.registers.get(register[0])
+    if not isinstance(base, tuple) or base[0] != "stack":
+        return None
+    signed = displacement if displacement < 1 << 31 else displacement - (1 << 32)
+    slot_offset = base[1] + signed
+    if slot_offset >= 0:
+        return None
+    value = state.stack.get(slot_offset)
+    return value if isinstance(value, int) else None
+
+
+def _x86_guarded_byte_upper_bound(
+    vex, target_addr: int, index_key: tuple[int, int]
+) -> int | None:
+    """Read an in-block unsigned byte ``cmp; jbe`` bound from VEX flags."""
+
+    definitions = _vex_tmp_definitions(vex)
+    exits = [stmt for stmt in vex.statements if isinstance(stmt, pyvex.stmt.Exit)]
+    if len(exits) != 1 or exits[0].dst.value != target_addr:
+        return None
+    guard = _resolve_vex_expr(exits[0].guard, definitions)
+    while isinstance(guard, pyvex.expr.Unop):
+        guard = _resolve_vex_expr(guard.args[0], definitions)
+    if (
+        not isinstance(guard, pyvex.expr.CCall)
+        or guard.callee.name != "x86g_calculate_condition"
+        or len(guard.args) != 5
+        or _vex_const_value(guard.args[0], definitions) != 6
+        or _vex_const_value(guard.args[1], definitions) != 4
+        or index_key[1] != 8
+        or _vex_index_key(guard.args[2], definitions, vex) != index_key
+    ):
+        return None
+    reads = [
+        index
+        for index, statement in enumerate(vex.statements)
+        if isinstance(statement, pyvex.stmt.WrTmp)
+        and _vex_get_key(statement.data, definitions, vex) == index_key
+    ]
+    if not reads or any(
+        isinstance(statement, pyvex.stmt.Put)
+        and index_key[0] <= statement.offset < index_key[0] + 4
+        for statement in vex.statements[reads[-1] + 1 :]
+    ):
+        return None
+    bound = _vex_const_value(guard.args[3], definitions)
+    return bound if bound is not None and bound < MAX_STATIC_JUMPTABLE_ENTRIES else None
+
+
+def _x86_index_unchanged_until_read(vex, key: tuple[int, int]) -> bool:
+    """Reject a dispatcher write that changes the guarded register first."""
+
+    definitions = _vex_tmp_definitions(vex)
+    reads = [
+        index
+        for index, statement in enumerate(vex.statements)
+        if isinstance(statement, pyvex.stmt.WrTmp)
+        and _vex_get_key(statement.data, definitions, vex) == key
+    ]
+    return bool(reads) and not any(
+        isinstance(statement, pyvex.stmt.Put)
+        and key[0] <= statement.offset < key[0] + 4
+        for statement in vex.statements[: reads[0]]
+    )
+
+
+def _vex_key_register_offsets(key: tuple[Any, ...]) -> set[int]:
+    """Return the register offsets read by a structural VEX expression key."""
+
+    if key[0] == "get":
+        return {key[1]}
+    return {
+        offset
+        for child in key[1:]
+        if isinstance(child, tuple)
+        for offset in _vex_key_register_offsets(child)
+    }
+
+
+def _x86_index_was_zero_extended_from_byte(
+    graph: CFGGraph, bounds: FunctionBounds, guard, index_offset: int
+) -> bool:
+    """Require every path into the guard to define the full index from a byte."""
+
+    pending = deque([guard])
+    seen = set()
+    found = False
+    while pending:
+        current = pending.popleft()
+        if current in seen:
+            continue
+        seen.add(current)
+        if len(seen) > MAX_CROSS_BLOCK_SELECTOR_PROOF_NODES or not (
+            _node_is_materialized_cfg_node(current)
+            and _node_intersects_bounds(current, bounds)
+        ):
+            return False
+        vex = _node_vex(current)
+        if vex is None:
+            return False
+        assignment = _vex_last_put(vex, index_offset)
+        if assignment is not None:
+            if not _vex_is_zero_extension_from(
+                assignment.data, _vex_tmp_definitions(vex), 8, 32
+            ):
+                return False
+            found = True
+            continue
+        if current.addr == bounds.addr or vex.jumpkind == "Ijk_Call":
+            return False
+        parents = tuple(graph.predecessors(current))
+        if not parents:
+            return False
+        pending.extend(parents)
+    return found
+
+
+def _x86_pic_guarded_indices(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    source,
+    definitions: dict[int, Any],
+    vex,
+) -> tuple[int, ...] | None:
+    """Bound one unmodified selector on the incoming branch to a table."""
+
+    predecessors = tuple(graph.predecessors(node))
+    if len(predecessors) != 1:
+        return None
+    predecessor = predecessors[0]
+    if not (
+        _node_is_materialized_cfg_node(predecessor)
+        and _node_intersects_bounds(predecessor, bounds)
+    ):
+        return None
+    guard_vex = _node_vex(predecessor)
+    if guard_vex is None:
+        return None
+    source = _resolve_vex_expr(source, definitions)
+    key = _vex_index_key(source, definitions, vex, allow_full_width=True)
+    if key is not None:
+        if not _x86_index_unchanged_until_read(vex, key):
+            return None
+        upper = _vex_guarded_index_upper_bound(guard_vex, node.addr, key)
+        if upper is None and key[1] == 8:
+            upper = _x86_guarded_byte_upper_bound(guard_vex, node.addr, key)
+        if upper is None and key[1] == 32:
+            byte_key = (key[0], 8)
+            upper = _x86_guarded_byte_upper_bound(guard_vex, node.addr, byte_key)
+            if upper is not None and not _x86_index_was_zero_extended_from_byte(
+                graph, bounds, predecessor, key[0]
+            ):
+                return None
+    elif isinstance(source, pyvex.expr.Load):
+        expression_key = _vex_expr_key(source, definitions)
+        if expression_key is None:
+            return None
+        upper = _vex_guarded_expression_upper_bound(
+            guard_vex, node.addr, expression_key
+        )
+        register_offsets = _vex_key_register_offsets(expression_key)
+        if upper is not None and any(
+            isinstance(stmt, (pyvex.stmt.Store, pyvex.stmt.StoreG))
+            or (
+                isinstance(stmt, pyvex.stmt.Put)
+                and any(
+                    offset <= stmt.offset < offset + 4 for offset in register_offsets
+                )
+            )
+            for block in (guard_vex, vex)
+            for stmt in block.statements
+        ):
+            return None
+    else:
+        return None
+    if upper is None or upper >= MAX_STATIC_JUMPTABLE_ENTRIES:
+        return None
+    return tuple(range(upper + 1))
+
+
+def _x86_pic_guarded_scaled_spill_indices(
+    project: Project,
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    source,
+    definitions: dict[int, Any],
+    vex,
+    state: _X86PicState,
+) -> tuple[int, ...] | None:
+    """Relate a stored ``index * 4`` byte offset to its guarded register."""
+
+    source = _resolve_vex_expr(source, definitions)
+    if not isinstance(source, pyvex.expr.Load) or source.result_size(vex.tyenv) != 32:
+        return None
+    address = _vex_register_with_displacement(source.addr, definitions, vex)
+    if address is None:
+        return None
+    register, displacement = address
+    base = state.registers.get(register[0])
+    if not isinstance(base, tuple) or base[0] != "stack":
+        return None
+    signed = displacement if displacement < 1 << 31 else displacement - (1 << 32)
+    offset = base[1] + signed
+    if offset >= 0:
+        return None
+    saved = state.stack.get(offset)
+    if not (
+        isinstance(saved, tuple)
+        and len(saved) == 3
+        and saved[:1] == ("scaled",)
+        and saved[2] == 4
+    ):
+        return None
+    predecessors = tuple(graph.predecessors(node))
+    if len(predecessors) != 1:
+        return None
+    guard = predecessors[0]
+    if not (
+        _node_is_materialized_cfg_node(guard) and _node_intersects_bounds(guard, bounds)
+    ):
+        return None
+    guard_vex = _node_vex(guard)
+    if guard_vex is None or any(
+        isinstance(stmt, (pyvex.stmt.Store, pyvex.stmt.StoreG))
+        for block in (guard_vex, vex)
+        for stmt in block.statements
+    ):
+        return None
+    bounds_found = {
+        upper
+        for name in ("eax", "ebx", "ecx", "edx", "esi", "edi", "ebp")
+        if (register_offset := project.arch.registers[name][0]) in state.registers
+        if state.registers[register_offset] == saved[1]
+        if (
+            upper := _vex_guarded_index_upper_bound(
+                guard_vex, node.addr, (register_offset, 32)
+            )
+        )
+        is not None
+    }
+    if len(bounds_found) != 1:
+        return None
+    upper = next(iter(bounds_found))
+    return tuple(range(upper + 1)) if upper < MAX_STATIC_JUMPTABLE_ENTRIES else None
+
+
+def plan_x86_pic_relative_jump_table(
+    project: Project, graph: CFGGraph, bounds: FunctionBounds, node
+) -> StaticJumpTablePlan | None:
+    """Plan a guarded i386 relative table with a must-known PIC stack base."""
+
+    if project.arch.name != "X86" or project.arch.bits != 32:
+        return None
+    vex = _node_vex(node)
+    if vex is None or vex.jumpkind != "Ijk_Boring":
+        return None
+    definitions = _vex_tmp_definitions(vex)
+    next_expr = _resolve_vex_expr(vex.next, definitions)
+    if not isinstance(next_expr, pyvex.expr.Binop) or next_expr.op != "Iop_Add32":
+        return None
+
+    for entry_expr, base_expr in (
+        (next_expr.args[0], next_expr.args[1]),
+        (next_expr.args[1], next_expr.args[0]),
+    ):
+        normalized = _vex_normalized_table_entry_load(entry_expr, definitions)
+        if normalized is None:
+            continue
+        entry, signed = normalized
+        if entry.result_size(vex.tyenv) != 32:
+            continue
+        base_key = _vex_expr_key(base_expr, definitions)
+        terms = _vex_add_terms(entry.addr, definitions)
+        if base_key is None or terms is None:
+            continue
+        matching_base = [
+            term for term in terms if _vex_expr_key(term, definitions) == base_key
+        ]
+        if len(matching_base) != 1:
+            continue
+        other_terms = [term for term in terms if term is not matching_base[0]]
+        constants = [_vex_const_value(term, definitions) for term in other_terms]
+        indices = [
+            term
+            for term, value in zip(other_terms, constants, strict=True)
+            if value is None
+        ]
+        if len(indices) != 1:
+            continue
+        state = _x86_pic_state_at_node(project, graph, bounds, node)
+        if state is None:
+            continue
+        base_addr = _x86_pic_base_value(vex, base_expr, definitions, state)
+        if base_addr is None:
+            continue
+        scaled = _vex_scaled_table_index(indices[0], definitions)
+        if scaled is not None and scaled[1] == 2:
+            entry_indices = _x86_pic_guarded_indices(
+                graph, bounds, node, scaled[0], definitions, vex
+            )
+        else:
+            entry_indices = _x86_pic_guarded_scaled_spill_indices(
+                project, graph, bounds, node, indices[0], definitions, vex, state
+            )
+        if entry_indices is None:
+            continue
+        displacement = (
+            sum(value for value in constants if value is not None) & 0xFFFFFFFF
+        )
+        table_addr = (base_addr + displacement) & 0xFFFFFFFF
+        obj = project.loader.find_object_containing(table_addr)
+        if obj is None:
+            continue
+        section = obj.find_section_containing(table_addr)
+        if (
+            section is None
+            or section
+            is not obj.find_section_containing(table_addr + len(entry_indices) * 4 - 1)
+            or not section.is_readable
+            or section.is_writable
+        ):
+            continue
+        table = StaticJumpTable(
+            base_register_offset=None,
+            base_bits=32,
+            table_displacement=displacement,
+            index_register_offset=None,
+            index_bits=None,
+            entry_size=4,
+            endness=entry.end,
+            signed_entries=signed,
+            static_base_addr=base_addr,
+        )
+        return StaticJumpTablePlan(table, base_addr, entry_indices)
+    return None
+
+
 def _in_function_jump_table_entry_count(
     project: Project,
     bounds: FunctionBounds,
@@ -4316,10 +4988,10 @@ def _mips_scaled_index_entry_count(
     return _mips_guarded_index_entry_count(graph, bounds, node, next(iter(index_keys)))
 
 
-def _mips_inline_scaled_index_key(
-    expr, definitions: dict[int, Any], vex, entry_size: int
-) -> tuple[int, int] | None:
-    """Return the unscaled register from one exact in-dispatcher shift."""
+def _mips_inline_scaled_index_source(
+    expr, definitions: dict[int, Any], entry_size: int
+):
+    """Return the unscaled source of an exact in-dispatcher shift."""
 
     expr = _resolve_vex_expr(expr, definitions)
     if not isinstance(expr, pyvex.expr.Binop) or not expr.op.startswith("Iop_Shl"):
@@ -4327,7 +4999,100 @@ def _mips_inline_scaled_index_key(
     shift = _vex_const_value(expr.args[1], definitions)
     if shift is None or 1 << shift != entry_size:
         return None
-    return _vex_get_key(expr.args[0], definitions, vex)
+    return _resolve_vex_expr(expr.args[0], definitions)
+
+
+def _mips_inline_scaled_index_key(
+    expr, definitions: dict[int, Any], vex, entry_size: int
+) -> tuple[int, int] | None:
+    """Return the unscaled register from one exact in-dispatcher shift."""
+
+    source = _mips_inline_scaled_index_source(expr, definitions, entry_size)
+    return _vex_get_key(source, definitions, vex) if source is not None else None
+
+
+def _mips_guarded_reloaded_index_entry_count(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    source,
+    definitions: dict[int, Any],
+) -> int | None:
+    """Prove a bounded selector reloaded from the same unchanged frame slot."""
+
+    vex = _node_vex(node)
+    source = _resolve_vex_expr(source, definitions)
+    if vex is None or not isinstance(source, pyvex.expr.Load):
+        return None
+    address = _vex_register_with_displacement(source.addr, definitions, vex)
+    if address is None:
+        return None
+    address_register = address[0][0]
+    frame_registers = {
+        vex.arch.registers[name][0]
+        for name in ("sp", "s8", "fp")
+        if name in vex.arch.registers
+    }
+    if address_register not in frame_registers:
+        return None
+    source_key = _vex_expr_key(source, definitions)
+    predecessors = tuple(graph.predecessors(node))
+    if len(predecessors) != 1:
+        return None
+    predecessor = predecessors[0]
+    if not (
+        _node_is_materialized_cfg_node(predecessor)
+        and _node_intersects_bounds(predecessor, bounds)
+    ):
+        return None
+    predecessor_vex = _node_vex(predecessor)
+    if predecessor_vex is None:
+        return None
+    predecessor_defs = _vex_tmp_definitions(predecessor_vex)
+    if _vex_const_value(predecessor_vex.next, predecessor_defs) != node.addr:
+        return None
+
+    # This local proof deliberately rejects even unrelated stores: without
+    # alias analysis, any write could change the reloaded selector.
+    for block_vex in (predecessor_vex, vex):
+        if any(
+            (
+                isinstance(statement, pyvex.stmt.Put)
+                and statement.offset == address_register
+            )
+            or isinstance(
+                statement,
+                (
+                    pyvex.stmt.Store,
+                    pyvex.stmt.StoreG,
+                    pyvex.stmt.CAS,
+                    pyvex.stmt.LLSC,
+                    pyvex.stmt.Dirty,
+                ),
+            )
+            for statement in block_vex.statements
+        ):
+            return None
+
+    counts = {
+        len(values)
+        for statement in predecessor_vex.statements
+        if isinstance(statement, pyvex.stmt.Exit)
+        if (
+            comparison := _mips_inverted_unsigned_guard(
+                statement.guard, predecessor_defs
+            )
+        )
+        is not None
+        if _vex_expr_key(comparison.args[0], predecessor_defs) == source_key
+        if (
+            values := _vex_guarded_expression_values(
+                comparison, comparison.args[0], predecessor_defs
+            )
+        )
+        is not None
+    }
+    return next(iter(counts)) if len(counts) == 1 else None
 
 
 def plan_mips_pic_relative_jump_table(
@@ -4390,6 +5155,7 @@ def plan_mips_pic_relative_jump_table(
         table_addr = 0
         scaled_index_key = None
         inline_index_key = None
+        inline_index_source = None
         used_propagated_static_base = False
         for term in address_terms:
             value = _mips_static_value(project, vex, term, definitions, global_pointer)
@@ -4397,11 +5163,12 @@ def plan_mips_pic_relative_jump_table(
                 table_addr += value
                 continue
             if allow_predecessor_static_base:
-                key = _mips_inline_scaled_index_key(term, definitions, vex, entry_size)
-                if key is not None:
-                    if scaled_index_key is not None or inline_index_key is not None:
+                source = _mips_inline_scaled_index_source(term, definitions, entry_size)
+                if source is not None:
+                    if scaled_index_key is not None or inline_index_source is not None:
                         break
-                    inline_index_key = key
+                    inline_index_key = _vex_get_key(source, definitions, vex)
+                    inline_index_source = source
                     continue
                 value, propagated = _mips_static_register_from_predecessors(
                     project, graph, bounds, node, term, global_pointer
@@ -4421,16 +5188,23 @@ def plan_mips_pic_relative_jump_table(
                 break
             inline_index_key = key
         else:
-            if scaled_index_key is None and inline_index_key is None:
+            if (
+                scaled_index_key is None
+                and inline_index_key is None
+                and inline_index_source is None
+            ):
                 continue
             if scaled_index_key is not None:
                 entry_count = _mips_scaled_index_entry_count(
                     graph, bounds, node, scaled_index_key, entry_size
                 )
-            else:
-                assert inline_index_key is not None
+            elif inline_index_key is not None:
                 entry_count = _mips_guarded_index_entry_count(
                     graph, bounds, node, inline_index_key
+                )
+            else:
+                entry_count = _mips_guarded_reloaded_index_entry_count(
+                    graph, bounds, node, inline_index_source, definitions
                 )
             if entry_count is None:
                 if used_propagated_static_base:

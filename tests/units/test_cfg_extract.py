@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -26,7 +27,10 @@ from bingraph.cfg_extract.sweep import (
     recover_executable_components,
     select_reconnecting_components,
 )
-from bingraph.cfg.jumps import plan_static_jump_table
+from bingraph.cfg.jumps import (
+    abi_static_register_transfer_targets,
+    plan_static_jump_table,
+)
 from bingraph.cfg.models import BlockSpec, FunctionBounds, StaticJumpTable
 from bingraph.cfg.models import StaticJumpTablePlan
 from bingraph.cfg.decode import (
@@ -1004,6 +1008,144 @@ def test_extract_recovers_mips_pic_relative_jump_table() -> None:
     assert session.unresolved_dispatcher_reasons.get(0x40FFD4) is None
 
 
+def test_extract_proves_mips_table_after_nonreturning_call_cycle() -> None:
+    """Remove a false abort return before proving the guarded PIC table."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x46656C
+    )
+    cfg = session.build()
+    nodes = {node.addr: node for node in cfg.graph.nodes()}
+    table_targets = {
+        0x466780,
+        0x4667E0,
+        0x466848,
+        0x466868,
+        0x466894,
+        0x4668E4,
+    }
+
+    assert target_is_known_nonreturning(project, 0x4005A0)
+    assert session.blocks[0x466860].direct_targets == (0x4005A0,)
+    assert session.blocks[0x466860].fallthrough_addr is None
+    assert {node.addr for node in cfg.graph.successors(nodes[0x46676C])} == (
+        table_targets
+    )
+    assert all(
+        node.simprocedure_name != "UnresolvableJumpTarget" for node in nodes.values()
+    )
+
+    # The call proof must still hold after table recovery makes new paths
+    # through its continuation reachable.
+    final_blocks = dict(session.blocks)
+    for addr, targets in session.static_targets.items():
+        final_blocks[addr] = replace(final_blocks[addr], direct_targets=targets)
+    final_blocks[0x466860] = replace(
+        final_blocks[0x466860], direct_targets=(), fallthrough_addr=0x466868
+    )
+    reproved, exhausted, _ = abi_static_register_transfer_targets(
+        project, session.bounds, final_blocks
+    )
+    assert not exhausted
+    assert reproved.get(0x466860) == (0x4005A0,)
+
+
+def test_extract_keeps_mips_call_return_without_nonreturning_proof() -> None:
+    """A circular call target cannot be accepted without a no-return fact."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x46656C
+    )
+    session._decode_all_blocks()
+    with patch("bingraph.cfg.jumps.target_is_known_nonreturning", return_value=False):
+        targets, exhausted, _ = abi_static_register_transfer_targets(
+            project, session.bounds, session.blocks
+        )
+
+    assert not exhausted
+    assert 0x466860 not in targets
+
+
+def test_extract_recovers_mips64_pic_tables_with_split_gp_additions() -> None:
+    """Prove a MIPS64 PIC base built from ``$t9`` plus two constants."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/mips64/ld.so.1"))
+    for function_addr, dispatcher_addr in (
+        (0x402988, 0x402AC0),
+        (0x41ABD8, 0x41ACCC),
+    ):
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), function_addr
+        )
+
+        session._decode_all_blocks()
+        session._discover_static_jump_targets()
+
+        assert len(session.static_targets[dispatcher_addr]) == 13
+        assert session.unresolved_dispatcher_reasons.get(dispatcher_addr) is None
+    assert 0x41ADB8 in session.static_targets[0x41ACCC]
+    assert 0x41ADB4 not in session.static_targets[0x41ACCC]
+
+
+def test_extract_recovers_mips64_table_with_guarded_frame_reload() -> None:
+    """Match an adjacent guard and table index reloaded from one frame slot."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/mips64/true"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x120005480
+    )
+
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+
+    assert len(session.static_targets[0x1200055D0]) == 10
+    assert 0x120005AF8 in session.static_targets[0x1200055D0]
+    assert session.unresolved_dispatcher_reasons.get(0x1200055D0) is None
+
+
+def test_extract_recovers_spilled_i386_pic_relative_tables() -> None:
+    """Recover guarded rows only after proving their PIC base and selector."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/i386/bronze_ropchain")
+    )
+    cases = (
+        (0x807B160, 0x807B254, 11, 0x807B268),
+        (0x80A6F40, 0x80A6FC2, 26, 0x80A72D0),
+        (0x80A7DB0, 0x80A7E0B, 26, 0x80A8080),
+        (0x80A8480, 0x80A8557, 6, 0x80A8570),
+    )
+    for function_addr, dispatcher_addr, target_count, representative in cases:
+        cfg = build_extracted_cfg(project, KnowledgeBase(project), function_addr)
+        nodes = {node.addr: node for node in cfg.graph.nodes()}
+        targets = {node.addr for node in cfg.graph.successors(nodes[dispatcher_addr])}
+
+        assert len(targets) == target_count
+        assert representative in targets
+        assert all(
+            node.simprocedure_name != "UnresolvableJumpTarget"
+            for node in nodes.values()
+        )
+
+
+def test_extract_keeps_unproven_i386_jump_unresolved() -> None:
+    """A nearby dynamic jump must not inherit a PIC-table proof."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/i386/bronze_ropchain")
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x80542C0)
+    assert any(
+        node.simprocedure_name == "UnresolvableJumpTarget" for node in cfg.graph.nodes()
+    )
+
+
 def test_extract_resolves_inline_masked_mips_pic_table() -> None:
     """Follow same-block register writes to all eight exact table entries."""
 
@@ -1294,37 +1436,25 @@ def test_extract_static_table_discovery_discards_stale_snapshot_plans(
     assert session.stats.static_jump_targets_accepted == 2
 
 
-def test_extract_recovers_reconnecting_components_from_one_dispatcher() -> None:
-    """Attach only reconnecting components behind one unresolved dispatcher."""
+def test_extract_closes_secondary_table_after_proving_first_dispatcher() -> None:
+    """Exact first-level targets reveal a second fully bounded jump table."""
 
     project = project_module.load_project(
         Path("angr-binaries/tests/i386/bronze_ropchain")
     )
     cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x80A7DB0)
 
-    assert cfg.extract_stats.sweep_runs == 1
-    assert cfg.extract_stats.sweep_candidate_blocks > 100
-    assert cfg.extract_stats.sweep_candidate_components > 0
-    assert cfg.extract_stats.sweep_reconnecting_components > 0
-    assert cfg.extract_stats.sweep_reconnecting_blocks > 0
-    assert cfg.extract_stats.sweep_component_roots_attached > 0
+    assert cfg.extract_stats.static_jump_plans_resolved == 2
+    assert cfg.extract_stats.sweep_runs == 0
     assert cfg.extract_stats.output_anomaly_count == 0
     assert cfg.extract_stats.output_anomalies_by_kind == {}
 
-    dispatcher = next(
-        node
-        for node in cfg.graph.nodes()
-        if node.addr == 0x80A7E0B and not node.is_simprocedure
+    nodes = {node.addr: node for node in cfg.graph.nodes()}
+    assert len(tuple(cfg.graph.successors(nodes[0x80A7E0B]))) == 26
+    assert len(tuple(cfg.graph.successors(nodes[0x80A80D4]))) == 18
+    assert all(
+        node.simprocedure_name != "UnresolvableJumpTarget" for node in nodes.values()
     )
-    unresolved = next(
-        node
-        for node in cfg.graph.nodes()
-        if node.is_simprocedure and node.name == "UnresolvableJumpTarget"
-    )
-    successors = set(cfg.graph.successors(dispatcher))
-    assert unresolved in successors
-    assert len(successors) == cfg.extract_stats.sweep_component_roots_attached + 1
-    assert not tuple(cfg.graph.successors(unresolved))
 
 
 def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:

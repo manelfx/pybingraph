@@ -34,6 +34,7 @@ from bingraph.cfg.jumps import (
     plan_dynamic_selector_table_candidates,
     plan_mips_pic_relative_jump_table,
     plan_static_jump_table,
+    plan_x86_pic_relative_jump_table,
     s390_table_loaded_branch,
     static_jump_target_rejection_reason,
     unconditional_arithmetic_pc_dispatch_targets,
@@ -44,6 +45,7 @@ from bingraph.cfg.decode import (
     decode_bounded_block,
     decode_raw_capstone_insns,
     is_valid_block_entry,
+    target_is_known_nonreturning,
 )
 from bingraph.helpers.capstone import arch_has_delay_slot
 from bingraph.helpers.symbols import plt_symbol_name
@@ -526,7 +528,17 @@ class _ExtractionSession:
             discovered = False
             for addr, exact_targets in targets.items():
                 block = self.blocks[addr]
-                self.blocks[addr] = replace(block, direct_targets=exact_targets)
+                fallthrough = block.fallthrough_addr
+                if block.jumpkind == "Ijk_Call" and all(
+                    target_is_known_nonreturning(self.project, target)
+                    for target in exact_targets
+                ):
+                    fallthrough = None
+                    if block.fallthrough_addr is not None:
+                        self.stats.call_fallthroughs_suppressed += 1
+                self.blocks[addr] = replace(
+                    block, direct_targets=exact_targets, fallthrough_addr=fallthrough
+                )
                 if block.jumpkind == "Ijk_Call":
                     self.stats.abi_static_call_targets_resolved += 1
                 else:
@@ -628,6 +640,12 @@ class _ExtractionSession:
                             node,
                             allow_predecessor_static_base=True,
                         )
+                    if plan is None and reason == "no_table_shape":
+                        plan = plan_x86_pic_relative_jump_table(
+                            self.project, graph, self.bounds, node
+                        )
+                        if plan is not None:
+                            reason = None
                     if plan is not None:
                         targets = _read_static_jump_table_targets(
                             self.project,
