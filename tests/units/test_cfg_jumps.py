@@ -159,6 +159,22 @@ def test_mips_pic_budget_discards_partial_target_sets() -> None:
     assert exhausted and ran
 
 
+def test_mips_pic_masked_table_exceeding_value_cap_stays_unresolved() -> None:
+    """Do not treat a truncated mask domain as a complete jump table."""
+
+    project = load_project(Path("angr-binaries/tests/mipsel/mips_syscall_demo"))
+    session = _ExtractionSession(project, KnowledgeBase(project), 0x417E1C)
+    session._decode_all_blocks()
+
+    with patch.object(jumps_module, "MAX_ABI_STATIC_TARGET_VALUES", 4):
+        targets, exhausted, ran = jumps_module.abi_static_register_transfer_targets(
+            project, session.bounds, session.blocks
+        )
+
+    assert targets == {}
+    assert not exhausted and ran
+
+
 def test_amd64_sysv_transfer_ignores_a_direct_vex_target() -> None:
     """Only a register-valued VEX transfer can be materialized by this pass."""
 

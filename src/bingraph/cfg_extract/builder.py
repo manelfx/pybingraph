@@ -618,6 +618,7 @@ class _ExtractionSession:
                         allow_guarded_loads=True,
                         allow_static_bases=True,
                         allow_guarded_expression_indices=True,
+                        allow_predecessor_clamped_indices=True,
                     )
                     if plan is None and reason == "no_table_shape":
                         plan, reason = plan_mips_pic_relative_jump_table(

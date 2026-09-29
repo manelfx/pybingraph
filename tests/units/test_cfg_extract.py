@@ -1004,6 +1004,33 @@ def test_extract_recovers_mips_pic_relative_jump_table() -> None:
     assert session.unresolved_dispatcher_reasons.get(0x40FFD4) is None
 
 
+def test_extract_resolves_inline_masked_mips_pic_table() -> None:
+    """Follow same-block register writes to all eight exact table entries."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x417E1C)
+    nodes = {node.addr: node for node in cfg.graph.nodes()}
+
+    assert {node.addr for node in cfg.graph.successors(nodes[0x417E1C])} == {
+        0x417E4C,
+        0x417E9C,
+        0x417EBC,
+        0x417EF0,
+        0x417F0C,
+        0x417F24,
+        0x417F40,
+        0x417F58,
+    }
+    assert len(nodes) == 17
+    assert all(
+        node.simprocedure_name != "UnresolvableJumpTarget" for node in nodes.values()
+    )
+    assert cfg.extract_stats.abi_static_jump_targets_resolved == 1
+    assert cfg.extract_stats.sweep_runs == 0
+
+
 def test_extract_recovers_a_masked_affine_x86_relative_jump_table() -> None:
     """Recover only the ordered low-nibble entries of an x86-64 table."""
 
@@ -1428,6 +1455,61 @@ def test_extract_recovers_memory_selector_table_candidates() -> None:
     assert cfg.extract_stats.static_jump_candidate_plans == 1
     assert cfg.extract_stats.static_jump_candidate_targets_accepted == 3
     assert cfg.extract_stats.sweep_runs == 1
+
+
+def test_extract_recovers_clamped_relative_jump_table() -> None:
+    """A predecessor CMOV bounds every row of a Rust relative table."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x4BD6B0
+    )
+    cfg = session.build()
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    dispatcher = nodes[0x4BD6EF]
+    successors = tuple(cfg.graph.successors(dispatcher))
+
+    assert {node.addr for node in successors} == {
+        0x4BD6FF,
+        0x4BD723,
+        0x4BD780,
+        0x4BD7DA,
+        0x4BD824,
+    }
+    assert all(not node.is_simprocedure for node in successors)
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert (
+        sum(
+            len(tuple(decode_raw_capstone_insns(project, node.addr, node.size)))
+            for node in nodes.values()
+        )
+        == 145
+    )
+
+    options = dict(
+        allow_inline_index_values=True,
+        allow_masked_index_values=True,
+        allow_guarded_loads=True,
+        allow_static_bases=True,
+        allow_guarded_expression_indices=True,
+    )
+    default_plan, reason = plan_static_jump_table(
+        project, cfg.graph, session.bounds, dispatcher, **options
+    )
+    assert default_plan is None
+    assert reason == "unbounded_index"
+
+    plan, reason = plan_static_jump_table(
+        project,
+        cfg.graph,
+        session.bounds,
+        dispatcher,
+        allow_predecessor_clamped_indices=True,
+        **options,
+    )
+    assert reason is None
+    assert plan is not None
+    assert plan.entry_indices == tuple(range(7))
 
 
 def test_extract_skips_ambiguous_memory_selector_table_candidates() -> None:

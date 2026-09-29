@@ -561,6 +561,25 @@ def _mips_pic_transfer(
                 if expr.result_size(vex.tyenv) == bits
                 else None
             )
+        if isinstance(expr, pyvex.expr.Binop) and expr.op == f"Iop_And{bits}":
+            left = evaluate(expr.args[0])
+            right = evaluate(expr.args[1])
+            if left is not None and right is not None:
+                return _mips_finite_union(
+                    frozenset({a & b}) for a in left for b in right
+                )
+            masked = _vex_masked_index_values(expr, definitions)
+            if masked is not None and len(masked) <= MAX_ABI_STATIC_TARGET_VALUES:
+                return frozenset(masked)
+            return None
+        if isinstance(expr, pyvex.expr.Binop) and expr.op == f"Iop_Shl{bits}":
+            left = evaluate(expr.args[0])
+            right = evaluate(expr.args[1])
+            if left is None or right is None:
+                return None
+            return _mips_finite_union(
+                frozenset({(a << b) & mask}) for a in left for b in right
+            )
         if isinstance(expr, pyvex.expr.Binop) and expr.op in {
             f"Iop_Add{bits}",
             f"Iop_Sub{bits}",
@@ -586,23 +605,32 @@ def _mips_pic_transfer(
         if stack_offset is not None:
             return stack.get(stack_offset)
         gp_displacement = _mips_register_displacement(key, gp_offset, bits)
-        gp_values = registers.get(gp_offset)
-        if gp_displacement is None or gp_values is None:
-            return None
+        if gp_displacement is not None:
+            gp_values = registers.get(gp_offset)
+            if gp_values is None:
+                return None
+            addresses = frozenset((gp + gp_displacement) & mask for gp in gp_values)
+        else:
+            addresses = evaluate(expr.addr)
+            # Computed table reads must remain entirely in immutable data.
+            if addresses is None or any(
+                (section := project.loader.find_section_containing(addr)) is None
+                or section.is_writable
+                or addr + project.arch.bytes - 1 > section.max_addr
+                for addr in addresses
+            ):
+                return None
         byteorder = "little" if expr.end == "Iend_LE" else "big"
-        targets: set[int] = set()
-        for gp in gp_values:
-            slot = (gp + gp_displacement) & mask
+        values: set[int] = set()
+        for addr in addresses:
             try:
                 value = int.from_bytes(
-                    project.loader.memory.load(slot, project.arch.bytes), byteorder
+                    project.loader.memory.load(addr, project.arch.bytes), byteorder
                 )
             except Exception:
                 return None
-            if not _abi_static_target_is_valid(project, value):
-                return None
-            targets.add(value)
-        return _mips_finite_union(frozenset({value}) for value in targets)
+            values.add(value)
+        return _mips_finite_union(frozenset({value}) for value in values)
 
     for statement in vex.statements:
         if isinstance(statement, pyvex.stmt.WrTmp):
@@ -1976,6 +2004,98 @@ def _guarded_jump_table_entry_count(
     return _zero_extended_stack_selector_entry_count(
         graph, bounds, node, table.index_expression
     )
+
+
+def _vex_clamped_index_values(expr, definitions) -> tuple[int, ...] | None:
+    """Prove the finite domain of an unsigned conditional-move clamp.
+
+    For ``index >= limit ? fallback : index``, the unchanged arm can only
+    contain values below ``limit``. A finite fallback completes the proof.
+    """
+
+    expr = _resolve_vex_expr(expr, definitions)
+    if not isinstance(expr, pyvex.expr.ITE):
+        return None
+    condition = _resolve_vex_expr(expr.cond, definitions)
+    while (
+        isinstance(condition, pyvex.expr.Unop)
+        and (conversion := _vex_width_conversion(condition)) is not None
+        and 1 in conversion[:2]
+    ):
+        condition = _resolve_vex_expr(condition.args[0], definitions)
+    if not isinstance(condition, pyvex.expr.Binop):
+        return None
+    if "CmpLE" in condition.op and condition.op.endswith("U"):
+        inclusive = False
+    elif "CmpLT" in condition.op and condition.op.endswith("U"):
+        inclusive = True
+    else:
+        return None
+    limit = _vex_static_int(condition.args[0], definitions)
+    selector = condition.args[1]
+    unchanged = expr.iffalse
+    fallback = _vex_static_int(expr.iftrue, definitions)
+    count = limit + int(inclusive) if limit is not None else None
+    if (
+        count is None
+        or not 0 < count <= MAX_STATIC_JUMPTABLE_ENTRIES
+        or not isinstance(selector, pyvex.expr.RdTmp)
+        or not isinstance(unchanged, pyvex.expr.RdTmp)
+        or unchanged.tmp != selector.tmp
+        or fallback is None
+        or not 0 <= fallback < MAX_STATIC_JUMPTABLE_ENTRIES
+    ):
+        return None
+    return tuple(sorted({*range(count), fallback}))
+
+
+def _predecessor_clamped_index_values(
+    graph: CFGGraph,
+    bounds: FunctionBounds,
+    node,
+    table: StaticJumpTable,
+) -> tuple[int, ...] | None:
+    """Use a clamp only when every incoming path assigns the table index."""
+
+    if table.index_register_offset is None or table.index_bits is None:
+        return None
+    predecessors = tuple(graph.predecessors(node))
+    if not predecessors:
+        return None
+    values: set[int] = set()
+    for predecessor in predecessors:
+        if not _node_is_materialized_cfg_node(
+            predecessor
+        ) or not _node_intersects_bounds(predecessor, bounds):
+            return None
+        vex = _node_vex(predecessor)
+        if vex is None or vex.jumpkind != "Ijk_Boring":
+            return None
+        definitions = _vex_tmp_definitions(vex)
+        index_write = None
+        saw_exit = False
+        for statement in vex.statements:
+            if isinstance(statement, pyvex.stmt.Exit):
+                saw_exit = True
+            if (
+                isinstance(statement, pyvex.stmt.Put)
+                and statement.offset == table.index_register_offset
+            ):
+                if saw_exit:
+                    return None
+                index_write = statement
+        if (
+            index_write is None
+            or index_write.data.result_size(vex.tyenv) != table.index_bits
+        ):
+            return None
+        proven = _vex_clamped_index_values(index_write.data, definitions)
+        if proven is None:
+            return None
+        values.update(proven)
+        if len(values) > MAX_STATIC_JUMPTABLE_ENTRIES:
+            return None
+    return tuple(sorted(values))
 
 
 def _cross_block_zero_extended_selector_entry_count(
@@ -4575,6 +4695,7 @@ def plan_static_jump_table(
     allow_guarded_loads: bool = False,
     allow_static_bases: bool = False,
     allow_guarded_expression_indices: bool = False,
+    allow_predecessor_clamped_indices: bool = False,
 ) -> tuple[StaticJumpTablePlan | None, str | None]:
     """Return one fully proven static-table read plan for an indirect branch.
 
@@ -4672,6 +4793,10 @@ def plan_static_jump_table(
             )
         if entry_count is not None:
             entry_indices = tuple(range(entry_count))
+        elif allow_predecessor_clamped_indices:
+            entry_indices = _predecessor_clamped_index_values(
+                graph, bounds, node, table
+            )
     elif entry_count is not None:
         # Independent finite facts compose by intersection. A bit mask limits
         # the index value and a predecessor guard can narrow it further.
