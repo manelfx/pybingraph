@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import lru_cache
 import re
 
 from angr import Project
 from angr.procedures.definitions import SIM_LIBRARIES, SimSyscallLibrary
 from capstone import CsInsn
+from elftools.elf.elffile import ELFFile
+from elftools.elf.sections import SymbolTableSection
 from loguru import logger
 import pyvex
 
@@ -303,12 +306,54 @@ _LINKED_NONRETURNING_RUNTIME_SYMBOLS = frozenset(
 )
 
 
+@lru_cache(maxsize=32)
+def _ppc64_nonreturning_local_entries(project: Project) -> frozenset[int]:
+    """Read ELFv2 local-entry offsets for linked non-returning functions."""
+
+    obj = project.loader.main_object
+    if project.arch.name != "PPC64" or not obj.binary:
+        return frozenset()
+
+    entries: set[int] = set()
+    try:
+        with open(obj.binary, "rb") as stream:
+            elf = ELFFile(stream)
+            if elf["e_machine"] != "EM_PPC64" or elf["e_flags"] & 3 != 2:
+                return frozenset()
+            for section in elf.iter_sections():
+                if not isinstance(section, SymbolTableSection):
+                    continue
+                for raw_symbol in section.iter_symbols():
+                    if (
+                        raw_symbol.name not in _LINKED_NONRETURNING_RUNTIME_SYMBOLS
+                        or raw_symbol["st_info"]["type"] != "STT_FUNC"
+                    ):
+                        continue
+                    symbol = obj.get_symbol(raw_symbol.name)
+                    if (
+                        symbol is None
+                        or symbol.is_import
+                        or symbol.relative_addr
+                        != raw_symbol["st_value"] - obj.linked_base
+                    ):
+                        continue
+                    encoded_offset = raw_symbol["st_other"]["local"]
+                    # ELFv2 encodes the local entry's byte displacement in
+                    # st_other; this is not an arbitrary in-function alias.
+                    offset = ((1 << encoded_offset) >> 2) << 2
+                    if 0 < offset < raw_symbol["st_size"]:
+                        entries.add(symbol.rebased_addr + offset)
+    except OSError:
+        return frozenset()
+    return frozenset(entries)
+
+
 def _symbol_is_declared_nonreturning(project: Project, addr: int) -> bool:
     """Recognize exact no-return runtime symbols and compatible declarations."""
 
     symbol = project.loader.find_symbol(addr)
     if symbol is None or symbol.rebased_addr != addr or not symbol.is_function:
-        return False
+        return addr in _ppc64_nonreturning_local_entries(project)
 
     # A statically linked runtime has an application filename, so its libc
     # declarations cannot be matched by the owning object's library name.

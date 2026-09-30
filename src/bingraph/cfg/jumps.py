@@ -54,6 +54,9 @@ MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES = 4096
 MAX_ABI_STATIC_TARGET_VALUES = 8
 MAX_MIPS_PIC_TARGET_BLOCKS = 512
 MAX_MIPS_NORETURN_CYCLE_PROOFS = 8
+# False-return pruning can leave a guarded PPC table with a larger predecessor
+# block. Keep symbolic guard execution bounded while admitting that prelude.
+MAX_PPC64_GUARD_BLOCK_BYTES = 128
 # Cross-block selector proofs are must analyses. Cap their walk so one
 # pathological function cannot make otherwise local table recovery expensive.
 MAX_CROSS_BLOCK_SELECTOR_PROOF_NODES = 128
@@ -5267,6 +5270,69 @@ def _ppc64_index_is_zero_extended_on_all_paths(
     return bool(seen)
 
 
+def _ppc64_prescaled_ctr_index_source(
+    graph: CFGGraph, bounds: FunctionBounds, node: CFGNode, offset: int
+) -> tuple[int, int] | None:
+    """Find one preserved source for a four-byte table offset in a register.
+
+    The definition may precede a loop backedge, but every incoming path must
+    reach the same masked scale without changing its source register. Calls
+    invalidate the proof because the offset register is caller-saved.
+    """
+
+    pending = deque(graph.predecessors(node))
+    seen: set[CFGNode] = set()
+    traversed = []
+    source: tuple[int, int] | None = None
+    while pending:
+        predecessor = pending.popleft()
+        if predecessor in seen:
+            continue
+        seen.add(predecessor)
+        if len(seen) > MAX_CROSS_BLOCK_SELECTOR_PROOF_NODES or not (
+            _node_is_materialized_cfg_node(predecessor)
+            and _node_intersects_bounds(predecessor, bounds)
+        ):
+            return None
+        vex = _node_vex(predecessor)
+        if vex is None or vex.jumpkind != "Ijk_Boring":
+            return None
+        definition = _vex_last_put(vex, offset)
+        if definition is not None:
+            definitions = _vex_tmp_definitions(vex)
+            scaled = _vex_scaled_table_index(definition.data, definitions)
+            if scaled is None or scaled[1] != 2:
+                return None
+            low_bits = scaled[3]
+            # The guard compares the source's low 32 bits; higher bits must
+            # not survive the scale into the table's byte offset.
+            if low_bits is None or not 0 < low_bits <= 32:
+                return None
+            key = _vex_index_key(scaled[0], definitions, vex, allow_full_width=True)
+            if key is None or key[1] != 64 or key[0] == offset:
+                return None
+            candidate = (key[0], low_bits)
+            if source is not None and source != candidate:
+                return None
+            source = candidate
+            traversed.append(vex)
+            continue
+        if predecessor.addr == bounds.addr:
+            return None
+        parents = tuple(graph.predecessors(predecessor))
+        if not parents:
+            return None
+        traversed.append(vex)
+        pending.extend(parents)
+
+    if source is None:
+        return None
+    selector_offset = source[0]
+    if any(_vex_last_put(vex, selector_offset) is not None for vex in traversed):
+        return None
+    return source
+
+
 def _plan_ppc64_toc_relative_ctr_table(
     project: Project, graph: CFGGraph, bounds: FunctionBounds, node: CFGNode, vex
 ) -> StaticJumpTablePlan | None:
@@ -5346,18 +5412,32 @@ def _plan_ppc64_toc_relative_ctr_table(
         ]
         if len(base_terms) != 1:
             continue
-        scaled = _vex_scaled_table_index(
-            next(term for term in address.args if term is not base_terms[0]),
-            definitions,
-        )
-        if scaled is None or scaled[1] != 2:
-            continue
-        index_key = _vex_index_key(scaled[0], definitions, vex, allow_full_width=True)
-        if index_key is None or index_key[1] != 64:
-            continue
-        zero_extended = _ppc64_index_is_zero_extended_on_all_paths(
-            graph, bounds, node, index_key[0]
-        )
+        index_expr = next(term for term in address.args if term is not base_terms[0])
+        scaled = _vex_scaled_table_index(index_expr, definitions)
+        if scaled is not None and scaled[1] == 2:
+            index_key = _vex_index_key(
+                scaled[0], definitions, vex, allow_full_width=True
+            )
+            if index_key is None or index_key[1] != 64:
+                continue
+            index_low_bits = scaled[3]
+            zero_extended = _ppc64_index_is_zero_extended_on_all_paths(
+                graph, bounds, node, index_key[0]
+            )
+        else:
+            offset_key = _vex_index_key(
+                index_expr, definitions, vex, allow_full_width=True
+            )
+            if offset_key is None or offset_key[1] != 64:
+                continue
+            prescaled = _ppc64_prescaled_ctr_index_source(
+                graph, bounds, node, offset_key[0]
+            )
+            if prescaled is None:
+                continue
+            index_key = (prescaled[0], 64)
+            index_low_bits = prescaled[1]
+            zero_extended = False
 
         predecessors = tuple(graph.predecessors(node))
         if not predecessors or len(predecessors) > 4:
@@ -5369,7 +5449,7 @@ def _plan_ppc64_toc_relative_ctr_table(
             if not (
                 _node_is_materialized_cfg_node(predecessor)
                 and _node_intersects_bounds(predecessor, bounds)
-                and predecessor.size <= 64
+                and predecessor.size <= MAX_PPC64_GUARD_BLOCK_BYTES
                 and predecessor_vex is not None
                 and any(
                     isinstance(statement, pyvex.stmt.Exit)
@@ -5393,7 +5473,7 @@ def _plan_ppc64_toc_relative_ctr_table(
                 ]
                 if len(entering) != 1:
                     break
-                index_bits = scaled[3]
+                index_bits = index_low_bits
                 if zero_extended:
                     index_bits = min(8, index_bits or 8)
                 else:
@@ -5452,7 +5532,7 @@ def _plan_ppc64_toc_relative_ctr_table(
             signed_entries=True,
             target_and_mask=mask,
             static_base_addr=base_addr,
-            index_low_bits=scaled[3],
+            index_low_bits=index_low_bits,
         )
         return StaticJumpTablePlan(table, base_addr, tuple(sorted(entry_indices)))
     return None

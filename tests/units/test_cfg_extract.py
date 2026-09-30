@@ -472,6 +472,135 @@ def test_extract_resolves_ppc64_toc_relative_ctr_tables() -> None:
         assert {node.addr for node in successors} == targets
         assert not any(node.is_simprocedure for node in successors)
         assert cfg.extract_stats.unresolved_indirect_targets == 0
+        if entry == 0x100985E0:
+            nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+            assert 0x10098B70 not in {
+                node.addr for node in cfg.graph.successors(nodes[0x10098B6C])
+            }
+
+
+def test_extract_recognizes_ppc64_nonreturning_local_entry() -> None:
+    """An ELFv2 local entry inherits its function's no-return declaration."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/ppc64el/fauxware_static")
+    )
+    bounds = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x1004BAF0
+    ).bounds
+
+    assert target_is_known_nonreturning(project, 0x10001D88)
+    assert not target_is_known_nonreturning(project, 0x10001D8C)
+    block = decode_bounded_block(
+        project,
+        bounds,
+        0x1004BEB8,
+        set(),
+        resolve_declared_nonreturning=True,
+    )
+
+    assert block is not None
+    assert block.jumpkind == "Ijk_Call"
+    assert block.direct_targets == (0x10001D88,)
+    assert block.fallthrough_addr is None
+
+
+def test_extract_proves_ppc64_prescaled_locale_ctr_tables() -> None:
+    """A masked scale and a later guard prove each locale table's rows."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/ppc64el/fauxware_static")
+    )
+    for entry, dispatcher_addr, scale_addr, guard_addr, table_addr, targets in (
+        (
+            0x1004BAF0,
+            0x1004BDB0,
+            0x1004BD90,
+            0x1004BDA8,
+            0x1004BDCC,
+            {
+                0x1004BD24,
+                0x1004BD30,
+                0x1004BE00,
+                0x1004BE4C,
+                0x1004BE60,
+                0x1004BE6C,
+                0x1004BE80,
+                0x1004BE90,
+                0x1004BEA0,
+                0x1004BEE0,
+            },
+        ),
+        (
+            0x1004BF80,
+            0x1004C4B0,
+            0x1004C490,
+            0x1004C4A8,
+            0x1004C4CC,
+            {
+                0x1004C170,
+                0x1004C180,
+                0x1004C514,
+                0x1004C580,
+                0x1004C590,
+                0x1004C59C,
+                0x1004C5B0,
+                0x1004C5C0,
+                0x1004C5D0,
+                0x1004C610,
+            },
+        ),
+    ):
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), entry
+        )
+        cfg = session.build()
+        nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+        dispatcher = nodes[dispatcher_addr]
+        plan, reason = plan_static_jump_table(
+            project, cfg.graph, session.bounds, dispatcher
+        )
+
+        assert reason is None
+        assert plan is not None
+        assert plan.base_addr == table_addr
+        assert plan.entry_indices == tuple(range(13))
+        assert {node.addr for node in cfg.graph.successors(dispatcher)} == targets
+        assert all(
+            cfg.graph.get_edge_data(dispatcher, nodes[target])["unresolved_indirect"]
+            is False
+            for target in targets
+        )
+        assert cfg.extract_stats.unresolved_indirect_targets == 0
+
+        baseline = nx.DiGraph()
+        baseline.add_nodes_from(cfg.graph.nodes())
+        baseline.add_edges_from(cfg.graph.edges())
+        without_scale = baseline.copy()
+        without_scale.remove_node(nodes[scale_addr])
+        assert (
+            plan_static_jump_table(project, without_scale, session.bounds, dispatcher)[
+                0
+            ]
+            is None
+        )
+        without_guard = baseline.copy()
+        without_guard.add_edge(nodes[scale_addr], dispatcher)
+        assert (
+            plan_static_jump_table(project, without_guard, session.bounds, dispatcher)[
+                0
+            ]
+            is None
+        )
+        clobbering_call = baseline.copy()
+        call_addr = 0x1004BEB8 if entry == 0x1004BAF0 else 0x1004C5E8
+        clobbering_call.add_edge(nodes[call_addr], nodes[guard_addr])
+        assert (
+            plan_static_jump_table(
+                project, clobbering_call, session.bounds, dispatcher
+            )[0]
+            is None
+        )
 
 
 def test_extract_resolves_ppc64_full_width_guarded_ctr_tables() -> None:

@@ -914,6 +914,7 @@ dependencies = [
     { name = "httpx2" },
     { name = "jinja2" },
     { name = "loguru" },
+    { name = "pyelftools" },
     { name = "pydantic-settings" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -936,6 +937,7 @@ requires-dist = [
     { name = "httpx2", specifier = ">=2.4.0" },
     { name = "jinja2", specifier = ">=3.1.4" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pyelftools", specifier = ">=0.33" },
     { name = "pydantic-settings", specifier = ">=2.14.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2.2" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0" },
