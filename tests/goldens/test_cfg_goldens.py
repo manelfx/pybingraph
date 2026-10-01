@@ -30,10 +30,10 @@ How this module works:
 5. Summary files
    A run that selects the per-config summary test writes one `summary.json`
    file per config under `tests/_actual/<config-name>/...` and compares it
-   with the committed summary. Custom-mode summaries also aggregate the repair
-   counters emitted by each completed custom CFG build. Checkpoint and other
-   partial runs deliberately leave that full-corpus summary and the other
-   `_actual` artifacts untouched.
+   with the committed summary. Custom-mode summaries aggregate repair counters;
+   extract-mode summaries aggregate extraction counters and exact-proof usage.
+   Checkpoint and other partial runs deliberately leave that full-corpus
+   summary and the other `_actual` artifacts untouched.
    In promote mode, the full summary is also copied into the golden directory.
 
 6. First-time bootstrap
@@ -197,7 +197,7 @@ CHECKPOINT_ARTIFACTS = frozenset(
 
 @dataclass
 class ConfigRunState:
-    """Accumulate render and custom-repair results for one configuration."""
+    """Accumulate render and CFG-analysis results for one configuration."""
 
     expected_files: set[Path]
     entries: int = 0
@@ -210,6 +210,12 @@ class ConfigRunState:
     render_recoveries: int = 0
     custom_cfg_runs: int = 0
     custom_cfg_stats: dict[str, int] = field(default_factory=dict)
+    extract_cfg_runs: int = 0
+    extract_cfg_stats: dict[str, int] = field(default_factory=dict)
+    extract_cfg_affected_functions: dict[str, int] = field(default_factory=dict)
+    extract_proofs_by_architecture: dict[str, dict[str, int]] = field(
+        default_factory=dict
+    )
 
 
 def _iter_rows(limit: int | None = None) -> Iterator[dict[str, Any]]:
@@ -327,7 +333,7 @@ def _summary_payload(
 ) -> dict[str, Any]:
     """Serialize one configuration run-state into summary.json fields."""
 
-    return {
+    payload = {
         "config": asdict(config),
         "csv": str(CSV_PATH.relative_to(PROJECT_ROOT)),
         "root": str(PLAYGROUND_ROOT.relative_to(PROJECT_ROOT)),
@@ -351,6 +357,21 @@ def _summary_payload(
         "limit": limit,
         "min_bbs": _env_min_bbs(),
     }
+    if config.cfg_mode == "extract":
+        payload["extract_cfg_stats"] = {
+            "runs": state.extract_cfg_runs,
+            "totals": dict(sorted(state.extract_cfg_stats.items())),
+            "affected_functions": dict(
+                sorted(state.extract_cfg_affected_functions.items())
+            ),
+            "proofs_by_architecture": {
+                arch: dict(sorted(flavors.items()))
+                for arch, flavors in sorted(
+                    state.extract_proofs_by_architecture.items()
+                )
+            },
+        }
+    return payload
 
 
 def _serialize_summary(payload: dict[str, Any]) -> str:
@@ -397,6 +418,32 @@ def _record_custom_cfg_stats(state: ConfigRunState, cfg: object) -> None:
     state.custom_cfg_runs += 1
     for name, value in stats.as_dict().items():
         state.custom_cfg_stats[name] = state.custom_cfg_stats.get(name, 0) + value
+
+
+def _record_extract_cfg_stats(
+    state: ConfigRunState, cfg: object, architecture: str
+) -> None:
+    """Count completed extract actions and the functions that use each one."""
+
+    stats = getattr(cfg, "extract_stats", None)
+    if stats is None:
+        return
+
+    state.extract_cfg_runs += 1
+    for name, value in stats.as_dict().items():
+        entries = value.items() if isinstance(value, dict) else ((None, value),)
+        for subname, count in entries:
+            key = f"{name}.{subname}" if subname is not None else name
+            state.extract_cfg_stats[key] = state.extract_cfg_stats.get(key, 0) + count
+            if count:
+                state.extract_cfg_affected_functions[key] = (
+                    state.extract_cfg_affected_functions.get(key, 0) + 1
+                )
+                if name == "exact_jump_proofs_by_flavor":
+                    by_arch = state.extract_proofs_by_architecture.setdefault(
+                        architecture, {}
+                    )
+                    by_arch[subname] = by_arch.get(subname, 0) + count
 
 
 def _extract_render_cfg() -> Callable[..., str]:
@@ -729,6 +776,7 @@ if CURRENT_MODE == "compare":
         ):
             render_cfg = _extract_render_cfg()
             original_build_custom_cfg = project_module.build_custom_cfg
+            original_build_extracted_cfg = project_module.build_extracted_cfg
 
             def build_custom_cfg_with_stats(*args: Any, **kwargs: Any) -> Any:
                 """Preserve repair counters while delegating to real CFG building."""
@@ -737,11 +785,26 @@ if CURRENT_MODE == "compare":
                 _record_custom_cfg_stats(state, cfg)
                 return cfg
 
+            def build_extracted_cfg_with_stats(*args: Any, **kwargs: Any) -> Any:
+                """Preserve extraction counters while delegating to real CFG building."""
+
+                cfg = original_build_extracted_cfg(*args, **kwargs)
+                architecture = row["filepath"].split("/", 1)[0]
+                _record_extract_cfg_stats(state, cfg, architecture)
+                return cfg
+
             try:
-                with patch.object(
-                    project_module,
-                    "build_custom_cfg",
-                    side_effect=build_custom_cfg_with_stats,
+                with (
+                    patch.object(
+                        project_module,
+                        "build_custom_cfg",
+                        side_effect=build_custom_cfg_with_stats,
+                    ),
+                    patch.object(
+                        project_module,
+                        "build_extracted_cfg",
+                        side_effect=build_extracted_cfg_with_stats,
+                    ),
                 ):
                     artifact_text = render_cfg(
                         row["filepath"], row["function_addr"], format="raw"

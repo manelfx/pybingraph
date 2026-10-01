@@ -39,6 +39,7 @@ def test_extract_proves_two_level_immutable_tables(
     targets = session.static_targets[dispatcher]
     assert len(targets) == 14
     assert new_target in targets
+    assert cfg.extract_stats.exact_jump_proofs_by_flavor.get("two_level_table", 0) >= 1
     nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
     assert {node.addr for node in cfg.graph.successors(nodes[dispatcher])} == set(
         targets

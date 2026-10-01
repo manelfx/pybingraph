@@ -99,6 +99,7 @@ class StaticJumpTablePlan:
     table: StaticJumpTable
     base_addr: int
     entry_indices: tuple[int, ...]
+    proof_flavor: str = "generic_vex_table"
 
     @property
     def entry_count(self) -> int:

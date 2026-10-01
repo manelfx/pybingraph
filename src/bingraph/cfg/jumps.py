@@ -4467,7 +4467,9 @@ def plan_x86_pic_relative_jump_table(
             signed_entries=signed,
             static_base_addr=base_addr,
         )
-        return StaticJumpTablePlan(table, base_addr, entry_indices)
+        return StaticJumpTablePlan(
+            table, base_addr, entry_indices, proof_flavor="x86_pic_table"
+        )
     return None
 
 
@@ -5228,7 +5230,10 @@ def plan_mips_pic_relative_jump_table(
                 static_base_addr=global_pointer,
             )
             return StaticJumpTablePlan(
-                table, global_pointer, tuple(range(entry_count))
+                table,
+                global_pointer,
+                tuple(range(entry_count)),
+                proof_flavor="mips_pic_table",
             ), None
 
     return None, "no_table_shape"
@@ -5534,7 +5539,12 @@ def _plan_ppc64_toc_relative_ctr_table(
             static_base_addr=base_addr,
             index_low_bits=index_low_bits,
         )
-        return StaticJumpTablePlan(table, base_addr, tuple(sorted(entry_indices)))
+        return StaticJumpTablePlan(
+            table,
+            base_addr,
+            tuple(sorted(entry_indices)),
+            proof_flavor="ppc64_toc_ctr_table",
+        )
     return None
 
 

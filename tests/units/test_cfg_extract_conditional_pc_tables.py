@@ -39,6 +39,7 @@ def test_extract_recovers_a_guarded_pc_load_table() -> None:
 
     assert successors == {0x446F64, 0x446F78, 0x4471B0}
     assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert cfg.extract_stats.exact_jump_proofs_by_flavor == {"conditional_pc": 1}
     assert cfg.extract_stats.static_jump_target_edges_added == 2
     assert not any(
         node.simprocedure_name == "UnresolvableJumpTarget"
@@ -97,6 +98,7 @@ def test_extract_recovers_an_unconditional_clz_arithmetic_pc_dispatch() -> None:
 
     assert successors == set(range(0xEF61, 0xF142, 0x10))
     assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert cfg.extract_stats.exact_jump_proofs_by_flavor == {"arithmetic_pc": 1}
     assert not any(
         node.simprocedure_name == "UnresolvableJumpTarget"
         for node in cfg.graph.nodes()
@@ -117,6 +119,7 @@ def test_extract_recovers_a_scaled_static_byte_table() -> None:
 
     assert successors == {0x401D39, 0x401D59, 0x401D61}
     assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert cfg.extract_stats.exact_jump_proofs_by_flavor == {"generic_vex_table": 1}
     assert cfg.extract_stats.static_jump_target_edges_added == 3
 
 

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from collections import Counter, deque
 from dataclasses import replace
+import os
 from types import SimpleNamespace
 from typing import Mapping, cast
 
@@ -39,7 +40,12 @@ from bingraph.cfg.jumps import (
     static_jump_target_rejection_reason,
     unconditional_arithmetic_pc_dispatch_targets,
 )
-from bingraph.cfg.models import BlockSpec, EdgeJumpKind, FunctionBounds
+from bingraph.cfg.models import (
+    BlockSpec,
+    EdgeJumpKind,
+    FunctionBounds,
+    StaticJumpTablePlan,
+)
 from bingraph.cfg.decode import (
     alternate_block_entry_rejoin_addr,
     decode_bounded_block,
@@ -58,6 +64,12 @@ from .models import (
     ExtractedCFGNode,
     ExtractedCFGStats,
     ExtractedCFGSummary,
+)
+from .shared_table_proof import (
+    shadow_relative_table_targets,
+    shared_register_targets,
+    shared_table_targets,
+    table_predecessor_facts,
 )
 from .sweep import recover_executable_components, select_reconnecting_components
 from .syscalls import ResolvedSyscall, resolve_static_syscall, unknown_syscall_target
@@ -413,7 +425,7 @@ class _ExtractionSession:
     ) -> tuple[CFGGraph, dict[int, CFGNode]]:
         """Build the exact-flow snapshot used by indirect-target proofs.
 
-        The snapshot includes decoded direct/fallthrough edges and static-table
+        The snapshot includes decoded direct/fallthrough edges and indirect
         edges proven by an earlier discovery round. It intentionally excludes
         unresolved and candidate edges: they cannot establish a must-reaching
         dataflow fact for a later resolver.
@@ -431,9 +443,9 @@ class _ExtractionSession:
             graph.add_node(node)
         for addr, block in self.blocks.items():
             source = nodes[addr]
-            # Previously proven table rows become normal flow for later
-            # proofs. This permits a guarded selector to survive one exact
-            # dispatcher before it indexes a second table.
+            # Previously proven indirect targets become normal flow for later
+            # proofs. A selector can survive an exact dispatcher before a
+            # second table, or its carried target can feed a register jump.
             for target in (
                 *block.direct_targets,
                 *static_targets.get(addr, ()),
@@ -447,6 +459,13 @@ class _ExtractionSession:
                     nodes[target],
                     "Ijk_Call" if block.jumpkind == "Ijk_Call" else "Ijk_Boring",
                 )
+                if target in static_targets.get(addr, ()):
+                    # Exact indirect edges constrain the jump-carrying register
+                    # to this destination. Keep that provenance local to the
+                    # immutable analysis snapshot, never on candidate edges.
+                    edge = graph.get_edge_data(source, nodes[target])
+                    if edge is not None:
+                        edge["proven_dispatch"] = True
         return graph, nodes
 
     def _call_block_matches_lsda_site(
@@ -557,9 +576,9 @@ class _ExtractionSession:
         """Iteratively discover exact and candidate indirect jump targets.
 
         Exact resolvers run in priority order: conditional-PC forms,
-        arithmetic-PC forms, generic VEX tables, the MIPS PIC fallback, then
-        guarded two-level byte-map/pointer tables.
-        Only a fully bounded table becomes ``static_targets``. A weaker,
+        arithmetic-PC forms, generic VEX tables, architecture adapters, guarded
+        two-level tables, then shared finite table and register facts.
+        Only a fully bounded target set becomes ``static_targets``. A weaker,
         unbounded memory-selector table may contribute dashed candidates, but
         never replaces the unresolved target.
 
@@ -569,16 +588,26 @@ class _ExtractionSession:
         unchanged, preserving their proof while avoiding stale source edges.
         """
 
-        retained_plans: dict[int, tuple[BlockSpec, tuple[int, ...]]] = {}
+        shadow_enabled = os.getenv("BINGRAPH_SHADOW_TABLE_PROOFS") == "1"
+        retained_plans: dict[int, tuple[BlockSpec, tuple[int, ...], str]] = {}
+        retained_table_plans: dict[int, tuple[BlockSpec, StaticJumpTablePlan]] = {}
         while True:
             retained_targets = {
                 addr: targets
-                for addr, (source, targets) in retained_plans.items()
+                for addr, (source, targets, _flavor) in retained_plans.items()
+                if self.blocks.get(addr) == source
+            }
+            retained_flavors = {
+                addr: flavor
+                for addr, (source, _targets, flavor) in retained_plans.items()
                 if self.blocks.get(addr) == source
             }
             graph, nodes = self._analysis_graph(retained_targets)
+            shared_facts = None
             discovered = False
             plans: dict[int, tuple[int, ...]] = {}
+            plan_flavors: dict[int, str] = {}
+            table_plans: dict[int, StaticJumpTablePlan] = {}
             candidate_plans: dict[int, tuple[int, ...]] = {}
             candidate_entry_counts: dict[int, int] = {}
             unresolved_reasons: dict[int, str | None] = {}
@@ -613,12 +642,16 @@ class _ExtractionSession:
                 targets, reason = conditional_pc_dispatch_targets(
                     self.project, self.bounds, node, graph
                 )
+                proof_flavor = "conditional_pc" if targets is not None else None
+                plan = None
                 if targets is not None:
                     conditional_sources.add(addr)
                 if targets is None and reason == "not_conditional_pc":
                     targets = unconditional_arithmetic_pc_dispatch_targets(
                         self.project, graph, self.bounds, node
                     )
+                    if targets is not None:
+                        proof_flavor = "arithmetic_pc"
                 if targets is None and reason in {"not_conditional_pc", "no_vex"}:
                     plan, reason = plan_static_jump_table(
                         self.project,
@@ -653,12 +686,42 @@ class _ExtractionSession:
                             plan.base_addr,
                             plan.entry_indices,
                         )
+                        if targets is not None:
+                            proof_flavor = plan.proof_flavor
                 if targets is None and reason in {"no_table_shape", "unbounded_index"}:
                     targets = exact_two_level_table_targets(
                         self.project, graph, self.bounds, node
                     )
                     if targets is not None:
                         reason = None
+                        proof_flavor = "two_level_table"
+                if targets is None and reason in {
+                    "no_table_shape",
+                    "unbounded_index",
+                    "unknown_base",
+                }:
+                    # One bounded cache per immutable round. A successful proof
+                    # enters the same leader/redecode pipeline as legacy tables;
+                    # do not carry facts across the resulting block splits.
+                    if shared_facts is None:
+                        shared_facts = table_predecessor_facts(
+                            self.project, graph, self.bounds
+                        )
+                    self.stats.shared_table_attempts += 1
+                    targets = shared_table_targets(self.project, node, shared_facts)
+                    if targets is not None:
+                        reason = None
+                        proof_flavor = "shared_finite_table"
+                    elif reason == "no_table_shape":
+                        # A previous table edge may carry its destination in a
+                        # register which is adjusted before another jump. Reuse
+                        # the same bounded facts instead of adding an ISA rule.
+                        targets = shared_register_targets(
+                            self.project, node, shared_facts
+                        )
+                        if targets is not None:
+                            reason = None
+                            proof_flavor = "shared_finite_register"
                 if targets is None and reason == "no_table_shape":
                     candidate_plan = candidate_table_plans.get(addr)
                     if candidate_plan is not None:
@@ -735,13 +798,30 @@ class _ExtractionSession:
                         accepted_targets.append(target)
                         discovered |= added and not before
                 plans[addr] = tuple(accepted_targets)
+                assert proof_flavor is not None
+                plan_flavors[addr] = proof_flavor
+                if (
+                    shadow_enabled
+                    and plan is not None
+                    and proof_flavor == plan.proof_flavor
+                ):
+                    table_plans[addr] = plan
                 self.stats.static_jump_targets_accepted += len(accepted_targets)
 
+            if shared_facts is not None:
+                self.stats.shared_fact_steps += shared_facts.steps
+                self.stats.shared_fact_budget_exhausted += shared_facts.exhausted
             if discovered:
                 for addr, targets in plans.items():
                     source = self.blocks.get(addr)
                     if source is not None and targets:
-                        retained_plans[addr] = (source, targets)
+                        retained_plans[addr] = (
+                            source,
+                            targets,
+                            plan_flavors[addr],
+                        )
+                        if shadow_enabled and addr in table_plans:
+                            retained_table_plans[addr] = (source, table_plans[addr])
                 # Block splits invalidate plans built from this graph snapshot.
                 # Retain a proof only if its source block is unchanged after
                 # rebuilding. A split can otherwise orphan its target leaders.
@@ -750,6 +830,50 @@ class _ExtractionSession:
                 continue
             retained_targets.update(plans)
             self.static_targets.update(retained_targets)
+            final_flavors = retained_flavors | plan_flavors
+            self.stats.exact_jump_proofs_by_flavor = dict(
+                sorted(
+                    Counter(final_flavors[addr] for addr in retained_targets).items()
+                )
+            )
+            if shadow_enabled:
+                # One demand-driven fact cache serves every table in this stable
+                # graph. It is discarded before any later decode or edge change.
+                facts = table_predecessor_facts(self.project, graph, self.bounds)
+                final_table_plans = {
+                    addr: plan
+                    for addr, (source, plan) in retained_table_plans.items()
+                    if self.blocks.get(addr) == source
+                }
+                final_table_plans.update(table_plans)
+                for addr, plan in final_table_plans.items():
+                    source = nodes.get(addr)
+                    if (
+                        source is None
+                        or addr not in retained_targets
+                        or final_flavors[addr] != plan.proof_flavor
+                    ):
+                        continue
+                    self.stats.shadow_table_attempts += 1
+                    try:
+                        shadow_targets = shadow_relative_table_targets(
+                            self.project, graph, self.bounds, source, plan, facts
+                        )
+                    except Exception as exc:
+                        logger.debug(f"Shadow table proof failed at {addr:#x}: {exc}")
+                        shadow_targets = None
+                    if shadow_targets is None:
+                        self.stats.shadow_table_inconclusive += 1
+                    elif shadow_targets == retained_targets[addr]:
+                        self.stats.shadow_table_matches += 1
+                    else:
+                        self.stats.shadow_table_disagreements += 1
+                        logger.warning(
+                            f"Shadow table proof differs at {addr:#x}: "
+                            f"shared={shadow_targets}, existing={retained_targets[addr]}"
+                        )
+                self.stats.shadow_fact_steps += facts.steps
+                self.stats.shadow_fact_budget_exhausted += facts.exhausted
             self.static_target_candidates.update(candidate_plans)
             self.unresolved_dispatcher_reasons = {
                 addr: reason

@@ -21,250 +21,132 @@ for caller_addr, callee_addr in callgraph.edges():
     callee_name = project.kb.functions[callee_addr].name
     print(f"Function {caller_name} calls {callee_name}")
 
-=== Render DDG for basic block (based on CFGEmulated) ===
+=== Render a block-level data-dependency graph
 
-By default, angr calculates its Data Dependency Graph (DDG) at the VEX IR statement level,
-not the raw assembly instruction level. However, because every VEX statement is tied back
-to the assembly instruction that generated it, you can easily map those dependencies back
-to the basic block's assembly instructions.
+Given a function and one of its CFG basic blocks, show which assembly
+instructions produce values consumed by later instructions in that block.
+Start with a block-local graph; do not require whole-function symbolic
+execution or `CFGEmulated` merely to inspect one block.
 
-Here is a practical guide on how a DDG works in angr and how to scope it down to analyze
-a single basic block.
+- Use the selected CFG node's exact instruction addresses and bounds, then
+  lift that block to VEX. Map IR statements to their assembly instruction via
+  instruction markers; do not assume every IR statement has its own address.
+- Track read-after-write dependencies through VEX temporaries, architectural
+  registers (including overlapping aliases), and memory where the accessed
+  location can be identified. Collapse statement-level chains into labeled
+  instruction-to-instruction edges without inventing dependencies between
+  unrelated instructions.
+- Represent values read before any in-block definition as block inputs. Keep
+  uncertain memory aliases, calls, unsupported IR, and lift failures explicit
+  rather than drawing definite producer edges from a guess. Distinguish
+  register, memory, and unknown dependencies in the output.
+- Keep analysis separate from rendering. Provide a small query for a selected
+  block and a graph view with instruction labels, input nodes, and a clear
+  legend. Decide later whether it belongs in the CFG UI or a separate view.
+- Validate on register chains, partial-register writes, stack stores/loads,
+  live-in reads, and at least one non-x86 block. Compare with angr's
+  reaching-definitions/DDG analyses on small examples before considering
+  inter-block provenance or control dependencies.
 
-Step 1: Generate the DDG for the Function
-The DDG analysis requires an emulated context to trace how data moves through registers
-and memory. Because of this, you must feed it a CFGEmulated object, not a CFGFast object.
+=== Consolidate exact indirect-jump proofs
 
-# 1. Generate the required Emulated CFG
-cfg = project.analyses.CFGEmulated(keep_state=True)
+Extract mode has accumulated specialized resolvers for static targets and
+jump tables. They share one requirement: prove a complete, finite set of
+executable targets before adding solid edges. Consolidate duplicated proofs
+to improve CFG accuracy and maintainability, not merely to match custom
+goldens. Keep candidate edges and the UJT fallback for inconclusive cases.
 
-# 2. Run the Data Dependency Graph analysis
-ddg = project.analyses.DDG(cfg)
-Step 2: How DDG Nodes Work
-The nodes inside ddg.graph are ProgramPoint objects. A data dependency edge exists between
-two program points if data written by one is read by the other.
+First: inventory and shared static proof
 
-To filter these down to your specific basic block, you look at the ProgramPoint attributes:
-
-block_addr: The starting address of the basic block it belongs to.
-stmt_idx: The index of the VEX IR statement.
-ins_addr: The memory address of the actual assembly instruction!
-
-Step 3: Getting Instruction-Level Dependencies for Your Block
-To look at how assembly instructions within a single basic block depend on each other,
-you can iterate through the DDG edges, filtering for edges where both the source and
-destination reside inside your target block's address range.
-
-Here is a complete recipe to extract that data:
-
-target_block_addr = 0x401122  # Replace with your block's address
-
-# Grab the block to know its size bounds
-block = project.factory.block(target_block_addr)
-block_end = target_block_addr + block.size
-
-print(f"--- Data Dependencies inside Block {hex(target_block_addr)} ---")
-
-# Iterate through all data dependency edges in the entire program
-for src_pp, dst_pp in ddg.graph.edges():
-    
-    # Filter: Ensure both source and destination are inside our target basic block
-    if (src_pp.ins_addr and dst_pp.ins_addr and 
-        target_block_addr <= src_pp.ins_addr < block_end and 
-        target_block_addr <= dst_pp.ins_addr < block_end):
-        
-        # Get the edge data to see what kind of dependency it is (Register vs Memory)
-        edge_data = ddg.graph.get_edge_data(src_pp, dst_pp)
-        dep_type = edge_data.get('type', 'Unknown')
-        data_location = edge_data.get('location', '')
-
-        print(f"Instruction {hex(src_pp.ins_addr)} -> Influences -> Instruction {hex(dst_pp.ins_addr)}")
-        print(f"  └─ Type: {dep_type} via {data_location}")
-
-What kind of dependencies will you see?
-When you run this on a block, angr will expose two main types of dependencies via the edge data:
-
-Register Dependencies: For example, instruction 1 writes a value to RAX,
-and instruction 2 immediately reads from RAX.
-
-Memory Dependencies: Instruction 1 stores a value onto the stack ([RBP - 0x8]),
-and a later instruction pops that same stack memory address back into a register.
-
-=== Revisit unresolved indirect jumps
-
-Review http://127.0.0.1:8000/cfg?filepath=x86_64/fmt-rust&function=0x4ad760
-(custom and extract) for more than one dispatchers in a function.
-
-Check in extract how `UnresolvedJumpTarget` node is connected with dispatcher
-(e.g., http://127.0.0.1:8000/cfg?filepath=x86_64/rust_hello_world&function=0x43cff0&mode=extract).
-
-=== Unify exact jump-table proofs across architectures
-
-Purpose
-
-Recent MIPS64 and i386 table proofs recovered the intended artifacts, but
-introduced substantial architecture-specific code without changing other
-corpus artifacts. The shared `StaticJumpTablePlan` and row reader cover only
-the last step. Rework the earlier proofs of table address, finite selector
-domain, entry interpretation, and target completeness so new table flavors
-do not require another large, independent resolver. Improve CFG accuracy,
-not merely agreement with custom goldens.
-
-Proof targets to inventory and consolidate
-
-- MIPS/MIPS64 `$gp`-relative offset tables: prove the `$t9`/GOT-derived base,
-  including split constant additions and delay-slot effects; relate guarded
-  selectors to scaled or frame-reloaded indices. The recent MIPS64 examples
-  are `ld.so.1:dl_main`, `ld.so.1:_dl_sysdep_start`, and
+- Use extract transformation statistics to count attempts and successful
+  recoveries by resolver flavor, architecture, and artifact. Identify code
+  that is unexercised or disproportionately complex before replacing it.
+- Start with MIPS/MIPS64 `$gp`-relative offset tables, including `$t9`/GOT
+  bases, split additions, delay slots, and guarded or frame-reloaded indices.
+  Compare `ld.so.1:dl_main`, `ld.so.1:_dl_sysdep_start`, and
   `true:version_etc_arn`.
-- i386 PC-thunk-relative tables: prove the thunk-derived base through register
-  copies, ABI-preserved registers, and private stack spills; prove byte and
-  full-register guards and scaled selectors, including a second-level
-  dispatch. The recent examples are `bronze_ropchain:_nl_intern_locale_data`,
+- Include i386 PC-thunk-relative tables with register copies, preserved
+  registers, private stack spills, guards, scaled indices, and two-level
+  dispatch. Compare `bronze_ropchain:_nl_intern_locale_data`,
   `execute_cfa_program`, `execute_stack_op`, and `uw_update_context_1`.
-- Existing x86/x86-64 direct and relative tables, including masked or
-  normalized selectors, and PPC64LE TOC-relative CTR tables: inventory which
-  proofs fit the same model before migrating them. Audit other architectures
-  such as s390x separately; do not force unlike transfers into one pattern.
+- Inventory x86/x86-64 direct and relative tables and PPC64LE TOC-relative
+  CTR tables before migrating them. Audit unlike transfers, such as s390x,
+  separately rather than forcing them into the same table model.
 
-Approach
+Define a shared dispatch proof: table address, entry width and signedness,
+finite index set, target-base expression, and evidence for each fact. Feed it
+from conservative VEX and architecture adapters. A bounded must-analysis may
+track constants, affine addresses, and private stack slots; joins retain a
+fact only when all feasible paths agree. Unknown aliases or call clobbers
+invalidate facts. Reuse table-row validation, and never infer bounds by
+scanning for plausible code or treating dashed candidates as exact targets.
 
-Define a small, architecture-neutral dispatch description: table address,
-entry width/signedness, bounded index set, target-base expression, and the
-evidence supporting each fact. Feed it from conservative VEX/architecture
-adapters for PC thunks, `$gp`/delay slots, TOC/CTR, and condition flags. Use
-a bounded must-analysis for constants, affine addresses, and private stack
-slots; joins retain a fact only when every feasible incoming path agrees.
-Make memory aliasing and call-clobber assumptions explicit, invalidating
-facts rather than accepting an uncertain write. Keep the existing table-row
-validation and UJT fallback; never infer bounds by scanning for plausible
-code or use dashed candidate edges as proof.
+Compare the shared proof with existing resolvers in shadow mode, starting
+with MIPS64 and i386. Migrate one family only after it reproduces or improves
+the exact target sets and instruction coverage without a meaningful runtime
+regression. Retain cheap architecture-specific recognizers when they remain
+clearer or faster; remove a bespoke resolver only when its proven cases are
+covered. Test positive and negative cases, aliases, calls, budgets, and
+cross-architecture behavior before claiming a corpus-wide benefit.
 
-Start with the MIPS64 and i386 cases in shadow/comparison mode. Migrate a
-specialized resolver only after the shared proof reproduces its exact target
-sets. Then assess x86/x86-64 and PPC64LE one family at a time. The work is
-worth keeping only if it replaces meaningful duplicated code, preserves or
-improves target accuracy and instruction coverage across the corpus, and
-keeps analysis time within a measured budget. Add positive, negative,
-aliasing, budget-exhaustion, and cross-architecture tests. Do not claim a
-general corpus benefit until a full extract comparison demonstrates one.
+Follow-up: remove superseded resolvers without changing CFG behavior
 
-=== Experiment: bounded symbolic resolver for indirect jumps
+Keep this cleanup separate from new accuracy improvements. The shared engine
+currently runs after older resolvers, so winning-proof counters do not show
+which older paths it already subsumes. Zero corpus usage alone does not prove
+that a reachable safety branch or architecture-specific helper is dead code.
 
-Purpose
+- Freeze the current code and corpus results as a checkpoint before cleanup.
+- At each successful legacy dispatch, independently evaluate the shared
+  engine on the same graph snapshot, without borrowing legacy selector bounds.
+  Record matching target sets, incomplete proofs, disagreements, and cost.
+- Separate shared fact propagation, dispatch/table evaluation, architecture
+  inputs, and pipeline orchestration. Move extract-only logic out of
+  `cfg/jumps.py` where useful, while preserving interfaces used by custom
+  mode, diagnostics, and call resolution. Avoid merely spreading complexity
+  across more files.
+- Disable one redundant resolver family at a time and verify that the shared
+  replacement still discovers the same blocks and edges. Then delete its
+  exclusive helpers, options, and obsolete tests; retain positive and negative
+  regression coverage by exercising the shared engine instead.
+- Preserve failure classification and candidate-recovery eligibility. An
+  unbounded recognized table must not become an unknown jump that enables
+  speculative component recovery merely because its old resolver was removed.
+- Run focused tests and `make check`, then compare the full extract corpus for
+  identical DOT output and comparable runtime. Verify custom mode when shared
+  code is touched. Statistics may change intentionally; do not promote CFG
+  goldens to hide behavioral differences introduced by cleanup.
 
-Extract mode has accumulated several narrowly shaped unresolved-jump (UJ)
-resolvers as corpus cases exposed new ways of materializing a static target.
-They are deliberately conservative, but each one duplicates parts of the same
-question: can the values reaching an indirect transfer be proven to select a
-complete, finite set of executable targets? Evaluate whether a small symbolic
-resolver can answer that question more generally, while retaining extract
-mode's stronger rule that a solid edge requires proof rather than a plausible
-candidate. The goal is to improve CFG accuracy, not merely to make extract
-artifacts resemble custom CFGFast output.
+Retain any resolver the shared engine cannot already replace, including cheap
+recognizers that remain clearer or faster. Do not add stack-spill or new guard
+analysis solely to enable deletion in this cleanup. Success means less
+resolver code and a clearer pipeline, with unchanged CFGs and no meaningful
+slowdown; report limited redundancy rather than forcing a broad rewrite.
 
-Experiment
+Optional: bounded symbolic fallback
 
-Implement an opt-in, local symbolic-resolution fallback after the existing
-cheap exact resolvers and before `UnresolvableJumpTarget` materialization. Do
-not run `CFGEmulated` or `CFGFast` over the function. Instead, when a transfer
-has a recognized static-memory/table shape, construct a bounded slice of the
-relevant predecessor region, symbolize its unknown inputs, and execute only
-the expressions needed to derive the transfer target and its index bounds.
+Only pursue this experiment if the inventory shows several valuable UJ
+patterns that the shared static proof cannot express. Put an opt-in local
+fallback after cheap exact resolvers, before UJT materialization; do not run
+whole-function `CFGEmulated` or `CFGFast`. For a recognized static-memory or
+table transfer, symbolically evaluate only a bounded predecessor slice and
+the expressions needed to derive the target and selector bounds.
 
-- Use only direct control-flow and already-proven exact edges as slice input;
-  never use dashed candidate edges or UJT edges to justify an exact result.
-- Prove a finite selector domain, enumerate its table/memory values, and
-  validate every resulting target as executable before returning an exact
-  target set.
-- Impose strict, deterministic caps on slice blocks, states, path forks,
-  solver queries, table entries, and elapsed work. Reject unknown calls,
-  unsupported side effects, symbolic table bases, or any budget exhaustion.
-- Return no result unless the engine proves that the set is complete. The
-  ordinary candidate recovery and UJT fallback must remain unchanged for all
-  rejected or inconclusive cases.
-- Add diagnostics for attempts, resolutions, target counts, rejection reasons,
-  and budget use. Audit the full corpus against current extract, extract.bak,
-  and custom artifacts before considering a broader rollout.
+- Slice over direct and already-proven exact edges only. Reject unknown calls,
+  unsupported effects, symbolic table bases, or uncertain memory aliases.
+- Prove a finite selector domain and validate every target as executable.
+  An incomplete proof produces no exact edges and leaves candidate recovery
+  and UJT behavior unchanged.
+- Cap slice blocks, states, forks, solver queries, table entries, and elapsed
+  work. Record attempts, resolutions, rejection reasons, and budget use.
 
-Success outcome
-
-The experiment succeeds only if it produces a net corpus accuracy gain with
-no invalid solid edges, disconnected blocks, lost instruction coverage, or
-meaningful corpus-runtime regression. Its exact results must be independently
-checkable from the recovered slice and static memory, and it should resolve a
-diverse family of existing UJs rather than merely reproducing one artifact's
-bespoke pattern. Focused tests must cover successful proofs, inconclusive
-cases, cap exhaustion, calls/side effects, and architecture normalization.
-
-Migration plan if successful
-
-1. Keep the engine in diagnostic/shadow mode first and compare every result
-   with the current resolver pipeline across the corpus without changing
-   goldens.
-2. Move one resolver family at a time to a shared proof description consumed
-   by the engine, retaining the existing resolver as a comparison oracle and
-   fallback until focused and corpus checks demonstrate equivalent or broader
-   exact recovery.
-3. Remove a bespoke resolver only when the engine subsumes its proven cases
-   and its architecture-specific requirements are represented by the shared
-   model. Keep truly cheap direct-memory and platform-specific recognizers as
-   front-end shape detection when that improves clarity or performance.
-4. Preserve the conservative candidate and UJT mechanisms permanently: the
-   resolver engine replaces exact-resolution implementation, not the policy
-   for unknown indirect transfers.
-5. After each migration, measure corpus runtime and audit target sets,
-   reachability, and instruction coverage before promoting artifacts or
-   retiring more specialized code.
-
--- (this is slightly deprecated)
-
-Static jump-table recovery is intentionally bounded and VEX-driven. The
-current implementation resolves 64 tables and adds 1,629 validated target
-edges over the full corpus. The remaining 413 unresolved dispatchers do not
-match a recognized static-table shape; many are dynamic callbacks, GOT loads
-with an unknown base, or architecture-specific indirect transfers. Keep them
-represented by `UnresolvableJumpTarget` rather than guessing targets.
-
-Possible lower-priority extensions:
-
-- Recognize absolute-base direct tables indexed by a finite-width memory load
-  (for example an 8-bit character selector). This could help six current
-  functions across AMD64 and MIPS, but must retain the 256-entry maximum and
-  executable-target validation.
-- Recover 32-bit x86 PC-thunk table bases for the same finite-width memory
-  index pattern. This currently appears in two printf-family functions, so it
-  is not a corpus-wide priority.
-- Add a deliberate, architecture-neutral dataflow/range analysis for indexed
-  tables whose index is affine (such as `register + constant`). Do not infer a
-  table length by scanning executable bytes: recovery requires a proven finite
-  bound before materializing edges.
-- Review whether unresolved-target simprocedure nodes should show their CLE
-  pseudo-address. For example, `UnresolvableCallTarget` may render as
-  `0x10100058`, which is an angr-internal synthetic address rather than a
-  binary address. Prefer hiding it or labeling it explicitly as synthetic.
-
-The broad register-unindexed family is not currently a recovery target:
-inspection found stack-held callbacks and MIPS GOT-style transfers whose `gp`
-base cannot be proven statically. Revisit it only with a stronger provenance
-analysis rather than a heuristic resolver.
-
-=== Recover Rust/C++ unwind landing pads in extract mode
-
-`x86_64/fmt-rust:FluentValue::write` at `0x4ad760` shows the motivating
-case: extract proves its normal finite jump-table targets, but does not show
-cleanup blocks reached only when a call unwinds. Custom renders those blocks
-through an unproven unresolved-target overapproximation, which is not a
-reliable substitute for exception-flow recovery.
-
-For ELF targets using Itanium/DWARF exception handling, parse each function's
-FDE and LSDA (`.eh_frame` and `.gcc_except_table`). The LSDA call-site table
-maps instruction-PC ranges to landing-pad addresses. Add an internal
-exceptional edge from each covered potentially-throwing call to its landing
-pad, alongside the normal fake-return edge, and decode the landing pad through
-the ordinary extract worklist. Mark those edges and nodes distinctly in the
-renderer. Start with x86-64 Linux; consider ARM EHABI and other platform
-formats only after this path is validated.
+Run the fallback in diagnostic/shadow mode first. Keep it only if it resolves
+a diverse set of currently missed transfers with independently checkable
+proofs, no invalid edges, disconnected blocks, or lost coverage, and no
+meaningful corpus-runtime regression. Compare extract artifacts with the
+prior extract run and custom only as supporting evidence of accuracy. Migrate
+resolver families one at a time; a symbolic engine need not replace every
+static or architecture-specific proof.
 
 === Avoid very large function names in nodes ===
 
@@ -304,28 +186,30 @@ do not hard-code that policy before auditing representative artifacts.
 
 - First, try to make extract mode to work with existing comments in custome
   mode.
-- Bring back comments by default.
+- Bring back comments by default in tests.
 - Analyze which comments are shown, which ones could be shown.
-- Are comments/xrefs still being emitted in a nondeterministic order somewhere?
 - Does building other CFGs beforehand mutate knowledge-base state in a way that
   changes later comments?
 - Are these differences specific to comments, or do they come from another kind
   of label annotation?
+- See comments at http://127.0.0.1:8000/cfg?filepath=x86_64/switch&function=0x400544
+  (try w/ and w/o `comments=true`).
 
-=== Review custom CFG transformation statistics
+=== Audit extract CFG transformation usage
 
-`CustomCFGStats` now logs the input/output graph shape, anomaly counts, and
-every material repair action when `build_custom_cfg()` exits. Run it over the
-full corpus and aggregate these counters before adding more repair heuristics.
+`ExtractedCFGStats` records per-function decoding, target recovery, exception,
+and sweep counters, but the golden-test summary currently aggregates only
+`CustomCFGStats`. Aggregate extract counters across full corpus runs and report
+both the number of functions affected and the total actions for each counter.
 
-- Treat a transformation whose counter remains zero across the corpus as
-  evidence that it is unnecessary, and consider simplifying or removing that
-  code after checking representative architectures.
-- Compare block merges, unreachable-node removals, and indirect-jump recovery
-  counters to determine whether newly restored indirect targets are correctly
-  preserving real block leaders instead of merely preventing useful merges.
-- Use large outliers such as `execute_stack_op` to identify transformations
-  that dominate custom-mode runtime or repeatedly redo the same repair work.
+- Separate attempts and rejection reasons from successful changes to the CFG.
+  In particular, add success counters for each exact indirect-jump proof flavor
+  instead of grouping them all under `static_jump_plans_resolved`.
+- Identify resolver and recovery paths with zero successful actions across the
+  corpus. Check their unit tests, supported architectures, and cases outside
+  the corpus before deciding whether to simplify or remove them.
+- Inspect low-frequency paths and large per-function outliers for complexity
+  or runtime cost disproportionate to their demonstrated CFG benefit.
 
 === Investigate dominator-aware CFG layout
 

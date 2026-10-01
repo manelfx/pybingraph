@@ -472,6 +472,10 @@ def test_extract_resolves_ppc64_toc_relative_ctr_tables() -> None:
         assert {node.addr for node in successors} == targets
         assert not any(node.is_simprocedure for node in successors)
         assert cfg.extract_stats.unresolved_indirect_targets == 0
+        assert (
+            cfg.extract_stats.exact_jump_proofs_by_flavor.get("ppc64_toc_ctr_table", 0)
+            >= 1
+        )
         if entry == 0x100985E0:
             nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
             assert 0x10098B70 not in {
@@ -1135,6 +1139,7 @@ def test_extract_recovers_mips_pic_relative_jump_table() -> None:
     assert targets[0] == 0x40FFF0
     assert targets[-1] == 0x410518
     assert session.unresolved_dispatcher_reasons.get(0x40FFD4) is None
+    assert session.stats.exact_jump_proofs_by_flavor.get("mips_pic_table", 0) >= 1
 
 
 def test_extract_proves_mips_table_after_nonreturning_call_cycle() -> None:
@@ -1257,6 +1262,9 @@ def test_extract_recovers_spilled_i386_pic_relative_tables() -> None:
 
         assert len(targets) == target_count
         assert representative in targets
+        assert (
+            cfg.extract_stats.exact_jump_proofs_by_flavor.get("x86_pic_table", 0) >= 1
+        )
         assert all(
             node.simprocedure_name != "UnresolvableJumpTarget"
             for node in nodes.values()
@@ -1561,6 +1569,7 @@ def test_extract_static_table_discovery_discards_stale_snapshot_plans(
     assert session.stats.static_jump_plan_attempts == 2
     assert session.stats.static_jump_plans_invalidated == 1
     assert session.stats.static_jump_plans_resolved == 1
+    assert session.stats.exact_jump_proofs_by_flavor == {"generic_vex_table": 1}
     assert session.stats.static_jump_table_entries_read == 2
     assert session.stats.static_jump_targets_accepted == 2
 
@@ -1587,7 +1596,7 @@ def test_extract_closes_secondary_table_after_proving_first_dispatcher() -> None
 
 
 def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
-    """Keep proven table closure when another dispatcher remains unresolved."""
+    """Keep proven closure through exact and unresolved-dispatch recovery."""
 
     cases = (
         (
@@ -1596,7 +1605,9 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
             0x4208F7,
             (0x4208A8, 0x420A0C),
             41,
-            True,
+            # The shared proof now reads the constant first-row dispatch,
+            # so this case no longer needs speculative component recovery.
+            False,
         ),
         (
             "x86_64/cvs",
@@ -1638,6 +1649,14 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
             for node in cfg.graph.nodes()
         )
         assert bool(cfg.extract_stats.sweep_runs) is uses_sweep
+        if binary == "x86_64/rust_hello_world":
+            assert (
+                cfg.extract_stats.exact_jump_proofs_by_flavor.get(
+                    "shared_finite_table", 0
+                )
+                >= 1
+            )
+            assert {n.addr for n in cfg.graph.successors(nodes[0x42083B])} == {0x420864}
 
 
 def test_extract_retains_static_table_plan_after_leader_splits() -> None:

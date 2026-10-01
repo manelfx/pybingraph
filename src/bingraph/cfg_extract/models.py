@@ -43,6 +43,16 @@ class ExtractedCFGStats:
     synthetic_leaves_reused: int = 0
     static_jump_plan_attempts: int = 0
     static_jump_plans_resolved: int = 0
+    exact_jump_proofs_by_flavor: dict[str, int] = field(default_factory=dict)
+    shadow_table_attempts: int = 0
+    shadow_table_matches: int = 0
+    shadow_table_inconclusive: int = 0
+    shadow_table_disagreements: int = 0
+    shadow_fact_steps: int = 0
+    shadow_fact_budget_exhausted: int = 0
+    shared_table_attempts: int = 0
+    shared_fact_steps: int = 0
+    shared_fact_budget_exhausted: int = 0
     static_jump_plans_invalidated: int = 0
     static_jump_table_entries_read: int = 0
     static_jump_targets_accepted: int = 0
