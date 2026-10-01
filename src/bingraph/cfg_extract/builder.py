@@ -22,6 +22,17 @@ from typing import Mapping, cast
 
 from angr import KnowledgeBase, Project
 from angr.knowledge_plugins.cfg import CFGModel, CFGNode
+from capstone import CS_OP_REG
+from capstone.arm import (
+    ARM_CC_AL,
+    ARM_INS_BX,
+    ARM_INS_IT,
+    ARM_INS_POP,
+    ARM_INS_PUSH,
+    ARM_REG_LR,
+    ARM_REG_PC,
+    ARM_REG_SP,
+)
 from loguru import logger
 import networkx as nx
 
@@ -184,6 +195,7 @@ class _ExtractionSession:
         self.sweep_component_roots: frozenset[int] = frozenset()
         self.continued_linear_direct_transfers: set[int] = set()
         self.resolved_syscalls: dict[int, ResolvedSyscall] = {}
+        self._abi_analysis_blocks: dict[int, BlockSpec] | None = None
 
     def _is_data_leader(self, addr: int) -> bool:
         """Return whether this prospective leader is VEX-proven data."""
@@ -532,12 +544,29 @@ class _ExtractionSession:
                 return
             self._decode_all_blocks()
 
-    def _resolve_abi_static_register_transfers(self) -> None:
-        """Materialize ABI-preserved register transfers proven by VEX dataflow."""
+    def _resolve_abi_static_register_transfers(
+        self, static_targets: Mapping[int, tuple[int, ...]] | None = None
+    ) -> None:
+        """Resolve carried targets over decoded flow and already-exact tables.
+
+        Table recovery can expose predecessors carrying different static
+        callees into a common epilogue. Give the ABI solver those exact edges,
+        but never candidate or sweep edges. Cache the immutable input snapshot
+        so an unchanged discovery round does not repeat the bounded analysis.
+        """
 
         while True:
+            analysis_blocks = {
+                addr: replace(block, direct_targets=static_targets[addr])
+                if static_targets and addr in static_targets
+                else block
+                for addr, block in self.blocks.items()
+            }
+            if analysis_blocks == self._abi_analysis_blocks:
+                return
+            self._abi_analysis_blocks = analysis_blocks
             targets, exhausted, ran = abi_static_register_transfer_targets(
-                self.project, self.bounds, self.blocks
+                self.project, self.bounds, analysis_blocks
             )
             self.stats.abi_static_target_analysis_runs += ran
             self.stats.abi_static_target_analysis_budget_exhausted += exhausted
@@ -572,10 +601,137 @@ class _ExtractionSession:
                 return
             self._decode_all_blocks()
 
+    def _recognize_saved_link_returns(self) -> None:
+        """Recognize split ARM pops of the entry LR in an unchanged leaf frame.
+
+        This is a provenance proof, not a guess based on a jump register's
+        name. An unconditional entry push creates a private frame; a suffix
+        of unconditional pops must restore the entire frame and load its LR
+        slot into the final BX register. Other SP uses (including exporting a
+        frame pointer), calls, IT predication, and unresolved intervening flow
+        make this deliberately small proof inconclusive.
+
+        As with private stack saves in the ABI target pass, ordinary argument
+        pointers are assumed not to alias a newly allocated, unescaped frame.
+        The scan is bounded and runs only for ARM functions with unknown exits.
+        """
+
+        if not self.project.arch.name.startswith("ARM"):
+            return
+        candidates = {
+            addr
+            for addr, block in self.blocks.items()
+            if block.jumpkind == "Ijk_Boring"
+            and not block.direct_targets
+            and addr not in self.static_targets
+            and block.fallthrough_addr is None
+        }
+        if not candidates:
+            return
+        entry = self.blocks[self.bounds.addr]
+        entry_insns = decode_raw_capstone_insns(self.project, entry.addr, entry.size)
+        if not entry_insns:
+            return
+        push = entry_insns[0]
+        if push.id != ARM_INS_PUSH or push.cc != ARM_CC_AL:
+            return
+        saved = [op.reg for op in push.operands if op.type == CS_OP_REG]
+        if ARM_REG_LR not in saved or {ARM_REG_SP, ARM_REG_PC}.intersection(saved):
+            return
+
+        graph, nodes = self._analysis_graph(self.static_targets)
+        root = nodes[self.bounds.addr]
+        reachable = {root, *nx.descendants(graph, root)}
+        if graph.in_degree(root) or any(
+            self.blocks[node.addr].jumpkind in {"Ijk_Call", "Ijk_Syscall"}
+            or (
+                self.blocks[node.addr].jumpkind == "Ijk_Boring"
+                and not self.blocks[node.addr].direct_targets
+                and node.addr not in self.static_targets
+                and node.addr not in candidates
+            )
+            for node in reachable
+        ):
+            return
+        # An undecodable internal successor could alter the frame before
+        # rejoining an epilogue; a partial exact graph cannot prove a return.
+        if any(
+            target is not None
+            and self.bounds.addr <= target < self.bounds.end_addr
+            and target not in self.blocks
+            for node in reachable
+            for target in (
+                *self.blocks[node.addr].direct_targets,
+                *self.static_targets.get(node.addr, ()),
+                self.blocks[node.addr].fallthrough_addr,
+            )
+        ):
+            return
+        insns = {}
+        count = 0
+        for node in reachable:
+            block = self.blocks[node.addr]
+            decoded = decode_raw_capstone_insns(self.project, block.addr, block.size)
+            count += len(decoded)
+            if (
+                not decoded
+                or count > 20000
+                or decoded[0].address != block.addr
+                or decoded[-1].address + decoded[-1].size != block.addr + block.size
+            ):
+                return
+            insns[node.addr] = decoded
+
+        epilogue_addrs = set()
+        returns = set()
+        for addr in candidates & insns.keys():
+            decoded = insns[addr]
+            branch = decoded[-1]
+            if (
+                branch.id != ARM_INS_BX
+                or branch.cc != ARM_CC_AL
+                or len(branch.operands) != 1
+                or branch.operands[0].type != CS_OP_REG
+            ):
+                return
+            start = len(decoded) - 1
+            while start and decoded[start - 1].id == ARM_INS_POP:
+                start -= 1
+            consumed = 0
+            restored_link = None
+            for pop in decoded[start:-1]:
+                registers = [op.reg for op in pop.operands if op.type == CS_OP_REG]
+                if pop.cc != ARM_CC_AL or {ARM_REG_SP, ARM_REG_PC}.intersection(
+                    registers
+                ):
+                    return
+                if restored_link in registers:
+                    restored_link = None
+                slot = saved.index(ARM_REG_LR) - consumed
+                if 0 <= slot < len(registers):
+                    restored_link = registers[slot]
+                consumed += len(registers)
+            if consumed != len(saved) or restored_link != branch.operands[0].reg:
+                return
+            epilogue_addrs.update(insn.address for insn in decoded[start:-1])
+            returns.add(addr)
+
+        for decoded in insns.values():
+            for insn in decoded:
+                if insn.address == push.address or insn.address in epilogue_addrs:
+                    continue
+                reads, writes = insn.regs_access()
+                if insn.id == ARM_INS_IT or ARM_REG_SP in (*reads, *writes):
+                    return
+        for addr in returns:
+            self.blocks[addr] = replace(self.blocks[addr], jumpkind="Ijk_Ret")
+            self.unresolved_dispatcher_reasons.pop(addr, None)
+
     def _discover_static_jump_targets(self) -> None:
         """Iteratively discover exact and candidate indirect jump targets.
 
-        Exact resolvers run in priority order: conditional-PC forms,
+        Each changed exact-flow snapshot first feeds the bounded ABI register
+        solver. Table resolvers then run in priority order: conditional-PC forms,
         arithmetic-PC forms, generic VEX tables, architecture adapters, guarded
         two-level tables, then shared finite table and register facts.
         Only a fully bounded target set becomes ``static_targets``. A weaker,
@@ -596,6 +752,14 @@ class _ExtractionSession:
                 addr: targets
                 for addr, (source, targets, _flavor) in retained_plans.items()
                 if self.blocks.get(addr) == source
+            }
+            self._resolve_abi_static_register_transfers(retained_targets)
+            # ABI-proven leaders can split a retained table's source. Only
+            # unchanged sources may contribute exact edges to this round.
+            retained_targets = {
+                addr: targets
+                for addr, targets in retained_targets.items()
+                if self.blocks.get(addr) == retained_plans[addr][0]
             }
             retained_flavors = {
                 addr: flavor
@@ -811,9 +975,21 @@ class _ExtractionSession:
             if shared_facts is not None:
                 self.stats.shared_fact_steps += shared_facts.steps
                 self.stats.shared_fact_budget_exhausted += shared_facts.exhausted
-            if discovered:
+            exact_edges_changed = any(
+                targets and retained_targets.get(addr) != targets
+                for addr, targets in plans.items()
+            )
+            proof_sources = dict(self.blocks)
+            abi_changed = False
+            if exact_edges_changed and not discovered:
+                # Existing blocks can gain new exact predecessors without any
+                # new leaders. Revisit ABI facts, but repeat table planning
+                # only if that analysis actually changes the decoded flow.
+                self._resolve_abi_static_register_transfers(retained_targets | plans)
+                abi_changed = self.blocks != proof_sources
+            if discovered or abi_changed:
                 for addr, targets in plans.items():
-                    source = self.blocks.get(addr)
+                    source = proof_sources.get(addr)
                     if source is not None and targets:
                         retained_plans[addr] = (
                             source,
@@ -825,8 +1001,11 @@ class _ExtractionSession:
                 # Block splits invalidate plans built from this graph snapshot.
                 # Retain a proof only if its source block is unchanged after
                 # rebuilding. A split can otherwise orphan its target leaders.
-                self.stats.static_jump_plans_invalidated += len(plans)
-                self._decode_all_blocks()
+                if discovered:
+                    self.stats.static_jump_plans_invalidated += len(plans)
+                    self._decode_all_blocks()
+                # Even when all table destinations already exist as blocks,
+                # new exact edges can enable a carried-register ABI proof.
                 continue
             retained_targets.update(plans)
             self.static_targets.update(retained_targets)
@@ -1191,8 +1370,8 @@ class _ExtractionSession:
         # Stage 1: direct decoding establishes the initial bounded CFG.
         self._decode_all_blocks()
         # Stage 2: exact transfer proofs may add leaders and re-decode blocks.
-        self._resolve_abi_static_register_transfers()
         self._discover_static_jump_targets()
+        self._recognize_saved_link_returns()
         # Stage 3: only shape-free unresolved flow may gain dashed recovery.
         # Run this before LSDA discovery: cleanup pads can contain additional
         # unresolved jumps, but must not hide a pre-existing sweep dispatcher.

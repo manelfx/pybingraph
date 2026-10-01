@@ -8,9 +8,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from angr import KnowledgeBase
+from angr import KnowledgeBase, load_shellcode
 from elftools.common.exceptions import ELFRelocationError
 import networkx as nx
+import pytest
 
 from bingraph.cfg_extract import build_extracted_cfg
 from bingraph.cfg_extract.anomalies import find_extracted_cfg_anomalies
@@ -411,6 +412,87 @@ def test_extract_does_not_fall_through_from_an_unconditional_thumb_return() -> N
     assert block is not None
     assert block.jumpkind == "Ijk_Ret"
     assert block.fallthrough_addr is None
+
+
+def test_extract_split_link_return_preserves_instruction_coverage() -> None:
+    """The leaf memcpy restores entry LR into r1, not a dynamic tail callee."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/armel/RTOSDemo.axf.issue_685")
+    )
+    session = builder_module._ExtractionSession(project, KnowledgeBase(project), 0xA5C5)
+    session._decode_all_blocks()
+    original_instructions = {
+        addr for block in session.blocks.values() for addr in block.instruction_addrs
+    }
+    assert session.blocks[0xA63D].jumpkind == "Ijk_Boring"
+
+    cfg = session.build()
+    source = next(node for node in cfg.graph.nodes() if node.addr == 0xA63D)
+    assert session.blocks[0xA63D].jumpkind == "Ijk_Ret"
+    assert cfg.graph.out_degree(source) == 0
+    assert cfg.extract_stats.unresolved_indirect_targets == 0
+    assert {
+        addr for block in session.blocks.values() for addr in block.instruction_addrs
+    } == original_instructions
+
+
+@pytest.mark.parametrize("gap", ("missing_successor", "unknown_branch", "entry_loop"))
+def test_extract_saved_link_return_requires_complete_exact_flow(gap: str) -> None:
+    """Hidden predecessors or another prologue execution invalidate the frame."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/armel/RTOSDemo.axf.issue_685")
+    )
+    session = builder_module._ExtractionSession(project, KnowledgeBase(project), 0xA5C5)
+    session._decode_all_blocks()
+    if gap == "missing_successor":
+        session.blocks.pop(0xA62D)
+    elif gap == "unknown_branch":
+        session.blocks[0xA5C5] = replace(session.blocks[0xA5C5], direct_targets=())
+    else:
+        session.blocks[0xA643] = replace(
+            session.blocks[0xA643], direct_targets=(0xA5C5,)
+        )
+    session._recognize_saved_link_returns()
+
+    assert session.blocks[0xA63D].jumpkind == "Ijk_Boring"
+
+
+@pytest.mark.parametrize(
+    ("code", "is_return"),
+    (
+        ("10b510bc02bc0847", True),  # push {r4,lr}; pop {r4}; pop {r1}; bx r1
+        ("10b502bc0847", False),  # incomplete restore, loading the r4 slot
+        ("10b510bc02bc0047", False),  # bx r0, not the restored LR
+        ("10b5684610bc02bc0847", False),  # mov r0,sp exports the private frame
+        ("10b581b010bc02bc0847", False),  # sub sp,#4 changes slot provenance
+        ("10b5009010bc02bc0847", False),  # str r0,[sp] overwrites the frame
+        ("10b508bf10bc02bc0847", False),  # IT EQ makes a pop conditional
+        ("10b500f000f810bc02bc0847", False),  # intervening BL
+        ("10b5036810bc02bc1847", False),  # bx r3 to an object callback
+    ),
+)
+def test_extract_saved_link_return_requires_unescaped_unchanged_leaf_frame(
+    code: str, is_return: bool
+) -> None:
+    """Recognize provenance across registers, never just a pop/BX shape."""
+
+    data = bytes.fromhex(code)
+    project = load_shellcode(data, "ARMEL", load_address=0x1000, start_offset=1)
+    bounds = FunctionBounds(
+        0x1001, 0x1001 + len(data), len(data), SimpleNamespace(name="leaf")
+    )
+    with patch.object(builder_module, "_lookup_function_bounds", return_value=bounds):
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), bounds.addr
+        )
+    session._decode_all_blocks()
+    session._recognize_saved_link_returns()
+
+    assert any(block.jumpkind == "Ijk_Ret" for block in session.blocks.values()) == (
+        is_return
+    )
 
 
 def test_extract_preserves_powerpc_conditional_return_fallthrough() -> None:
@@ -1142,6 +1224,75 @@ def test_extract_recovers_mips_pic_relative_jump_table() -> None:
     assert session.stats.exact_jump_proofs_by_flavor.get("mips_pic_table", 0) >= 1
 
 
+def test_extract_revisits_abi_targets_after_exact_table_recovery() -> None:
+    """Merge eight GOT-loaded tail callees reached through an exact table."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x45C8E0
+    )
+    cfg = session.build()
+    targets = {
+        0x41A7F0,
+        0x41AE74,
+        0x41AEF0,
+        0x41AF6C,
+        0x41B050,
+        0x45D120,
+        0x45D150,
+        0x4631F0,
+    }
+
+    assert set(session.blocks[0x45CD28].direct_targets) == targets
+    source = next(node for node in cfg.graph.nodes() if node.addr == 0x45CD28)
+    assert {node.addr for node in cfg.graph.successors(source)} == targets
+    assert cfg.extract_stats.unresolved_indirect_targets == 0
+    assert cfg.extract_stats.abi_static_target_analysis_budget_exhausted == 0
+
+    # Reprove with every destination already decoded: edge discovery alone,
+    # not just adding blocks, must trigger another ABI analysis round.
+    original_blocks = set(session.blocks)
+    session.blocks[0x45CD28] = replace(session.blocks[0x45CD28], direct_targets=())
+    session.static_targets.clear()
+    session._discover_static_jump_targets()
+    assert set(session.blocks) == original_blocks
+    assert set(session.blocks[0x45CD28].direct_targets) == targets
+
+
+def test_extract_abi_snapshot_excludes_candidates_and_skips_unchanged_inputs() -> None:
+    """Unproven rows cannot seed ABI facts or trigger identical reruns."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/mips_syscall_demo")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x45C8E0
+    )
+    session._decode_all_blocks()
+    source = next(
+        addr
+        for addr, block in session.blocks.items()
+        if block.jumpkind == "Ijk_Boring" and not block.direct_targets
+    )
+    session.static_target_candidates[source] = (0x45CD28,)
+    with patch.object(
+        builder_module,
+        "abi_static_register_transfer_targets",
+        return_value=({}, False, True),
+    ) as solver:
+        session._resolve_abi_static_register_transfers()
+        session._resolve_abi_static_register_transfers()
+        assert solver.call_count == 1
+        assert solver.call_args.args[2][source].direct_targets == ()
+
+        session._resolve_abi_static_register_transfers({source: (0x45CD28,)})
+        assert solver.call_count == 2
+        assert solver.call_args.args[2][source].direct_targets == (0x45CD28,)
+        assert session.blocks[source].direct_targets == ()
+
+
 def test_extract_proves_mips_table_after_nonreturning_call_cycle() -> None:
     """Remove a false abort return before proving the guarded PIC table."""
 
@@ -1561,6 +1712,9 @@ def test_extract_static_table_discovery_discards_stale_snapshot_plans(
         lambda *_args: None,
     )
     monkeypatch.setattr(session, "_decode_all_blocks", lambda: None)
+    monkeypatch.setattr(
+        session, "_resolve_abi_static_register_transfers", lambda *_: None
+    )
 
     session._discover_static_jump_targets()
 
