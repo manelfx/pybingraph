@@ -80,8 +80,6 @@ class StaticJumpTable:
     endness: str
     signed_entries: bool
     target_displacement: int = 0
-    target_scale: int = 1
-    target_or_mask: int = 0
     target_and_mask: int | None = None
     entries_are_relative: bool = True
     static_base_addr: int | None = None

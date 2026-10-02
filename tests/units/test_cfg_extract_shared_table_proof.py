@@ -1,6 +1,7 @@
 """Independent shared-table migration and remaining legacy shadow proofs."""
 
 from pathlib import Path
+from types import SimpleNamespace
 
 from angr import KnowledgeBase, options as sim_options
 import pytest
@@ -134,6 +135,9 @@ def test_repeated_dispatch_searches_share_scans_without_exhausting_budget(
         ("s390x/test-instr_s390x", 0x80067F90, 1),
         ("i386/bronze_ropchain", 0x80A6D90, 1),
         ("i386/nl", 0x403CF0, 1),
+        ("armel/RTOSDemo.axf.issue_685", 0xA59, 1),
+        ("armel/lwip_udpecho_bm.elf", 0x2CA9, 2),
+        ("armhf/amp_challenge_07.gcc.dyn.unstripped", 0x401CB9, 1),
     ],
 )
 def test_shared_primary_discovers_cfg_without_any_legacy_table_rescue(
@@ -190,8 +194,6 @@ def test_shared_primary_discovers_cfg_without_any_legacy_table_rescue(
 @pytest.mark.parametrize("relative", [True, False])
 @pytest.mark.parametrize("failure", [None, "writable", "unmapped", "non_executable"])
 def test_shared_proof_requires_every_row_and_destination_to_be_valid(relative, failure):
-    from types import SimpleNamespace
-
     entry = node(
         0x400000,
         pyvex.stmt.Put(pyvex.expr.Binop("Iop_And64", [get(RBX), const(1)]), RBX),
@@ -232,6 +234,175 @@ def test_shared_proof_requires_every_row_and_destination_to_be_valid(relative, f
         assert facts.steps <= steps + 1  # The scalar relative base is rechecked.
     else:
         assert all(key[0] != 0x500008 for key in facts._table_rows)
+
+
+@pytest.mark.parametrize(
+    "binary,function,dispatcher,expected",
+    [
+        (
+            "armhf/amp_challenge_07.gcc.dyn.unstripped",
+            0x401D29,
+            0x401D31,
+            {0x401D39, 0x401D59, 0x401D61},
+        ),
+        (
+            "armel/lwip_udpecho_bm.elf",
+            0x41DD,
+            0x4747,
+            {0x4775, 0x4865, 0x4937, 0x493F, 0x49D1, 0x4A05, 0x4A43},
+        ),
+    ],
+)
+def test_shared_engine_recovers_compact_table_edges_without_legacy_plans(
+    monkeypatch, binary, function, dispatcher, expected
+):
+    """Keep byte/halfword target and leader regressions after matcher removal."""
+
+    def forbidden(*_args, **_kwargs):
+        pytest.fail("A compact table depended on a legacy plan")
+
+    monkeypatch.setattr(builder_module, "plan_static_jump_table", forbidden)
+    project = load_project(Path("angr-binaries/tests") / binary)
+    cfg = build_extracted_cfg(project, KnowledgeBase(project), function)
+    nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+    assert {node.addr for node in cfg.graph.successors(nodes[dispatcher])} == expected
+    assert cfg.extract_stats.static_jump_plans_resolved == 1
+    assert cfg.extract_stats.exact_jump_proofs_by_flavor == {"shared_finite_table": 1}
+    assert cfg.extract_stats.static_jump_target_edges_added == len(expected)
+    assert cfg.extract_stats.unresolved_indirect_targets == 0
+    assert cfg.extract_stats.shared_fact_budget_exhausted == 0
+
+
+def expression_fixture(raw, bits=8, endian="little", **kwargs):
+    """Use immutable file bytes and executable destinations, not a legacy plan."""
+
+    use = node(0x400000)
+    facts = setup([use], [], **kwargs)
+    facts.project.loader.memory.load = lambda _address, size: raw.to_bytes(size, endian)
+    facts.project.loader.find_object_containing = lambda _address: SimpleNamespace(
+        find_section_containing=lambda _address: SimpleNamespace(is_executable=True)
+    )
+    load = pyvex.expr.Load(
+        "Iend_LE" if endian == "little" else "Iend_BE",
+        f"Ity_I{bits}",
+        const(0x500000),
+    )
+    return use, facts, load
+
+
+@pytest.mark.parametrize("endian", ["little", "big"])
+@pytest.mark.parametrize(
+    "raw,bits,operations,expected",
+    [
+        (7, 8, [("Iop_8Uto64",), ("Iop_Shl64", 1), ("Iop_Add64", 0x400000)], 0x40000E),
+        (0xFE, 8, [("Iop_8Sto64",), ("Iop_Add64", 0x400000)], 0x3FFFFE),
+        (0xFFFE, 16, [("Iop_16Sto64",), ("Iop_Add64", 0x400000)], 0x3FFFFE),
+        (
+            3,
+            8,
+            [
+                ("Iop_8Uto64",),
+                ("Iop_Add64", 0x400000),
+                ("Iop_And64", 0xFFFFFFFFFFFFFFFC),
+            ],
+            0x400000,
+        ),
+        (6, 8, [("Iop_8Uto64",), ("Iop_Shr64", 1), ("Iop_Or64", 0x400000)], 0x400003),
+        (3, 8, [("Iop_8Uto64",), ("Iop_Sub64", 0x400020, False)], 0x40001D),
+        (
+            1,
+            8,
+            [
+                ("Iop_8Uto64",),
+                ("Iop_Add64", 0xFFFFFFFFFFFFFFFF),
+                ("Iop_Add64", 0x400000),
+            ],
+            0x400000,
+        ),
+        (
+            0x100000002,
+            64,
+            [("Iop_64to32",), ("Iop_32Uto64",), ("Iop_Add64", 0x400000)],
+            0x400002,
+        ),
+    ],
+)
+def test_table_target_program_preserves_width_order_and_operand_direction(
+    raw, bits, operations, expected, endian
+):
+    use, facts, expression = expression_fixture(raw, bits, endian)
+    for operation in operations:
+        op, *args = operation
+        if not args:
+            expression = pyvex.expr.Unop(op, [expression])
+        else:
+            operands = [expression, const(args[0], 8 if "Sh" in op else 64)]
+            if len(args) > 1 and not args[1]:
+                operands.reverse()
+            expression = pyvex.expr.Binop(op, operands)
+    use.block.vex.next = expression
+    assert shared_table_targets(facts.project, use, facts) == (expected,)
+    steps = facts.steps
+    assert shared_table_targets(facts.project, use, facts) == (expected,)
+    assert facts.steps == steps
+
+
+@pytest.mark.parametrize(
+    "failure", ["unknown", "two_loads", "unsupported", "shift", "budget"]
+)
+def test_unknown_or_unsupported_target_program_preserves_fallback(failure):
+    use, facts, load = expression_fixture(
+        7, 64, max_steps=1 if failure == "budget" else 20000
+    )
+    other = (
+        get(RBX)
+        if failure == "unknown"
+        else pyvex.expr.Load("Iend_LE", "Ity_I64", get(RBX))
+        if failure == "two_loads"
+        else const(64)
+    )
+    op = (
+        "Iop_Mul64"
+        if failure == "unsupported"
+        else "Iop_Shl64"
+        if failure == "shift"
+        else "Iop_Add64"
+    )
+    if failure == "shift":
+        other = const(64, 8)
+    use.block.vex.next = pyvex.expr.Binop(op, [load, other])
+    assert shared_table_targets(facts.project, use, facts) is None
+    assert not facts._table_rows
+    if failure == "budget":
+        assert not facts._table_expressions
+
+
+def test_target_program_cache_keeps_operation_chains_distinct():
+    use, facts, load = expression_fixture(7, 64)
+    for op, expected in [("Iop_Add64", 0x400027), ("Iop_Sub64", 0x400019)]:
+        use.block.vex.next = pyvex.expr.Binop(op, [const(0x400020), load])
+        assert shared_table_targets(facts.project, use, facts) == (expected,)
+    assert len(facts._table_rows) == 2
+
+
+def test_table_expression_retains_the_loads_register_read_position():
+    use, facts, _ = expression_fixture(0x400020, 64)
+    use.block.vex.statements = [
+        pyvex.stmt.Put(const(0x500000), RBX),
+        pyvex.stmt.WrTmp(0, pyvex.expr.Load("Iend_LE", "Ity_I64", get(RBX))),
+        pyvex.stmt.Put(const(0x600000), RBX),
+    ]
+    use.block.vex.tyenv.add("Ity_I64")
+    use.block.vex.next = pyvex.expr.RdTmp(0)
+    reads = []
+
+    def read(address, size):
+        reads.append(address)
+        return (0x400020).to_bytes(size, "little")
+
+    facts.project.loader.memory.load = read
+    assert shared_table_targets(facts.project, use, facts) == (0x400020,)
+    assert reads == [0x500000]
 
 
 @pytest.mark.parametrize(

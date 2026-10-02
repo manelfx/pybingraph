@@ -85,7 +85,13 @@ class PredecessorFacts:
         self._active: set[tuple[Any, int, int, int]] = set()
         self._domains: dict[tuple[Any, int, int, int], frozenset[int] | None] = {}
         self._expressions: dict[tuple[Any, Any, int], frozenset[int]] = {}
-        self._table_rows: dict[tuple[int, int, str, bool, int], int] = {}
+        self._table_rows: dict[
+            tuple[int, int, str, tuple[tuple[str, int, int, bool], ...]], int
+        ] = {}
+        self._table_expressions: dict[
+            tuple[Any, Any, int],
+            tuple[Any, int, tuple[tuple[str, int, int, bool], ...]],
+        ] = {}
         self._domain_active: set[tuple[Any, int, int, int]] = set()
         self._combinations: dict[tuple, frozenset[int]] = {}
         self._register_views = frozenset(project.arch.registers.values())

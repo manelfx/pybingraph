@@ -106,50 +106,6 @@ def test_extract_recovers_an_unconditional_clz_arithmetic_pc_dispatch() -> None:
     )
 
 
-def test_extract_recovers_a_scaled_static_byte_table() -> None:
-    """Recover VEX-scaled byte-table targets without an ARM mnemonic rule."""
-
-    project = load_project(
-        Path("angr-binaries/tests/armhf/amp_challenge_07.gcc.dyn.unstripped")
-    )
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x401D29)
-    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
-    source = nodes[0x401D31]
-    successors = {node.addr for node in cfg.graph.successors(source)}
-
-    assert successors == {0x401D39, 0x401D59, 0x401D61}
-    assert cfg.extract_stats.static_jump_plans_resolved == 1
-    assert cfg.extract_stats.exact_jump_proofs_by_flavor == {"generic_vex_table": 1}
-    assert cfg.extract_stats.static_jump_target_edges_added == 3
-
-
-def test_extract_recovers_a_scaled_static_halfword_table() -> None:
-    """Recover VEX-scaled halfword-table targets without an ARM mnemonic rule."""
-
-    project = load_project(Path("angr-binaries/tests/armel/lwip_udpecho_bm.elf"))
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x41DD)
-    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
-    source = nodes[0x4747]
-    successors = {node.addr for node in cfg.graph.successors(source)}
-
-    assert successors == {
-        0x4775,
-        0x4865,
-        0x4937,
-        0x493F,
-        0x49D1,
-        0x4A05,
-        0x4A43,
-    }
-    assert cfg.extract_stats.static_jump_plans_resolved == 1
-    assert cfg.extract_stats.static_jump_target_edges_added == 7
-    assert not any(
-        node.simprocedure_name == "UnresolvableJumpTarget"
-        for node in cfg.graph.nodes()
-        if node.is_simprocedure
-    )
-
-
 def test_extract_recovers_an_unconditional_static_pc_load_table() -> None:
     """Stop at and resolve a VEX-only absolute table load into the PC."""
 
