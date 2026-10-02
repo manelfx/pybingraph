@@ -84,6 +84,8 @@ class PredecessorFacts:
         self._write_cache: dict[tuple[Any, int, int, int], int] = {}
         self._active: set[tuple[Any, int, int, int]] = set()
         self._domains: dict[tuple[Any, int, int, int], frozenset[int] | None] = {}
+        self._expressions: dict[tuple[Any, Any, int], frozenset[int]] = {}
+        self._table_rows: dict[tuple[int, int, str, bool, int], int] = {}
         self._domain_active: set[tuple[Any, int, int, int]] = set()
         self._combinations: dict[tuple, frozenset[int]] = {}
         self._register_views = frozenset(project.arch.registers.values())
@@ -218,9 +220,15 @@ class PredecessorFacts:
         if key in self._write_cache:
             return self._write_cache[key]
         vex, _ = self._block(node)
+        scanned = []
         for index in range(before - 1, -1, -1):
+            suffix = node, index + 1, offset, bits
+            if suffix in self._write_cache:
+                index = self._write_cache[suffix]
+                break
             if not self._step():
                 return None
+            scanned.append(suffix)
             stmt = vex.statements[index]
             if isinstance(stmt, (pyvex.stmt.Dirty, pyvex.stmt.PutI)):
                 break
@@ -230,6 +238,11 @@ class PredecessorFacts:
                     break
         else:
             index = -1
+        # Every scanned position reaches the same first write. Cache the whole
+        # completed suffix so queries at nearby old-temp positions do not walk
+        # the same statements again. Interrupted scans cache nothing.
+        for suffix in scanned:
+            self._write_cache[suffix] = index
         self._write_cache[key] = index
         return index
 
@@ -401,7 +414,25 @@ class PredecessorFacts:
         unknown inputs; writable bytes are never assumed constant.
         """
 
-        if depth >= 32 or not self._step():
+        if depth >= 32 or self.exhausted:
+            return None
+        vex, _ = self._block(node)
+        if vex is None:
+            return None
+        before = len(vex.statements) if before is None else before
+        key = node, expr, before
+        if key in self._expressions:
+            return self._expressions[key]
+        result = self._expression_values(node, expr, before, depth)
+        # Repeated table/guard queries share completed finite supersets, not
+        # unknown or interrupted answers. Read positions distinguish old temps
+        # and aliases; a new graph round always owns a fresh expression cache.
+        if result is not None and not self.exhausted:
+            self._expressions[key] = result
+        return result
+
+    def _expression_values(self, node, expr, before, depth):
+        if not self._step():
             return None
         vex, definitions = self._block(node)
         if vex is None:

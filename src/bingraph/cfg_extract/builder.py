@@ -37,7 +37,7 @@ from loguru import logger
 import networkx as nx
 
 from bingraph.cfg.anomalies import _lookup_function_bounds
-from bingraph.cfg.graph import CFGGraph, add_successor_edge
+from bingraph.cfg.graph import CFGGraph, add_successor_edge, node_vex
 from bingraph.cfg.jumps import (
     _read_static_jump_table_targets,
     abi_static_register_transfer_targets,
@@ -731,9 +731,12 @@ class _ExtractionSession:
         """Iteratively discover exact and candidate indirect jump targets.
 
         Each changed exact-flow snapshot first feeds the bounded ABI register
-        solver. Table resolvers then run in priority order: conditional-PC forms,
-        arithmetic-PC forms, generic VEX tables, architecture adapters, guarded
-        two-level tables, then shared finite table and register facts.
+        solver. Conditional-PC and arithmetic-PC forms remain specialized.
+        Shared finite table facts then get first refusal, before generic VEX
+        tables, architecture adapters and guarded two-level fallbacks. Shared
+        register facts handle remaining non-table transfers. The shared table
+        proof receives only the exact-flow snapshot, never a legacy table plan
+        or selector domain; successful proofs bypass legacy planning entirely.
         Only a fully bounded target set becomes ``static_targets``. A weaker,
         unbounded memory-selector table may contribute dashed candidates, but
         never replaces the unresolved target.
@@ -816,7 +819,28 @@ class _ExtractionSession:
                     )
                     if targets is not None:
                         proof_flavor = "arithmetic_pc"
+                if (
+                    targets is None
+                    and reason in {"not_conditional_pc", "no_vex"}
+                    and node_vex(node) is not None
+                ):
+                    # Migrate complete single-level proofs before consulting
+                    # the legacy recognizers. Unknown proofs still fall back,
+                    # but those attempts and final winning flavors are visible
+                    # in statistics rather than silently masking coverage gaps.
+                    # One cache/budget belongs to this immutable graph round;
+                    # neither plans nor facts survive a source block split.
+                    if shared_facts is None:
+                        shared_facts = table_predecessor_facts(
+                            self.project, graph, self.bounds
+                        )
+                    self.stats.shared_table_attempts += 1
+                    targets = shared_table_targets(self.project, node, shared_facts)
+                    if targets is not None:
+                        reason = None
+                        proof_flavor = "shared_finite_table"
                 if targets is None and reason in {"not_conditional_pc", "no_vex"}:
+                    self.stats.legacy_table_fallback_attempts += 1
                     plan, reason = plan_static_jump_table(
                         self.project,
                         graph,
@@ -824,7 +848,6 @@ class _ExtractionSession:
                         node,
                         allow_inline_index_values=True,
                         allow_masked_index_values=True,
-                        allow_guarded_loads=True,
                         allow_static_bases=True,
                         allow_guarded_expression_indices=True,
                         allow_predecessor_clamped_indices=True,
@@ -859,33 +882,20 @@ class _ExtractionSession:
                     if targets is not None:
                         reason = None
                         proof_flavor = "two_level_table"
-                if targets is None and reason in {
-                    "no_table_shape",
-                    "unbounded_index",
-                    "unknown_base",
-                }:
-                    # One bounded cache per immutable round. A successful proof
-                    # enters the same leader/redecode pipeline as legacy tables;
-                    # do not carry facts across the resulting block splits.
+                if targets is None and reason == "no_table_shape":
+                    # The table query already ran against this snapshot. Do not
+                    # repeat it after legacy planning or borrow its bounds.
+                    # A previous table edge may carry its destination in a
+                    # register which is adjusted before another jump. Reuse
+                    # the same bounded facts instead of adding an ISA rule.
                     if shared_facts is None:
                         shared_facts = table_predecessor_facts(
                             self.project, graph, self.bounds
                         )
-                    self.stats.shared_table_attempts += 1
-                    targets = shared_table_targets(self.project, node, shared_facts)
+                    targets = shared_register_targets(self.project, node, shared_facts)
                     if targets is not None:
                         reason = None
-                        proof_flavor = "shared_finite_table"
-                    elif reason == "no_table_shape":
-                        # A previous table edge may carry its destination in a
-                        # register which is adjusted before another jump. Reuse
-                        # the same bounded facts instead of adding an ISA rule.
-                        targets = shared_register_targets(
-                            self.project, node, shared_facts
-                        )
-                        if targets is not None:
-                            reason = None
-                            proof_flavor = "shared_finite_register"
+                        proof_flavor = "shared_finite_register"
                 if targets is None and reason == "no_table_shape":
                     candidate_plan = candidate_table_plans.get(addr)
                     if candidate_plan is not None:

@@ -1,11 +1,16 @@
-"""Shadow comparisons for the shared relative-table proof."""
+"""Independent shared-table migration and remaining legacy shadow proofs."""
 
 from pathlib import Path
 
 from angr import KnowledgeBase, options as sim_options
 import pytest
 
+from bingraph.cfg.jumps import (
+    plan_dynamic_selector_table_candidates,
+    plan_static_jump_table,
+)
 from bingraph.cfg_extract.builder import _ExtractionSession, build_extracted_cfg
+from bingraph.cfg_extract import builder as builder_module
 from bingraph.cfg_extract.shared_table_proof import (
     shared_register_targets,
     shared_table_targets,
@@ -17,6 +22,53 @@ import pyvex
 
 
 @pytest.mark.parametrize(
+    "function,dispatcher",
+    [
+        (0x426490, 0x426583),
+        (0x4286D0, 0x4287B7),
+        (0x42A280, 0x42A347),
+        (0x42C6B0, 0x42C723),
+        (0x4354F0, 0x4355E3),
+        (0x4911C0, 0x4912D3),
+        (0x493810, 0x493917),
+        (0x4957E0, 0x4958C7),
+        (0x497190, 0x4972A3),
+    ],
+)
+def test_shared_affine_tables_preserve_targets_without_legacy_recognition(
+    function: int, dispatcher: int
+) -> None:
+    """Keep ordered affine dispatches exact without the retired legacy shape."""
+
+    project = load_project(Path("angr-binaries/tests/x86_64/static"))
+    session = _ExtractionSession(project, KnowledgeBase(project), function)
+    session._decode_all_blocks()
+    graph, nodes = session._analysis_graph({})
+
+    # An unsupported register expression must decline as a shape, not become
+    # an unbounded table or a heuristic memory-selector candidate.
+    plan, reason = plan_static_jump_table(
+        project, graph, session.bounds, nodes[dispatcher]
+    )
+    assert plan is None
+    assert reason == "no_table_shape"
+    assert (
+        plan_dynamic_selector_table_candidates(
+            project, graph, session.bounds, nodes[dispatcher]
+        )
+        is None
+    )
+
+    session._discover_static_jump_targets()
+
+    assert len(session.static_targets[dispatcher]) == 15
+    assert session.stats.exact_jump_proofs_by_flavor == {"shared_finite_table": 1}
+    assert dispatcher not in session.unresolved_dispatcher_reasons
+    assert not session.static_target_candidates
+    assert session.stats.shared_fact_budget_exhausted == 0
+
+
+@pytest.mark.parametrize(
     ("binary", "function", "expect_match"),
     [
         ("mipsel/busybox", 0x40FDC0, True),
@@ -24,7 +76,6 @@ import pyvex
         ("mips64/ld.so.1", 0x41ABD8, True),
         ("ppc64el/fauxware_static", 0x10002390, True),
         ("ppc64el/fauxware_static", 0x100985E0, True),
-        ("x86_64/static", 0x42C6B0, True),
         # These bases require shared predecessor facts rather than the old
         # same-block evaluator or MIPS-only fallback.
         ("i386/nl", 0x402710, True),
@@ -71,6 +122,71 @@ def test_repeated_dispatch_searches_share_scans_without_exhausting_budget(
     assert cfg.extract_stats.shadow_table_disagreements == 0
 
 
+@pytest.mark.parametrize("conditional_lift_fails", [False, True])
+@pytest.mark.parametrize(
+    "binary,function,proofs",
+    [
+        ("x86_64/static", 0x42C6B0, 1),
+        ("x86_64/static", 0x493810, 1),
+        ("x86_64/rust_hello_world", 0x411330, 2),
+        ("x86_64/rust_hello_world", 0x426600, 2),
+        ("s390x/test-instr_s390x", 0x80067160, 1),
+        ("s390x/test-instr_s390x", 0x80067F90, 1),
+        ("i386/bronze_ropchain", 0x80A6D90, 1),
+        ("i386/nl", 0x403CF0, 1),
+    ],
+)
+def test_shared_primary_discovers_cfg_without_any_legacy_table_rescue(
+    monkeypatch, binary, function, proofs, conditional_lift_fails
+):
+    """Start from entry decoding, not code already recovered by a legacy proof."""
+
+    project = load_project(Path("angr-binaries/tests") / binary)
+    baseline = _ExtractionSession(project, KnowledgeBase(project), function)
+    baseline.build()
+    if conditional_lift_fails:
+        # Failure of the separate conditional-PC re-lift must not hide the
+        # usable VEX already attached to an ordinary table's decoded block.
+        monkeypatch.setattr(
+            builder_module,
+            "conditional_pc_dispatch_targets",
+            lambda *_args: (None, "no_vex"),
+        )
+
+    def forbidden(*_args, **_kwargs):
+        pytest.fail("A migrated table fell back to a legacy resolver")
+
+    for name in (
+        "plan_static_jump_table",
+        "plan_mips_pic_relative_jump_table",
+        "plan_x86_pic_relative_jump_table",
+        "exact_two_level_table_targets",
+    ):
+        monkeypatch.setattr(builder_module, name, forbidden)
+    monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")
+    independent = _ExtractionSession(project, KnowledgeBase(project), function)
+    independent.build()
+
+    def edges(session):
+        return {
+            (source.addr, source.is_simprocedure, target.addr, target.is_simprocedure)
+            for source, target in session.graph.edges()
+        }
+
+    assert independent.blocks == baseline.blocks
+    assert edges(independent) == edges(baseline)
+    assert independent.static_targets == baseline.static_targets
+    assert independent.stats.exact_jump_proofs_by_flavor == {
+        "shared_finite_table": proofs
+    }
+    assert independent.stats.legacy_table_fallback_attempts == 0
+    assert independent.stats.shadow_table_attempts == 0
+    assert independent.stats.unresolved_indirect_targets == 0
+    assert independent.stats.shared_fact_budget_exhausted == 0
+    assert independent.stats.sweep_runs == 0
+    assert independent.stats.output_anomaly_count == 0
+
+
 @pytest.mark.parametrize("relative", [True, False])
 @pytest.mark.parametrize("failure", [None, "writable", "unmapped", "non_executable"])
 def test_shared_proof_requires_every_row_and_destination_to_be_valid(relative, failure):
@@ -91,7 +207,10 @@ def test_shared_proof_requires_every_row_and_destination_to_be_valid(relative, f
         pyvex.expr.Binop("Iop_Add64", [const(0x400000), load]) if relative else load
     )
 
+    reads = []
+
     def read(address, size):
+        reads.append(address)
         if failure == "unmapped" and address == 0x500008:
             raise KeyError(address)
         target = 0x400020 if address == 0x500000 else 0x400030
@@ -106,6 +225,13 @@ def test_shared_proof_requires_every_row_and_destination_to_be_valid(relative, f
     assert shared_table_targets(facts.project, use, facts) == (
         (0x400020, 0x400030) if failure is None else None
     )
+    if failure is None:
+        steps = facts.steps
+        assert shared_table_targets(facts.project, use, facts) == (0x400020, 0x400030)
+        assert reads == [0x500000, 0x500008]
+        assert facts.steps <= steps + 1  # The scalar relative base is rechecked.
+    else:
+        assert all(key[0] != 0x500008 for key in facts._table_rows)
 
 
 @pytest.mark.parametrize(

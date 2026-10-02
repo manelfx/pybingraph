@@ -1921,7 +1921,6 @@ def test_extract_recovers_clamped_relative_jump_table() -> None:
     options = dict(
         allow_inline_index_values=True,
         allow_masked_index_values=True,
-        allow_guarded_loads=True,
         allow_static_bases=True,
         allow_guarded_expression_indices=True,
     )
@@ -2391,7 +2390,6 @@ def test_extract_resolves_s390_table_loaded_register_branches() -> None:
             graph_nodes[source_addr],
             allow_inline_index_values=True,
             allow_masked_index_values=True,
-            allow_guarded_loads=True,
             allow_static_bases=True,
             allow_guarded_expression_indices=True,
         )

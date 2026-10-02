@@ -51,6 +51,7 @@ class ExtractedCFGStats:
     shadow_fact_steps: int = 0
     shadow_fact_budget_exhausted: int = 0
     shared_table_attempts: int = 0
+    legacy_table_fallback_attempts: int = 0
     shared_fact_steps: int = 0
     shared_fact_budget_exhausted: int = 0
     static_jump_plans_invalidated: int = 0

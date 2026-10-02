@@ -23,6 +23,7 @@ def test_extract_summary_counts_actions_functions_and_architectures() -> None:
         SimpleNamespace(
             extract_stats=ExtractedCFGStats(
                 static_jump_plans_resolved=2,
+                legacy_table_fallback_attempts=4,
                 exact_jump_proofs_by_flavor={"mips_pic_table": 2},
             )
         ),
@@ -46,6 +47,8 @@ def test_extract_summary_counts_actions_functions_and_architectures() -> None:
     assert extract["runs"] == 2
     assert extract["totals"]["static_jump_plans_resolved"] == 3
     assert extract["affected_functions"]["static_jump_plans_resolved"] == 2
+    assert extract["totals"]["legacy_table_fallback_attempts"] == 4
+    assert extract["affected_functions"]["legacy_table_fallback_attempts"] == 1
     assert extract["totals"]["exact_jump_proofs_by_flavor.mips_pic_table"] == 3
     assert extract["proofs_by_architecture"] == {
         "mips64": {"mips_pic_table": 2},

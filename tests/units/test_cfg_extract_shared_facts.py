@@ -111,6 +111,43 @@ def test_partial_alias_write_invalidates_full_register():
     assert facts.value(use, get(RAX)) is None
 
 
+def test_completed_expression_queries_share_work_but_keep_read_positions():
+    entry = node(0x400000, pyvex.stmt.Put(const(7), RBX))
+    use = node(0x400010, pyvex.stmt.Put(const(99), RBX))
+    facts = setup([entry, use], [(entry, use)])
+    expression = pyvex.expr.Binop("Iop_Add64", [get(RBX), const(3)])
+    assert facts.values(use, expression, 0) == frozenset({10})
+    steps = facts.steps
+    assert facts.values(use, expression, 0) == frozenset({10})
+    assert facts.steps == steps
+    assert facts.values(use, expression, 1) == frozenset({102})
+
+
+def test_completed_scan_suffixes_are_reused_at_other_read_positions():
+    entry = node(
+        0x400000,
+        pyvex.stmt.Put(const(7), RBX),
+        *(pyvex.stmt.WrTmp(index, const(index)) for index in range(8)),
+        types=("Ity_I64",) * 8,
+    )
+    facts = setup([entry], [])
+    assert facts._nearest_write(entry, 9, RBX, 64) == 0
+    steps = facts.steps
+    assert facts._nearest_write(entry, 5, RBX, 64) == 0
+    assert facts.steps == steps
+    # The cached full-width write does not define a position before it.
+    assert facts._nearest_write(entry, 0, RBX, 64) == -1
+
+
+def test_interrupted_expression_query_is_not_cached_as_a_finite_proof():
+    entry = node(0x400000, pyvex.stmt.Put(const(7), RBX))
+    facts = setup([entry], [], max_steps=2)
+    expression = pyvex.expr.Binop("Iop_Add64", [get(RBX), const(3)])
+    assert facts.values(entry, expression) is None
+    assert facts.exhausted
+    assert (entry, expression, 1) not in facts._expressions
+
+
 def test_temporary_read_keeps_value_before_later_register_write():
     entry = node(0x400000, pyvex.stmt.Put(const(7), RBX))
     use = node(

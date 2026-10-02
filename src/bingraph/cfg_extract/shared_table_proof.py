@@ -1,6 +1,6 @@
 """Architecture-neutral finite dispatch proofs and legacy shadow comparisons.
 
-The functional fallback proves all entry addresses using shared finite facts.
+The primary table proof establishes all entry addresses using shared finite facts.
 The shadow comparison separately borrows the legacy selector domain, allowing
 incremental migration of table shapes the functional proof cannot yet cover.
 """
@@ -73,6 +73,10 @@ def shared_table_targets(project: Project, node, facts: PredecessorFacts):
             continue
         targets = []
         for address in sorted(addresses):
+            key = address, size, entry.end, signed, base
+            if key in facts._table_rows:
+                targets.append(facts._table_rows[key])
+                continue
             if not facts._step():
                 break
             section = project.loader.find_section_containing(address)
@@ -92,6 +96,9 @@ def shared_table_targets(project: Project, node, facts: PredecessorFacts):
             target_addr = (base + value) & ((1 << project.arch.bits) - 1)
             if static_jump_target_rejection_reason(project, target_addr) is not None:
                 break
+            # Dispatchers often share rows. Cache only fully validated immutable
+            # rows, never selector bounds or partially completed table proofs.
+            facts._table_rows[key] = target_addr
             targets.append(target_addr)
         else:
             return tuple(sorted(set(targets)))

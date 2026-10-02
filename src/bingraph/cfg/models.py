@@ -88,7 +88,6 @@ class StaticJumpTable:
     index_values: tuple[int, ...] | None = None
     index_low_bits: int | None = None
     index_expression: tuple[Any, ...] | None = None
-    index_affine_difference: tuple[tuple[int, int], tuple[int, int], int] | None = None
     preserve_unresolved_fallback: bool = False
 
 
