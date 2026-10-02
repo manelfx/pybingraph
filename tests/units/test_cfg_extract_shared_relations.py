@@ -251,7 +251,97 @@ def test_doubling_loop_rewrites_remain_bounded_without_expanding_a_tree():
     query = pyvex.expr.Binop("Iop_Sub64", [get(RBX), get(RAX)])
     assert facts._relations.values(use, query, 0) is None
     assert facts.steps < facts.max_steps
-    assert len(facts._relations._intern) < 1000
+    assert len(facts._relations.terms) < 1000
+
+
+@pytest.mark.parametrize(
+    "mask,expected",
+    [
+        (2, {15}),
+        (4, set(range(16, 31))),
+        (8, set(range(15))),
+        (10, set(range(16))),
+        (6, set(range(15, 31))),
+    ],
+)
+def test_angr_ordinal_comparisons_keep_their_relation_to_finite_operands(
+    mask, expected
+):
+    arch = archinfo.ArchPPC64(endness="Iend_LE")
+    a, b = (arch.registers[name][0] for name in ("r14", "r15"))
+    entry = node(
+        0x400000,
+        *(
+            pyvex.stmt.Put(pyvex.expr.Binop("Iop_And64", [get(r), const(15)]), r)
+            for r in (a, b)
+        ),
+        arch=arch,
+    )
+    comparison = pyvex.expr.Binop("Iop_CmpORD64U", [get(a), get(b)])
+    guard = pyvex.expr.Binop(
+        "Iop_CmpNE64",
+        [
+            pyvex.expr.Binop(
+                "Iop_And64", [pyvex.expr.Unop("Iop_32Uto64", [comparison]), const(mask)]
+            ),
+            const(0),
+        ],
+    )
+    branch = node(0x400010, exit_to(guard, 0x400020, arch), arch=arch)
+    branch.block.vex.next = const(0x400030)
+    use = node(0x400020, arch=arch)
+    facts = setup([entry, branch, use], [(entry, branch), (branch, use)], arch=arch)
+    query = pyvex.expr.Binop(
+        "Iop_Sub64", [pyvex.expr.Binop("Iop_Add64", [get(a), const(15)]), get(b)]
+    )
+    assert facts.values(use, query) == frozenset(expected)
+
+
+def test_angr_flag_helpers_support_logic_without_another_flag_adapter():
+    registers = ARCH.registers
+    query = pyvex.expr.Binop("Iop_Add64", [get(RBX), get(RAX)])
+    entry = node(
+        0x400000,
+        *(
+            pyvex.stmt.Put(pyvex.expr.Binop("Iop_And64", [get(r), const(15)]), r)
+            for r in (RBX, RAX)
+        ),
+        pyvex.stmt.Put(
+            const(x86_cc_data["AMD64"]["OpTypes"]["G_CC_OP_LOGICQ"]),
+            registers["cc_op"][0],
+        ),
+        pyvex.stmt.Put(query, registers["cc_dep1"][0]),
+        pyvex.stmt.Put(const(0), registers["cc_dep2"][0]),
+    )
+    guard = pyvex.expr.CCall(
+        "Ity_I64",
+        pyvex.IRCallee(0, "amd64g_calculate_condition", 0),
+        [
+            const(x86_cc_data["AMD64"]["CondTypes"]["CondZ"]),
+            *(get(registers[name][0]) for name in ("cc_op", "cc_dep1", "cc_dep2")),
+            const(0),
+        ],
+    )
+    branch = node(0x400010, exit_to(guard, 0x400020))
+    branch.block.vex.next = const(0x400030)
+    use = node(0x400020)
+    facts = setup([entry, branch, use], [(entry, branch), (branch, use)])
+    assert facts.values(use, query) == frozenset({0})
+
+
+def test_angr_integer_operations_reuse_finite_roots_and_unknown_memory_stays_unknown():
+    entry = node(0x400000)
+    facts = setup([entry], [])
+    masks = [pyvex.expr.Binop("Iop_And64", [get(r), const(15)]) for r in (RBX, RAX)]
+    query = pyvex.expr.Binop("Iop_Xor64", masks)
+    assert facts._relations.values(entry, query, 0) == frozenset(range(16))
+    assert (
+        facts._relations.values(
+            entry, pyvex.expr.Load("Iend_LE", "Ity_I64", get(RBX)), 0
+        )
+        is None
+    )
+    assert facts._relations.values(entry, pyvex.expr.GSPTR(), 0) is None
 
 
 def test_different_loop_iterations_cannot_share_a_mask_definition_identity():
