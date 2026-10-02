@@ -2,13 +2,14 @@
 
 from pathlib import Path
 
-from angr import KnowledgeBase
+from angr import KnowledgeBase, options as sim_options
 import pytest
 
-from bingraph.cfg_extract.builder import build_extracted_cfg
+from bingraph.cfg_extract.builder import _ExtractionSession, build_extracted_cfg
 from bingraph.cfg_extract.shared_table_proof import (
     shared_register_targets,
     shared_table_targets,
+    table_predecessor_facts,
 )
 from bingraph.core.project import load_project
 from test_cfg_extract_shared_facts import RBX, const, get, node, setup
@@ -105,6 +106,52 @@ def test_shared_proof_requires_every_row_and_destination_to_be_valid(relative, f
     assert shared_table_targets(facts.project, use, facts) == (
         (0x400020, 0x400030) if failure is None else None
     )
+
+
+@pytest.mark.parametrize(
+    "binary,function,source,table,count,size,endian",
+    [
+        ("s390x/test-instr_s390x", 0x80067160, 0x80067188, 0x8008A220, 13, 8, "big"),
+        ("s390x/test-instr_s390x", 0x80067F90, 0x80068288, 0x8008A408, 5, 8, "big"),
+        (
+            "x86_64/1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
+            0x43F940,
+            0x43F988,
+            0x45F0B8,
+            13,
+            4,
+            "little",
+        ),
+        ("x86_64/rust_hello_world", 0x426600, 0x42664B, 0x44A060, 13, 4, "little"),
+        ("x86_64/rust_hello_world", 0x426600, 0x426725, 0x44A094, 5, 4, "little"),
+    ],
+)
+def test_typed_guards_independently_bound_rust_and_s390_dispatches(
+    binary, function, source, table, count, size, endian
+):
+    project = load_project(Path("angr-binaries/tests") / binary)
+    session = _ExtractionSession(project, KnowledgeBase(project), function)
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+    # Legacy recovery makes decoded code available, but supplies no selector
+    # bounds or exact dispatch edges to this independent shared-engine query.
+    graph, nodes = session._analysis_graph()
+    facts = table_predecessor_facts(project, graph, session.bounds)
+    actual = shared_table_targets(project, nodes[source], facts)
+    expected = {
+        (
+            table
+            + int.from_bytes(
+                project.loader.memory.load(table + index * size, size),
+                endian,
+                signed=True,
+            )
+        )
+        & ((1 << project.arch.bits) - 1)
+        for index in range(count)
+    }
+    assert actual == tuple(sorted(expected))
+    assert not facts.exhausted
 
 
 @pytest.mark.parametrize(
@@ -245,6 +292,115 @@ def test_finite_register_targets_require_every_destination_to_be_valid(reject_ta
     assert shared_register_targets(facts.project, use, facts) == (
         None if reject_target else (0x400020, 0x400030)
     )
+
+
+@pytest.mark.parametrize(
+    "function,source,table,count",
+    [
+        (0x42F210, 0x42F352, 0x4A2DB0, 65),
+        (0x42F210, 0x42F576, 0x4A2DB0, 65),
+        (0x42F210, 0x42F506, 0x4A2DB0, 32),
+        (0x42F210, 0x42F726, 0x4A2DB0, 32),
+        (0x42DBC0, 0x42E319, 0x4A2C70, 32),
+        (0x42DBC0, 0x42DE10, 0x4A2C70, 32),
+        (0x42DBC0, 0x42E524, 0x4A2C70, 32),
+        (0x42DBC0, 0x42E00C, 0x4A2C70, 32),
+    ],
+)
+def test_lower_guards_independently_bound_every_memmove_and_memcmp_tail_row(
+    function, source, table, count
+):
+    project = load_project(Path("angr-binaries/tests/x86_64/static"))
+    session = _ExtractionSession(project, KnowledgeBase(project), function)
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+    # Decoding supplies instructions, not legacy selector domains or dispatch
+    # edges. Read the table only after the shared engine proves the row set.
+    graph, nodes = session._analysis_graph()
+    facts = table_predecessor_facts(project, graph, session.bounds)
+    rdx = project.arch.registers["rdx"][0]
+    assert facts.values(nodes[source], get(rdx), before=0) == frozenset(range(count))
+    expected = {
+        table
+        + int.from_bytes(
+            project.loader.memory.load(table + 4 * index, 4), "little", signed=True
+        )
+        for index in range(count)
+    }
+    assert set(shared_table_targets(project, nodes[source], facts)) == expected
+    assert not facts.exhausted
+
+
+@pytest.mark.parametrize(
+    "source,destination,origin,length",
+    [(0x42F352, 0x10000000, 0x20000000, 160), (0x42F576, 0x20000040, 0x20000000, 144)],
+)
+def test_memmove_row_64_has_a_concrete_path_from_function_entry(
+    source, destination, origin, length
+):
+    project = load_project(Path("angr-binaries/tests/x86_64/static"))
+    state = project.factory.blank_state(
+        addr=0x42F210,
+        add_options={
+            sim_options.ZERO_FILL_UNCONSTRAINED_REGISTERS,
+            sim_options.ZERO_FILL_UNCONSTRAINED_MEMORY,
+        },
+    )
+    state.regs.rdi, state.regs.rsi, state.regs.rdx = destination, origin, length
+    state.memory.store(origin, bytes(range(length)))
+    state.memory.store(0x6CA0B0, (4096).to_bytes(8, "little"))
+    # Execute concrete instructions, independently of both CFG implementations.
+    # The legacy proof's missing endpoint is reachable in each copy direction.
+    for _ in range(32):
+        if state.addr == source:
+            assert state.solver.eval(state.regs.rdx) == 64
+            successors = project.factory.successors(state).flat_successors
+            assert len(successors) == 1
+            assert successors[0].addr == 0x430B30
+            break
+        successors = project.factory.successors(
+            state, extra_stop_points={source}
+        ).flat_successors
+        assert len(successors) == 1
+        state = successors[0]
+    else:
+        pytest.fail("The concrete path did not reach the tail dispatcher")
+
+
+@pytest.mark.parametrize(
+    "function,source,table",
+    [
+        (0x426490, 0x426583, 0x4A2B70),
+        (0x4286D0, 0x4287B7, 0x4A2AF0),
+        (0x42A280, 0x42A347, 0x4A2B30),
+        (0x42C6B0, 0x42C723, 0x4A2C30),
+        (0x4354F0, 0x4355E3, 0x4A3470),
+        (0x4911C0, 0x4912D3, 0x4BD500),
+        (0x493810, 0x493917, 0x4BD480),
+        (0x4957E0, 0x4958C7, 0x4BD4C0),
+        (0x497190, 0x4972A3, 0x4BD540),
+    ],
+)
+def test_relational_guards_independently_bound_comparison_table_rows(
+    function, source, table
+):
+    project = load_project(Path("angr-binaries/tests/x86_64/static"))
+    session = _ExtractionSession(project, KnowledgeBase(project), function)
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+    graph, nodes = session._analysis_graph()
+    facts = table_predecessor_facts(project, graph, session.bounds)
+    # An independently proven a<b narrows a+15-b to 0..14. No legacy plan,
+    # selector bound, table shape or dispatch edge is supplied to the query.
+    expected = {
+        table
+        + int.from_bytes(
+            project.loader.memory.load(table + 4 * index, 4), "little", signed=True
+        )
+        for index in range(15)
+    }
+    assert set(shared_table_targets(project, nodes[source], facts)) == expected
+    assert not facts.exhausted
 
 
 def test_memmove_retains_dispatch_carriers_through_initial_and_loop_jumps():

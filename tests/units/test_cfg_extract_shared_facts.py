@@ -32,8 +32,8 @@ def get(offset, bits=64):
     return pyvex.expr.Get(offset, f"Ity_I{bits}")
 
 
-def node(addr, *statements, jumpkind="Ijk_Boring", types=()):
-    tyenv = pyvex.IRTypeEnv(ARCH, list(types))
+def node(addr, *statements, jumpkind="Ijk_Boring", types=(), arch=ARCH):
+    tyenv = pyvex.IRTypeEnv(arch, list(types))
     return Node(
         addr,
         SimpleNamespace(
@@ -41,7 +41,7 @@ def node(addr, *statements, jumpkind="Ijk_Boring", types=()):
                 statements=list(statements),
                 tyenv=tyenv,
                 jumpkind=jumpkind,
-                next=get(ARCH.ip_offset),
+                next=get(arch.ip_offset),
             )
         ),
     )
@@ -291,6 +291,15 @@ def test_byte_constants_masks_and_immutable_reads_still_prove_domains():
     ) == frozenset(range(4))
 
 
+@pytest.mark.parametrize("left,right", [(42, 15), (15, 42), (1, 2), (2, 1)])
+def test_constant_mask_operands_are_not_confused_with_the_value(left, right):
+    entry = node(0x400000)
+    facts = setup([entry], [])
+    assert facts.values(
+        entry, pyvex.expr.Binop("Iop_And64", [const(left), const(right)])
+    ) == frozenset({left & right})
+
+
 def test_matching_byte_guard_still_proves_a_domain():
     entry = node(
         0x400000,
@@ -305,6 +314,163 @@ def test_matching_byte_guard_still_proves_a_domain():
     use = node(0x400020)
     facts = setup([entry, use], [(entry, use)])
     assert facts.values(use, get(RBX, 8)) == frozenset(range(4))
+
+
+@pytest.mark.parametrize("inverted", [False, True])
+@pytest.mark.parametrize("reversed_test", [False, True])
+def test_widened_byte_guard_preserves_boolean_polarity(inverted, reversed_test):
+    byte = pyvex.expr.RdTmp(0)
+    wide = pyvex.expr.Unop("Iop_8Uto64", [byte])
+    comparison = pyvex.expr.Binop(
+        "Iop_CmpLE64U",
+        [
+            pyvex.expr.Binop("Iop_And64", [wide, const(255)]),
+            pyvex.expr.Binop("Iop_And64", [const(12), const(255)]),
+        ],
+    )
+    boolean = pyvex.expr.Unop("Iop_1Uto32", [comparison])
+    args = [boolean, const(0, 32)]
+    guard = pyvex.expr.Binop(
+        "Iop_CmpEQ32" if inverted else "Iop_CmpNE32",
+        args[::-1] if reversed_test else args,
+    )
+    entry = node(
+        0x400000,
+        pyvex.stmt.WrTmp(0, pyvex.expr.Binop("Iop_And8", [get(RBX, 8), const(15, 8)])),
+        pyvex.stmt.Put(byte, RBX),
+        pyvex.stmt.Exit(
+            guard,
+            pyvex.const.U64(0x400030 if inverted else 0x400020),
+            "Ijk_Boring",
+            ARCH.ip_offset,
+        ),
+        types=("Ity_I8",),
+    )
+    entry.block.vex.next = const(0x400020 if inverted else 0x400030)
+    use = node(0x400020)
+    facts = setup([entry, use], [(entry, use)])
+    assert facts.values(use, get(RBX, 8)) == frozenset(range(13))
+    # No inference about the unknown upper register bytes is allowed.
+    assert facts.values(use, get(RBX)) is None
+
+
+@pytest.mark.parametrize("arch", [ARCH, archinfo.ArchS390X()])
+@pytest.mark.parametrize("partial", [False, True])
+def test_masked_rotate_uses_guarded_low_view_without_assuming_high_bits(arch, partial):
+    full = RBX if arch.name == "AMD64" else arch.registers["r1"][0]
+    low = full if arch.register_endness == "Iend_LE" else full + 4
+    written_bits = 32 if partial else 64
+    written_offset = low if partial else full
+    masked = pyvex.expr.Binop(
+        f"Iop_And{written_bits}",
+        [get(written_offset, written_bits), const(7, written_bits)],
+    )
+    guard = pyvex.expr.Binop(
+        "Iop_CmpNE32",
+        [
+            pyvex.expr.Unop(
+                "Iop_1Uto32",
+                [
+                    pyvex.expr.Binop(
+                        "Iop_CmpLE64U",
+                        [pyvex.expr.Unop("Iop_32Uto64", [get(low, 32)]), const(4)],
+                    )
+                ],
+            ),
+            const(0, 32),
+        ],
+    )
+    entry = node(
+        0x400000,
+        pyvex.stmt.Put(masked, written_offset),
+        pyvex.stmt.Exit(guard, pyvex.const.U64(0x400020), "Ijk_Boring", arch.ip_offset),
+        arch=arch,
+    )
+    entry.block.vex.next = const(0x400030)
+    use = node(0x400020, arch=arch)
+    facts = setup([entry, use], [(entry, use)], arch=arch)
+    rotation = pyvex.expr.Binop(
+        "Iop_Or64",
+        [
+            pyvex.expr.Binop("Iop_Shl64", [get(full), const(3, 8)]),
+            pyvex.expr.Binop("Iop_Shr64", [get(full), const(61, 8)]),
+        ],
+    )
+    assert facts.values(
+        use, pyvex.expr.Binop("Iop_And64", [rotation, const(56)])
+    ) == frozenset(v * 8 for v in range(5))
+    if partial:
+        assert facts.values(use, get(full)) is None
+        # Including the rotate's high-bit contribution cannot silently drop it.
+        assert facts.values(
+            use, pyvex.expr.Binop("Iop_And64", [rotation, const(127)])
+        ) == frozenset(range(128))
+
+
+@pytest.mark.parametrize("carried", [False, True])
+def test_widened_equality_does_not_wrap_an_impossible_byte_value(carried):
+    wide = pyvex.expr.Unop("Iop_8Uto64", [get(RBX, 8)])
+    statements = []
+    if carried:
+        statements = [
+            pyvex.stmt.WrTmp(0, wide),
+            pyvex.stmt.Put(pyvex.expr.RdTmp(0), RAX),
+        ]
+        wide = pyvex.expr.RdTmp(0)
+    guard = pyvex.expr.Binop("Iop_CmpEQ64", [wide, const(256)])
+    entry = node(
+        0x400000,
+        *statements,
+        pyvex.stmt.Exit(guard, pyvex.const.U64(0x400020), "Ijk_Boring", ARCH.ip_offset),
+        types=("Ity_I64",) if carried else (),
+    )
+    entry.block.vex.next = const(0x400030)
+    use = node(0x400020)
+    facts = setup([entry, use], [(entry, use)])
+    if carried:
+        assert facts.values(use, get(RAX)) == frozenset()
+    assert facts.values(use, get(RBX, 8)) == frozenset()
+    assert (
+        facts.values(use, pyvex.expr.Unop("Iop_8Uto64", [get(RBX, 8)])) == frozenset()
+    )
+
+
+@pytest.mark.parametrize(
+    "failure", ["different_view", "overwrite", "sign_extend", "unknown_path"]
+)
+def test_typed_guard_does_not_constrain_a_different_or_changed_value(failure):
+    old = pyvex.expr.RdTmp(0)
+    statements = [
+        pyvex.stmt.WrTmp(0, pyvex.expr.Binop("Iop_And8", [get(RBX, 8), const(15, 8)])),
+        pyvex.stmt.Put(old, RBX),
+    ]
+    guarded = get(RBX + 1, 8) if failure == "different_view" else old
+    wide = pyvex.expr.Unop(
+        "Iop_8Sto64" if failure == "sign_extend" else "Iop_8Uto64", [guarded]
+    )
+    if failure == "overwrite":
+        statements.append(pyvex.stmt.Put(get(RAX, 8), RBX))
+    statements.append(
+        pyvex.stmt.Exit(
+            pyvex.expr.Binop("Iop_CmpLE64U", [wide, const(4)]),
+            pyvex.const.U64(0x400020),
+            "Ijk_Boring",
+            ARCH.ip_offset,
+        )
+    )
+    entry = node(0x400000, *statements, types=("Ity_I8",))
+    entry.block.vex.next = const(0x400030)
+    use = node(0x400020)
+    nodes, edges = [entry, use], [(entry, use)]
+    if failure == "unknown_path":
+        unknown = node(0x400010)
+        nodes.append(unknown)
+        edges.append((unknown, use))
+    facts = setup(nodes, edges)
+    expected = (
+        None if failure in {"overwrite", "unknown_path"} else frozenset(range(16))
+    )
+    assert facts.values(use, get(RBX, 8)) == expected
 
 
 def test_adapter_linkage_root_is_distinct_from_arbitrary_writable_memory():
@@ -538,6 +704,175 @@ def test_guard_domain_flows_through_subtraction_and_restore(bits, bound, taken):
     )
     assert facts.values(use, get(RBX, bits)) == frozenset(range(bound))
     assert not facts.exhausted
+
+
+@pytest.mark.parametrize("bits", [32, 64])
+@pytest.mark.parametrize(
+    "operation,taken,reversed_operands,bound",
+    [
+        ("LT", False, False, 64),
+        ("LE", False, False, 63),
+        ("LT", True, True, 63),
+        ("LE", True, True, 64),
+    ],
+)
+@pytest.mark.parametrize("alternate", [None, "known", "unknown"])
+def test_lower_guard_filters_inputs_before_subtraction_and_keeps_all_join_paths(
+    bits, operation, taken, reversed_operands, bound, alternate
+):
+    entry = node(
+        0x400000,
+        pyvex.stmt.Put(
+            pyvex.expr.Binop(f"Iop_And{bits}", [get(RBX, bits), const(127, bits)]),
+            RBX,
+        ),
+    )
+    old = pyvex.expr.RdTmp(0)
+    operands = [old, const(bound, bits)]
+    branch = node(
+        0x400010,
+        pyvex.stmt.WrTmp(0, get(RBX, bits)),
+        # The exit observes the saved input, not this later register write.
+        pyvex.stmt.Put(pyvex.expr.Binop(f"Iop_Sub{bits}", [old, const(64, bits)]), RBX),
+        pyvex.stmt.Exit(
+            pyvex.expr.Binop(
+                f"Iop_Cmp{operation}{bits}U",
+                operands[::-1] if reversed_operands else operands,
+            ),
+            pyvex.const.U64(0x400030 if taken else 0x400040),
+            "Ijk_Boring",
+            ARCH.ip_offset,
+        ),
+        types=(f"Ity_I{bits}",),
+    )
+    branch.block.vex.next = const(0x400040 if taken else 0x400030)
+    use = node(0x400030)
+    nodes, edges = [entry, branch, use], [(entry, branch), (branch, use)]
+    if alternate:
+        other = node(
+            0x400020,
+            pyvex.stmt.Put(
+                const(64, bits) if alternate == "known" else get(RAX, bits), RBX
+            ),
+        )
+        nodes.append(other)
+        edges.extend([(entry, other), (other, use)])
+    facts = setup(nodes, edges)
+    assert facts.values(use, get(RBX, bits)) == (
+        None if alternate == "unknown" else frozenset(range(65 if alternate else 64))
+    )
+    assert not facts.exhausted
+
+
+@pytest.mark.parametrize(
+    "operation,taken", [("LT", False), ("EQ", False), ("NE", True)]
+)
+def test_lower_bound_or_exclusion_alone_cannot_bound_an_unknown_input(operation, taken):
+    old = pyvex.expr.RdTmp(0)
+    entry = node(
+        0x400000,
+        pyvex.stmt.WrTmp(0, get(RBX)),
+        pyvex.stmt.Put(pyvex.expr.Binop("Iop_Sub64", [old, const(64)]), RBX),
+        pyvex.stmt.Exit(
+            pyvex.expr.Binop(
+                f"Iop_Cmp{operation}64" + ("U" if operation == "LT" else ""),
+                [old, const(64)],
+            ),
+            pyvex.const.U64(0x400020 if taken else 0x400030),
+            "Ijk_Boring",
+            ARCH.ip_offset,
+        ),
+        types=("Ity_I64",),
+    )
+    entry.block.vex.next = const(0x400030 if taken else 0x400020)
+    use = node(0x400020)
+    facts = setup([entry, use], [(entry, use)])
+    assert facts.values(use, get(RBX)) is None
+
+
+@pytest.mark.parametrize("operation", ["Add", "And"])
+def test_excluded_finite_inputs_are_mapped_without_assuming_injective_arithmetic(
+    operation,
+):
+    entry = node(
+        0x400000,
+        pyvex.stmt.Put(pyvex.expr.Binop("Iop_And64", [get(RBX), const(3)]), RBX),
+    )
+    old = pyvex.expr.RdTmp(0)
+    branch = node(
+        0x400010,
+        pyvex.stmt.WrTmp(0, get(RBX)),
+        pyvex.stmt.Put(pyvex.expr.Binop(f"Iop_{operation}64", [old, const(1)]), RBX),
+        pyvex.stmt.Exit(
+            pyvex.expr.Binop("Iop_CmpEQ64", [old, const(0)]),
+            pyvex.const.U64(0x400030),
+            "Ijk_Boring",
+            ARCH.ip_offset,
+        ),
+        types=("Ity_I64",),
+    )
+    branch.block.vex.next = const(0x400020)
+    use = node(0x400020)
+    facts = setup([entry, branch, use], [(entry, branch), (branch, use)])
+    assert facts.values(use, get(RBX)) == (
+        frozenset({2, 3, 4}) if operation == "Add" else frozenset({0, 1})
+    )
+
+
+@pytest.mark.parametrize("operation", ["Iop_CmpLT64U", "Iop_CmpLT64S"])
+def test_unrelated_guards_do_not_start_finite_predecessor_searches(
+    monkeypatch, operation
+):
+    entry = node(
+        0x400000,
+        pyvex.stmt.Exit(
+            pyvex.expr.Binop(operation, [get(RBX), const(64)]),
+            pyvex.const.U64(0x400030),
+            "Ijk_Boring",
+            ARCH.ip_offset,
+        ),
+    )
+    facts = setup([entry], [])
+
+    def unexpected_search(*args, **kwargs):
+        pytest.fail("An unrelated guard must not start a predecessor-domain query")
+
+    monkeypatch.setattr(facts, "values", unexpected_search)
+    assert facts._edge_domain(entry, 1, RAX, 64) is None
+    assert not facts._guard_domains
+
+
+def test_finite_guard_filters_are_reused_but_interrupted_filters_are_not(monkeypatch):
+    entry = node(
+        0x400000,
+        pyvex.stmt.Put(pyvex.expr.Binop("Iop_And64", [get(RBX), const(127)]), RBX),
+    )
+    branch = node(
+        0x400010,
+        pyvex.stmt.Exit(
+            pyvex.expr.Binop("Iop_CmpLT64U", [get(RBX), const(64)]),
+            pyvex.const.U64(0x400030),
+            "Ijk_Boring",
+            ARCH.ip_offset,
+        ),
+    )
+    branch.block.vex.next = const(0x400020)
+    use = node(0x400020)
+    nodes, edges = [entry, branch, use], [(entry, branch), (branch, use)]
+    facts = setup(nodes, edges)
+    expected = frozenset(range(64, 128))
+    assert facts.values(use, get(RBX)) == expected
+    assert facts._guard_domains == {(branch, 0, False): expected}
+
+    def unexpected_filter(*args, **kwargs):
+        pytest.fail("A completed filter should be reused within its graph snapshot")
+
+    monkeypatch.setattr(facts, "_comparison_domain", unexpected_filter)
+    assert facts._edge_domain(branch, 1, RBX, 64) == expected
+    small = setup(nodes, edges, max_steps=30)
+    assert small.values(use, get(RBX)) is None
+    assert small.exhausted
+    assert not small._guard_domains
 
 
 @pytest.mark.parametrize("bound", [1, 4, 16])
