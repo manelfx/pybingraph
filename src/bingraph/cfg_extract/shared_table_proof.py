@@ -14,6 +14,7 @@ from cle.backends.elf.relocation.generic import MipsLocalReloc
 import pyvex
 
 from bingraph.cfg.graph import CFGGraph, node_vex
+from bingraph.cfg.decode import _is_static_pointer_call_target
 from bingraph.cfg.jumps import (
     _jump_table_addr,
     _mips_entry_global_pointer,
@@ -171,26 +172,37 @@ def shared_table_targets(project: Project, node, facts: PredecessorFacts):
 
 
 def shared_register_targets(project: Project, node, facts: PredecessorFacts):
-    """Resolve a finite register-derived jump using the shared predecessor facts.
+    """Resolve register-derived calls or jumps from shared predecessor facts.
 
     Exact incoming dispatch edges can establish the carried destination, which
     local arithmetic may adjust. Every incoming path must remain bounded and
     every resulting target valid; one unknown path or rejected target preserves
-    the UJT. This shares the table resolver's budget and leader/redecode rules.
+    the unresolved target. Try scalar must facts first: unchanged-register
+    loops can establish a unique target without finite-domain recursion.
+    Calls additionally allow CLE-identified synthetic function targets, using
+    the same validation as static-memory calls. No callee CFG is analyzed.
+    This shares the table resolver's budget and leader/redecode rules.
     """
 
     vex = node_vex(node)
-    if vex is None or vex.jumpkind != "Ijk_Boring":
+    if vex is None or vex.jumpkind not in {"Ijk_Boring", "Ijk_Call"}:
         return None
     target = _resolve_vex_expr(vex.next, _vex_tmp_definitions(vex))
-    if isinstance(target, pyvex.expr.Const):
+    # VEX may fold a same-block register call into Const even though the
+    # decoder still classifies its machine instruction as indirect. Ordinary
+    # constant NEXT jumps, however, include linear fallthroughs, not dispatches.
+    if isinstance(target, pyvex.expr.Const) and vex.jumpkind == "Ijk_Boring":
         return None
-    values = facts.values(node, vex.next)
-    if not values or any(
-        static_jump_target_rejection_reason(project, address) is not None
-        for address in values
-    ):
+    scalar = facts.value(node, vex.next)
+    values = frozenset({scalar}) if scalar is not None else facts.values(node, vex.next)
+    if not values or facts.exhausted:
         return None
+    for address in values:
+        if vex.jumpkind == "Ijk_Call":
+            if not _is_static_pointer_call_target(project, address):
+                return None
+        elif static_jump_target_rejection_reason(project, address) is not None:
+            return None
     return tuple(sorted(values))
 
 

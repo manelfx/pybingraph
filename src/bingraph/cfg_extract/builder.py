@@ -18,7 +18,7 @@ from collections import Counter, deque
 from dataclasses import replace
 import os
 from types import SimpleNamespace
-from typing import Mapping, cast
+from typing import Iterable, Mapping, cast
 
 from angr import KnowledgeBase, Project
 from angr.knowledge_plugins.cfg import CFGModel, CFGNode
@@ -196,6 +196,7 @@ class _ExtractionSession:
         self.continued_linear_direct_transfers: set[int] = set()
         self.resolved_syscalls: dict[int, ResolvedSyscall] = {}
         self._abi_analysis_blocks: dict[int, BlockSpec] | None = None
+        self._shared_register_blocks: dict[int, tuple[BlockSpec, BlockSpec]] = {}
 
     def _is_data_leader(self, addr: int) -> bool:
         """Return whether this prospective leader is VEX-proven data."""
@@ -544,17 +545,57 @@ class _ExtractionSession:
                 return
             self._decode_all_blocks()
 
+    def _restore_shared_register_blocks(self, addresses: Iterable[int]) -> None:
+        """Withdraw a proof and its no-return side effect, not decoded facts."""
+
+        for addr in addresses:
+            original, proved = self._shared_register_blocks.pop(addr)
+            if self.blocks.get(addr) != proved:
+                continue
+            if original.jumpkind == "Ijk_Call":
+                self.stats.abi_static_call_targets_resolved -= 1
+                self.stats.call_fallthroughs_suppressed -= (
+                    original.fallthrough_addr is not None
+                    and proved.fallthrough_addr is None
+                )
+            else:
+                self.stats.abi_static_jump_targets_resolved -= 1
+            self.blocks[addr] = original
+
     def _resolve_abi_static_register_transfers(
         self, static_targets: Mapping[int, tuple[int, ...]] | None = None
     ) -> None:
         """Resolve carried targets over decoded flow and already-exact tables.
 
         Table recovery can expose predecessors carrying different static
-        callees into a common epilogue. Give the ABI solver those exact edges,
+        callees into a common epilogue. Give the ABI solvers those exact edges,
         but never candidate or sweep edges. Cache the immutable input snapshot
         so an unchanged discovery round does not repeat the bounded analysis.
+        AMD64 uses shared facts; MIPS retains its private-frame analysis.
+        Register proofs belong to their incoming-flow snapshot, not just their
+        source block. Rebuild them from decoded facts when that snapshot changes.
         """
 
+        shared = self.project.arch.name == "AMD64"
+        originals = {
+            addr: original
+            for addr, (original, proved) in self._shared_register_blocks.items()
+            if self.blocks.get(addr) == proved
+        }
+        inputs = self.blocks | originals
+        snapshot = {
+            addr: replace(block, direct_targets=static_targets[addr])
+            if static_targets and addr in static_targets
+            else block
+            for addr, block in inputs.items()
+        }
+        if snapshot == self._abi_analysis_blocks:
+            return
+        self._abi_analysis_blocks = snapshot
+        # Restore even the original call continuation: an invalidated proof
+        # must not keep its nonreturning side effect or prove itself via its edge.
+        self._restore_shared_register_blocks(tuple(self._shared_register_blocks))
+        invalidated: set[int] = set()
         while True:
             analysis_blocks = {
                 addr: replace(block, direct_targets=static_targets[addr])
@@ -562,15 +603,64 @@ class _ExtractionSession:
                 else block
                 for addr, block in self.blocks.items()
             }
-            if analysis_blocks == self._abi_analysis_blocks:
-                return
-            self._abi_analysis_blocks = analysis_blocks
-            targets, exhausted, ran = abi_static_register_transfer_targets(
-                self.project, self.bounds, analysis_blocks
-            )
-            self.stats.abi_static_target_analysis_runs += ran
-            self.stats.abi_static_target_analysis_budget_exhausted += exhausted
-            if exhausted or not targets:
+            targets = {}
+            lost: set[int] = set()
+            shared_ran = False
+            candidates = {
+                addr
+                for addr, block in analysis_blocks.items()
+                if block.jumpkind in {"Ijk_Boring", "Ijk_Call"}
+                and not block.direct_targets
+            }
+            if shared and (candidates or self._shared_register_blocks):
+                graph, nodes = self._analysis_graph(static_targets)
+                # A no-return conclusion must not remove a path while proving
+                # its own callee. Query with the decoded continuations restored.
+                for addr, (original, _) in self._shared_register_blocks.items():
+                    if original.fallthrough_addr in nodes:
+                        graph.add_edge(
+                            nodes[addr],
+                            nodes[original.fallthrough_addr],
+                            jumpkind="Ijk_Boring",
+                        )
+                facts = table_predecessor_facts(self.project, graph, self.bounds)
+                shared_ran = True
+                for addr in sorted(
+                    (candidates | self._shared_register_blocks.keys()) - invalidated
+                ):
+                    exact = shared_register_targets(self.project, nodes[addr], facts)
+                    if exact is not None:
+                        targets[addr] = exact
+                self.stats.shared_fact_steps += facts.steps
+                self.stats.shared_fact_budget_exhausted += facts.exhausted
+                # Newly proved jumps also change incoming flow. Recheck earlier
+                # answers, and do not oscillate by reinstating a withdrawn proof
+                # after its supporting edge disappears in this same snapshot.
+                lost = self._shared_register_blocks.keys() - targets.keys()
+                changed = {
+                    addr
+                    for addr, (_, proved) in self._shared_register_blocks.items()
+                    if addr in targets and proved.direct_targets != targets[addr]
+                }
+                targets = {
+                    addr: exact
+                    for addr, exact in targets.items()
+                    if addr not in self._shared_register_blocks or addr in changed
+                }
+                self._restore_shared_register_blocks(lost | changed)
+                invalidated.update(lost)
+            if not shared and candidates:
+                fallback, exhausted, ran = abi_static_register_transfer_targets(
+                    self.project, self.bounds, analysis_blocks
+                )
+                shared_ran |= ran
+                self.stats.abi_static_target_analysis_budget_exhausted += exhausted
+                if not exhausted:
+                    targets = fallback
+            self.stats.abi_static_target_analysis_runs += shared_ran
+            if not targets:
+                if shared and lost:
+                    continue
                 return
 
             discovered = False
@@ -587,6 +677,8 @@ class _ExtractionSession:
                 self.blocks[addr] = replace(
                     block, direct_targets=exact_targets, fallthrough_addr=fallthrough
                 )
+                if shared:
+                    self._shared_register_blocks[addr] = block, self.blocks[addr]
                 if block.jumpkind == "Ijk_Call":
                     self.stats.abi_static_call_targets_resolved += 1
                 else:
@@ -597,9 +689,12 @@ class _ExtractionSession:
                         before = target in self.blocks or target in self.pending_addrs
                         if self._add_leader(target):
                             discovered |= not before
-            if not discovered:
+            if not discovered and not shared:
                 return
-            self._decode_all_blocks()
+            if discovered:
+                self._decode_all_blocks()
+            # Each shared round either establishes a new site or permanently
+            # withdraws one for this snapshot; copy cycles are never unrolled.
 
     def _recognize_saved_link_returns(self) -> None:
         """Recognize split ARM pops of the entry LR in an unchanged leaf frame.
@@ -730,8 +825,9 @@ class _ExtractionSession:
     def _discover_static_jump_targets(self) -> None:
         """Iteratively discover exact and candidate indirect jump targets.
 
-        Each changed exact-flow snapshot first feeds the bounded ABI register
-        solver. Conditional-PC and arithmetic-PC forms remain specialized.
+        Each changed exact-flow snapshot first feeds shared AMD64 register
+        facts and the remaining ABI fallback. Conditional-PC and arithmetic-PC
+        forms remain specialized.
         Shared finite table facts then get first refusal, before generic VEX
         tables, architecture adapters and guarded two-level fallbacks. Shared
         register facts handle remaining non-table transfers. The shared table

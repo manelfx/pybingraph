@@ -1293,6 +1293,73 @@ def test_extract_abi_snapshot_excludes_candidates_and_skips_unchanged_inputs() -
         assert session.blocks[source].direct_targets == ()
 
 
+def test_extract_revalidates_register_proof_after_a_new_incoming_root() -> None:
+    """A previously proved call must not outlive its incoming-flow evidence."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x498D40
+    )
+    session._decode_all_blocks()
+    session._resolve_abi_static_register_transfers()
+    assert session.blocks[0x498DAD].direct_targets == (0x545F60,)
+    runs = session.stats.abi_static_target_analysis_runs
+    session._resolve_abi_static_register_transfers()
+    assert session.stats.abi_static_target_analysis_runs == runs
+
+    session._discover_static_jump_targets()
+    assert 0x498E0D in session.blocks
+    assert session.blocks[0x498DAD].direct_targets == ()
+
+
+def test_extract_invalidated_nonreturning_proof_restores_call_continuation() -> None:
+    """The cached proof owns both its target and its no-return side effect."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x498D40
+    )
+    session._decode_all_blocks()
+    original = session.blocks[0x498DAD]
+    with patch.object(
+        builder_module, "target_is_known_nonreturning", return_value=True
+    ):
+        session._resolve_abi_static_register_transfers()
+    assert session.blocks[original.addr].fallthrough_addr is None
+    session._add_leader(0x498E0D)
+    session._decode_all_blocks()
+    session._resolve_abi_static_register_transfers()
+    assert session.blocks[original.addr].direct_targets == ()
+    assert session.blocks[original.addr].fallthrough_addr == original.fallthrough_addr
+
+
+def test_extract_rechecks_existing_proofs_after_register_edges_change() -> None:
+    """Register-edge discovery, even without new leaders, invalidates facts."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x498D40
+    )
+    session._decode_all_blocks()
+    original_blocks = set(session.blocks)
+
+    def proof(_project, node, _facts):
+        if node.addr == 0x498DCF:
+            return (0x498DAD,)
+        if node.addr == 0x498DAD and not session.blocks[0x498DCF].direct_targets:
+            return (0x545F60,)
+        return None
+
+    with patch.object(builder_module, "shared_register_targets", side_effect=proof):
+        session._resolve_abi_static_register_transfers()
+
+    assert set(session.blocks) == original_blocks
+    assert session.blocks[0x498DCF].direct_targets == (0x498DAD,)
+    assert session.blocks[0x498DAD].direct_targets == ()
+    assert session.stats.abi_static_call_targets_resolved == 0
+    assert session.stats.abi_static_jump_targets_resolved == 1
+
+
 def test_extract_proves_mips_table_after_nonreturning_call_cycle() -> None:
     """Remove a false abort return before proving the guarded PIC table."""
 
@@ -2020,7 +2087,8 @@ def test_extract_resolves_abi_preserved_register_tail_target() -> None:
     tail_jump = nodes[0x41367F]
     assert 0x41C030 in {node.addr for node in cfg.graph.successors(first_call)}
     assert {node.addr for node in cfg.graph.successors(tail_jump)} == {0x41C030}
-    assert cfg.extract_stats.abi_static_target_analysis_runs == 1
+    # The second pass validates the newly added register edge before caching.
+    assert cfg.extract_stats.abi_static_target_analysis_runs == 2
     assert cfg.extract_stats.abi_static_call_targets_resolved == 8
     assert cfg.extract_stats.abi_static_jump_targets_resolved == 1
     assert cfg.extract_stats.abi_static_target_analysis_budget_exhausted == 0

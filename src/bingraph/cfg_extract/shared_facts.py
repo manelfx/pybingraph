@@ -10,6 +10,7 @@ searches conservatively stop at recursive definitions instead of unrolling.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any
 
 from angr import Project
@@ -54,7 +55,9 @@ class PredecessorFacts:
 
     ``linkage_slots`` is an adapter-supplied set of ABI-fixed local relocation
     slots. These are address roots even in a writable GOT; arbitrary writable
-    loads and private stack spills are deliberately still unknown.
+    loads and private stack spills are deliberately still unknown. CLE's
+    read-only GNU RELRO segments override pre-relocation writable section
+    flags: facts describe the initialized ELF image, not its dynamic loader.
 
     ``values`` additionally tracks finite supersets for masks, conversions of
     proven values, arithmetic and branch-constrained registers. These are not
@@ -121,6 +124,33 @@ class PredecessorFacts:
     def _block(self, node):
         if node not in self._blocks:
             vex = node_vex(node)
+            # PAUSE ends a VEX IRSB, not the decoded basic block. Compose its
+            # contiguous suffix using pyvex's temporary-renumbering machinery;
+            # never infer unchanged registers from an unlifted instruction.
+            if vex is not None and vex.jumpkind == "Ijk_Yield":
+                vex = deepcopy(vex)
+                end = node.addr + node.size
+                try:
+                    while vex.jumpkind == "Ijk_Yield":
+                        if (
+                            not self._step()
+                            or not isinstance(vex.next, pyvex.expr.Const)
+                            or vex.next.con.value != node.addr + vex.size
+                            or not node.addr < vex.next.con.value < end
+                        ):
+                            vex = None
+                            break
+                        suffix = self.project.factory.block(
+                            vex.next.con.value,
+                            size=end - vex.next.con.value,
+                            cross_insn_opt=False,
+                        ).vex
+                        if not suffix.size or suffix.size > end - vex.next.con.value:
+                            vex = None
+                            break
+                        vex.extend(deepcopy(suffix))
+                except Exception:
+                    vex = None
             definitions = {
                 stmt.tmp: (index, stmt.data)
                 for index, stmt in enumerate(vex.statements if vex is not None else ())
@@ -158,9 +188,19 @@ class PredecessorFacts:
                 return None
             section = self.project.loader.find_section_containing(address)
             linkage = address in self.linkage_slots and size == self.project.arch.bytes
+            # ELF section flags do not reflect GNU RELRO's runtime protection.
+            # Use CLE's already-split segment, never a section-name heuristic.
+            find_segment = getattr(self.project.loader, "find_segment_containing", None)
+            segment = find_segment(address) if callable(find_segment) else None
+            relro = (
+                segment is not None
+                and getattr(segment, "is_relro", False)
+                and not segment.is_writable
+                and address + size - 1 <= segment.max_addr
+            )
             if not linkage and (
                 section is None
-                or section.is_writable
+                or (section.is_writable and not relro)
                 or address + size - 1 > section.max_addr
             ):
                 return None
@@ -256,8 +296,9 @@ class PredecessorFacts:
         """Meet all reaching definitions, stopping at aliases and call clobbers.
 
         Search stops at each first overlapping write. A loop with no write
-        adds no definition; a loop-carried computation recursively querying
-        itself is unknown. Entry and disconnected roots remain real unknown
+        adds no definition. Full-width copies join the same worklist, so copy
+        cycles terminate without losing an entry definition; recursive
+        computations remain unknown. Entry and disconnected roots are unknown
         inputs, even if another predecessor provides a constant.
         """
 
@@ -267,45 +308,54 @@ class PredecessorFacts:
         if key in self._cache:
             return self._cache[key]
         self._active.add(key)
-        pending = [(node, before)]
+        pending = [key]
         seen = set()
         values: set[int] = set()
         unknown = False
         while pending and not unknown:
-            current, position = pending.pop()
-            if (current, position) in seen:
+            current, position, register, width = pending.pop()
+            current_key = current, position, register, width
+            if current_key in seen:
                 continue
-            seen.add((current, position))
+            seen.add(current_key)
             vex, _ = self._block(current)
             if vex is None or not self._step():
                 unknown = True
                 break
-            index = self._nearest_write(current, position, offset, bits)
+            index = self._nearest_write(current, position, register, width)
             if index is None:
                 unknown = True
                 break
             if index >= 0:
                 stmt = vex.statements[index]
-                if not isinstance(stmt, pyvex.stmt.Put):
+                if (
+                    not isinstance(stmt, pyvex.stmt.Put)
+                    or stmt.offset != register
+                    or stmt.data.result_size(vex.tyenv) != width
+                ):
                     unknown = True
                     break
-                size = stmt.data.result_size(vex.tyenv) // 8
-                value = (
-                    self.value(current, stmt.data, index)
-                    if stmt.offset == offset and size * 8 == bits
-                    else None
-                )
-                if value is None:
-                    unknown = True
+                expr, read_position = self._definition(current, stmt.data, index)
+                if (
+                    isinstance(expr, pyvex.expr.Get)
+                    and expr.result_size(vex.tyenv) == width
+                ):
+                    pending.append((current, read_position, expr.offset, width))
                 else:
-                    values.add(value)
+                    value = self.value(current, stmt.data, index)
+                    if value is None:
+                        unknown = True
+                    else:
+                        values.add(value)
             else:
-                incoming = self._inputs(current, offset, bits)
+                incoming = self._inputs(current, register, width)
                 if incoming is None:
                     unknown = True
                 else:
                     positions, seeds = incoming
-                    pending.extend(positions)
+                    pending.extend(
+                        (pred, pos, register, width) for pred, pos in positions
+                    )
                     values.update(seeds)
             if len(values) > 1:
                 unknown = True
@@ -417,7 +467,7 @@ class PredecessorFacts:
         wrapping and bounded Cartesian products. Additive expressions can be
         refined by verified, bounded definition/edge correlations; unsupported
         relations keep the Cartesian superset. Masks and guards can bound
-        unknown inputs; writable bytes are never assumed constant.
+        unknown inputs; runtime-writable bytes are never assumed constant.
         """
 
         if depth >= 32 or self.exhausted:

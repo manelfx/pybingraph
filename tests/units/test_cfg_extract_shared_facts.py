@@ -111,6 +111,54 @@ def test_partial_alias_write_invalidates_full_register():
     assert facts.value(use, get(RAX)) is None
 
 
+@pytest.mark.parametrize("other", [7, 8, None])
+def test_register_copy_cycle_meets_all_entry_definitions(other):
+    entry = node(0x400000, pyvex.stmt.Put(const(7), RBX))
+    copy = node(0x400010, pyvex.stmt.Put(get(RBX), RAX))
+    back = node(0x400020, pyvex.stmt.Put(get(RAX), RBX))
+    root = node(
+        0x400030, *([] if other is None else [pyvex.stmt.Put(const(other), RBX)])
+    )
+    use = node(0x400040)
+    facts = setup(
+        [entry, copy, back, root, use],
+        [(entry, copy), (copy, back), (back, copy), (root, copy), (copy, use)],
+    )
+    assert facts.value(use, get(RAX)) == (7 if other == 7 else None)
+    assert not facts.exhausted
+
+
+@pytest.mark.parametrize("suffix,expected", [("90", 7), ("b4 12", None)])
+def test_yield_lifting_keeps_suffix_writes_and_cached_irsbs(suffix, expected):
+    entry = node(0x400000, pyvex.stmt.Put(const(7), RAX))
+    code = bytes.fromhex(f"f3 90 {suffix} 75 00")
+    original = pyvex.lift(code, 0x400010, ARCH)
+    assert original.jumpkind == "Ijk_Yield"
+    pause = Node(0x400010, SimpleNamespace(vex=original), len(code))
+    use = node(pause.addr + len(code))
+    facts = setup([entry, pause, use], [(entry, pause), (pause, use)])
+    suffix_vex = pyvex.lift(code[2:], pause.addr + 2, ARCH)
+    facts.project.factory = SimpleNamespace(
+        block=lambda addr, **kwargs: SimpleNamespace(vex=suffix_vex)
+    )
+    assert facts.value(use, get(RAX)) == expected
+    assert original.size == 2 and original.jumpkind == "Ijk_Yield"
+    assert suffix_vex.size == len(code) - 2
+    assert facts._block(pause)[0].size == len(code)
+
+
+def test_yield_without_a_contiguous_suffix_is_unknown():
+    entry = node(0x400000, pyvex.stmt.Put(const(7), RAX))
+    pause = Node(
+        0x400010,
+        SimpleNamespace(vex=pyvex.lift(bytes.fromhex("f3 90"), 0x400010, ARCH)),
+        2,
+    )
+    use = node(0x400020)
+    facts = setup([entry, pause, use], [(entry, pause), (pause, use)])
+    assert facts.value(use, get(RAX)) is None
+
+
 def test_completed_expression_queries_share_work_but_keep_read_positions():
     entry = node(0x400000, pyvex.stmt.Put(const(7), RBX))
     use = node(0x400010, pyvex.stmt.Put(const(99), RBX))
@@ -524,6 +572,25 @@ def test_adapter_linkage_root_is_distinct_from_arbitrary_writable_memory():
     assert (
         facts.value(entry, pyvex.expr.Load("Iend_LE", "Ity_I32", const(0x500000)))
         is None
+    )
+
+
+@pytest.mark.parametrize("region", ["relro", "writable", "short", "ordinary"])
+def test_relro_runtime_protection_overrides_only_writable_section_flags(region):
+    entry = node(0x400000)
+    facts = setup([entry], [], writable=True)
+    facts.project.loader.find_segment_containing = lambda address: SimpleNamespace(
+        is_relro=region != "ordinary",
+        is_writable=region == "writable",
+        max_addr=0x500003 if region == "short" else 0x50000F,
+    )
+    load = pyvex.expr.Load("Iend_LE", "Ity_I64", const(0x500000))
+
+    # Validate the whole load, not just its first byte or its section name.
+    expected = 37 if region == "relro" else None
+    assert facts.value(entry, load) == expected
+    assert facts.values(entry, load) == (
+        frozenset({expected}) if expected is not None else None
     )
 
 

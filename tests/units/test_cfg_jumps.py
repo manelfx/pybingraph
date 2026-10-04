@@ -11,8 +11,6 @@ import networkx as nx
 import pyvex
 
 from bingraph.cfg.jumps import (
-    _amd64_sysv_register_layout,
-    _abi_transfer_static_targets,
     arithmetic_pc_dispatch_targets,
     _jump_table_target_addr,
     plan_static_jump_table,
@@ -61,42 +59,6 @@ def _table(
         signed_entries=False,
         target_displacement=target_displacement,
     )
-
-
-def test_amd64_sysv_alias_write_invalidates_a_static_register_target() -> None:
-    """A high-byte write must invalidate the enclosing 64-bit register value."""
-
-    arch = archinfo.ArchAMD64()
-    executable = SimpleNamespace(
-        find_section_containing=lambda _addr: SimpleNamespace(is_executable=True)
-    )
-    vex = pyvex.lift(bytes.fromhex("b4 12 ff e0"), 0x400000, arch)
-    project = SimpleNamespace(
-        arch=arch,
-        loader=SimpleNamespace(
-            main_object=SimpleNamespace(os="UNIX - System V"),
-            extern_object=None,
-            find_object_containing=lambda _addr: executable,
-        ),
-        factory=SimpleNamespace(
-            block=lambda *_args, **_kwargs: SimpleNamespace(vex=vex)
-        ),
-    )
-    layout = _amd64_sysv_register_layout(project)
-    assert layout is not None
-    alias_writes, _ = layout
-    rax_offset = arch.registers["rax"][0]
-    assert alias_writes[arch.registers["ah"][0]] == rax_offset
-
-    output, target = _abi_transfer_static_targets(
-        project,
-        BlockSpec(0x400000, 4, (0x400000, 0x400002), "Ijk_Boring"),
-        alias_writes,
-        {rax_offset: 0x401000},
-    )
-
-    assert rax_offset not in output
-    assert target is None
 
 
 def test_mips_pic_join_requires_every_path_and_a_small_domain() -> None:
@@ -173,32 +135,6 @@ def test_mips_pic_masked_table_exceeding_value_cap_stays_unresolved() -> None:
 
     assert targets == {}
     assert not exhausted and ran
-
-
-def test_amd64_sysv_transfer_ignores_a_direct_vex_target() -> None:
-    """Only a register-valued VEX transfer can be materialized by this pass."""
-
-    arch = archinfo.ArchAMD64()
-    vex = pyvex.lift(bytes.fromhex("e9 fb 0f 00 00"), 0x400000, arch)
-    project = SimpleNamespace(
-        arch=arch,
-        loader=SimpleNamespace(main_object=SimpleNamespace(os="UNIX - System V")),
-        factory=SimpleNamespace(
-            block=lambda *_args, **_kwargs: SimpleNamespace(vex=vex)
-        ),
-    )
-    layout = _amd64_sysv_register_layout(project)
-    assert layout is not None
-    alias_writes, _ = layout
-
-    _, target = _abi_transfer_static_targets(
-        project,
-        BlockSpec(0x400000, 5, (0x400000,), "Ijk_Boring"),
-        alias_writes,
-        {},
-    )
-
-    assert target is None
 
 
 def test_x86_pc_thunk_proves_the_dispatcher_base_register() -> None:

@@ -6,12 +6,10 @@ from types import SimpleNamespace
 from angr import KnowledgeBase, options as sim_options
 import pytest
 
-from bingraph.cfg.jumps import (
-    plan_dynamic_selector_table_candidates,
-    plan_static_jump_table,
-)
+from bingraph.cfg.jumps import plan_dynamic_selector_table_candidates
 from bingraph.cfg_extract.builder import _ExtractionSession, build_extracted_cfg
 from bingraph.cfg_extract import builder as builder_module
+from bingraph.cfg_extract import shared_table_proof as proof_module
 from bingraph.cfg_extract.shared_table_proof import (
     shared_register_targets,
     shared_table_targets,
@@ -36,23 +34,17 @@ import pyvex
         (0x497190, 0x4972A3),
     ],
 )
-def test_shared_affine_tables_preserve_targets_without_legacy_recognition(
+def test_shared_affine_tables_prove_exact_targets_without_candidates(
     function: int, dispatcher: int
 ) -> None:
-    """Keep ordered affine dispatches exact without the retired legacy shape."""
+    """Resolve ordered affine dispatches without speculative table rows."""
 
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
     session = _ExtractionSession(project, KnowledgeBase(project), function)
     session._decode_all_blocks()
     graph, nodes = session._analysis_graph({})
 
-    # An unsupported register expression must decline as a shape, not become
-    # an unbounded table or a heuristic memory-selector candidate.
-    plan, reason = plan_static_jump_table(
-        project, graph, session.bounds, nodes[dispatcher]
-    )
-    assert plan is None
-    assert reason == "no_table_shape"
+    # Exact register-derived targets must not seed heuristic table candidates.
     assert (
         plan_dynamic_selector_table_candidates(
             project, graph, session.bounds, nodes[dispatcher]
@@ -568,14 +560,17 @@ def test_arithmetic_guard_proofs_resolve_all_memcpy_tail_rows(
 
 
 @pytest.mark.parametrize("reject_target", [False, True])
-def test_finite_register_targets_require_every_destination_to_be_valid(reject_target):
+@pytest.mark.parametrize("jumpkind", ["Ijk_Boring", "Ijk_Call"])
+def test_finite_register_targets_require_every_destination_to_be_valid(
+    reject_target, jumpkind
+):
     from types import SimpleNamespace
 
     entry = node(
         0x400000,
         pyvex.stmt.Put(pyvex.expr.Binop("Iop_And64", [get(RBX), const(1)]), RBX),
     )
-    use = node(0x400010)
+    use = node(0x400010, jumpkind=jumpkind)
     use.block.vex.next = pyvex.expr.Binop(
         "Iop_Add64",
         [const(0x400020), pyvex.expr.Binop("Iop_Shl64", [get(RBX), const(4, 8)])],
@@ -589,6 +584,63 @@ def test_finite_register_targets_require_every_destination_to_be_valid(reject_ta
     assert shared_register_targets(facts.project, use, facts) == (
         None if reject_target else (0x400020, 0x400030)
     )
+
+
+@pytest.mark.parametrize("jumpkind", ["Ijk_Boring", "Ijk_Call"])
+def test_folded_register_call_is_exact_but_linear_next_is_not_a_dispatch(jumpkind):
+    use = node(0x400000, jumpkind=jumpkind)
+    use.block.vex.next = const(0x400010)
+    facts = setup([use], [])
+    facts.project.loader.find_object_containing = lambda address: SimpleNamespace(
+        find_section_containing=lambda address: SimpleNamespace(is_executable=True)
+    )
+
+    assert shared_register_targets(facts.project, use, facts) == (
+        (0x400010,) if jumpkind == "Ijk_Call" else None
+    )
+
+
+@pytest.mark.parametrize("failure", [None, "unknown", "alias", "budget", "callee"])
+def test_shared_call_uses_scalar_loop_facts_without_losing_safety(monkeypatch, failure):
+    target = 0x500000
+    entry = node(0x400000, pyvex.stmt.Put(const(target), RBX))
+    loop = node(
+        0x400010,
+        *([pyvex.stmt.Put(const(1, 8), RBX + 1)] if failure == "alias" else []),
+    )
+    use = node(0x400020, jumpkind="Ijk_Call")
+    use.block.vex.next = get(RBX)
+    facts = setup([entry, loop, use], [(entry, loop), (loop, loop), (loop, use)])
+    if failure == "unknown":
+        unknown = node(0x400030)
+        facts.graph.add_edge(unknown, use, jumpkind="Ijk_Boring")
+    elif failure == "budget":
+        facts.max_steps = 1
+    monkeypatch.setattr(
+        proof_module,
+        "_is_static_pointer_call_target",
+        lambda project, addr: addr == target and failure != "callee",
+    )
+
+    assert shared_register_targets(facts.project, use, facts) == (
+        (target,) if failure is None else None
+    )
+
+
+def test_shared_relro_load_resolves_register_call_to_memcpy() -> None:
+    """Recover a register-carried memcpy target from protected RELRO bytes."""
+
+    project = load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    session = _ExtractionSession(project, KnowledgeBase(project), 0x4D9A10)
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+
+    call = session.blocks[0x4D9A80]
+    assert 0x4D9A8B in call.instruction_addrs
+    assert call.direct_targets
+    symbol = project.loader.find_symbol(call.direct_targets[0])
+    assert symbol is not None and symbol.name == "memcpy"
+    assert session.stats.shared_fact_budget_exhausted == 0
 
 
 @pytest.mark.parametrize(
@@ -731,7 +783,12 @@ def test_memmove_retains_dispatch_carriers_through_initial_and_loop_jumps():
                 successors = tuple(cfg.graph.successors(source))
                 assert all(not target.is_simprocedure for target in successors)
                 assert {target.addr for target in successors} == expected
-    assert cfg.extract_stats.exact_jump_proofs_by_flavor["shared_finite_register"] == 60
+    # The same shared facts can now resolve carriers in the earlier ABI stage,
+    # rather than waiting for the non-table jump fallback.
+    assert (
+        cfg.extract_stats.exact_jump_proofs_by_flavor.get("shared_finite_register", 0)
+        + cfg.extract_stats.abi_static_jump_targets_resolved
+    ) == 60
     assert cfg.extract_stats.unresolved_indirect_targets == 0
     assert cfg.extract_stats.shared_fact_budget_exhausted == 0
     assert cfg.extract_stats.output_anomaly_count == 0
