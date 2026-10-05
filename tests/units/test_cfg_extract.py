@@ -391,6 +391,47 @@ def test_extract_preserves_conditional_return_fallthrough() -> None:
     assert popeq.fallthrough_addr == 0x473848
 
 
+@pytest.mark.parametrize(
+    ("code", "unknown"),
+    (
+        ("078e", False),  # ber r14
+        ("077e", False),  # bner r14
+        ("07ce", False),  # bler r14
+        ("0771", True),  # bner r1: not the ABI return address
+        ("b90400e1077e", True),  # lgr r14,r1; bner r14
+        ("18e1077e", True),  # lr r14,r1: partial link-register overwrite
+    ),
+)
+def test_extract_conditional_link_return_does_not_create_ujt(
+    code: str, unknown: bool
+) -> None:
+    """Keep conditional returns distinct from other computed register branches."""
+
+    data = bytes.fromhex(code + "07fe")  # ordinary continuation: br r14
+    project = load_shellcode(data, "S390X", load_address=0x1000)
+    bounds = FunctionBounds(
+        0x1000, 0x1000 + len(data), len(data), SimpleNamespace(name="conditional")
+    )
+    with patch.object(builder_module, "_lookup_function_bounds", return_value=bounds):
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), 0x1000
+        )
+    session._decode_all_blocks()
+    session._materialize_edges()
+
+    source = session.nodes[0x1000]
+    continuation = session.nodes[0x1000 + len(data) - 2]
+    assert session.graph.has_edge(source, continuation)
+    assert session.stats.unresolved_indirect_targets == int(unknown)
+    assert (
+        any(
+            node.simprocedure_name == "UnresolvableJumpTarget"
+            for node in session.graph.successors(source)
+        )
+        == unknown
+    )
+
+
 def test_extract_does_not_fall_through_from_an_unconditional_thumb_return() -> None:
     """Ignore VEX's generic inactive-IT exit after an ordinary Thumb return."""
 
@@ -1461,44 +1502,28 @@ def test_extract_recovers_mips64_table_with_guarded_frame_reload() -> None:
     assert session.unresolved_dispatcher_reasons.get(0x1200055D0) is None
 
 
-def test_extract_recovers_spilled_i386_pic_relative_tables() -> None:
-    """Recover guarded rows only after proving their PIC base and selector."""
+def test_extract_does_not_sweep_unproven_i386_pic_tables() -> None:
+    """Unknown spilled relative tables must not grow speculative components."""
 
     project = project_module.load_project(
         Path("angr-binaries/tests/i386/bronze_ropchain")
     )
     cases = (
-        (0x807B160, 0x807B254, 11, 0x807B268),
-        (0x80A6F40, 0x80A6FC2, 26, 0x80A72D0),
-        (0x80A7DB0, 0x80A7E0B, 26, 0x80A8080),
-        (0x80A8480, 0x80A8557, 6, 0x80A8570),
+        (0x807B160, 0x807B254),
+        (0x80A6F40, 0x80A6FC2),
+        (0x80A7DB0, 0x80A7E0B),
+        (0x80A8480, 0x80A8557),
     )
-    for function_addr, dispatcher_addr, target_count, representative in cases:
+    for function_addr, dispatcher_addr in cases:
         cfg = build_extracted_cfg(project, KnowledgeBase(project), function_addr)
         nodes = {node.addr: node for node in cfg.graph.nodes()}
-        targets = {node.addr for node in cfg.graph.successors(nodes[dispatcher_addr])}
+        targets = tuple(cfg.graph.successors(nodes[dispatcher_addr]))
 
-        assert len(targets) == target_count
-        assert representative in targets
-        assert (
-            cfg.extract_stats.exact_jump_proofs_by_flavor.get("x86_pic_table", 0) >= 1
-        )
-        assert all(
-            node.simprocedure_name != "UnresolvableJumpTarget"
-            for node in nodes.values()
-        )
-
-
-def test_extract_keeps_unproven_i386_jump_unresolved() -> None:
-    """A nearby dynamic jump must not inherit a PIC-table proof."""
-
-    project = project_module.load_project(
-        Path("angr-binaries/tests/i386/bronze_ropchain")
-    )
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x80542C0)
-    assert any(
-        node.simprocedure_name == "UnresolvableJumpTarget" for node in cfg.graph.nodes()
-    )
+        assert len(targets) == 1
+        assert targets[0].simprocedure_name == "UnresolvableJumpTarget"
+        assert cfg.extract_stats.sweep_runs == 0
+        assert cfg.extract_stats.output_anomaly_count == 0
+        assert cfg.extract_stats.static_jump_plans_resolved == 0
 
 
 def test_extract_resolves_inline_masked_mips_pic_table() -> None:
@@ -1764,29 +1789,8 @@ def test_extract_static_table_discovery_discards_stale_snapshot_plans(
     assert session.stats.static_jump_targets_accepted == 2
 
 
-def test_extract_closes_secondary_table_after_proving_first_dispatcher() -> None:
-    """Exact first-level targets reveal a second fully bounded jump table."""
-
-    project = project_module.load_project(
-        Path("angr-binaries/tests/i386/bronze_ropchain")
-    )
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x80A7DB0)
-
-    assert cfg.extract_stats.static_jump_plans_resolved == 2
-    assert cfg.extract_stats.sweep_runs == 0
-    assert cfg.extract_stats.output_anomaly_count == 0
-    assert cfg.extract_stats.output_anomalies_by_kind == {}
-
-    nodes = {node.addr: node for node in cfg.graph.nodes()}
-    assert len(tuple(cfg.graph.successors(nodes[0x80A7E0B]))) == 26
-    assert len(tuple(cfg.graph.successors(nodes[0x80A80D4]))) == 18
-    assert all(
-        node.simprocedure_name != "UnresolvableJumpTarget" for node in nodes.values()
-    )
-
-
-def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
-    """Keep proven closure through exact and unresolved-dispatch recovery."""
+def test_extract_retains_static_targets_without_memory_dispatch_sweeps() -> None:
+    """Keep exact closure when another memory-derived jump remains unknown."""
 
     cases = (
         (
@@ -1795,9 +1799,6 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
             0x4208F7,
             (0x4208A8, 0x420A0C),
             41,
-            # The shared proof now reads the constant first-row dispatch,
-            # so this case no longer needs speculative component recovery.
-            False,
         ),
         (
             "x86_64/cvs",
@@ -1805,7 +1806,6 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
             0x47FBD0,
             (0x47FD00, 0x47FE60),
             6,
-            True,
         ),
         (
             "x86_64/1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
@@ -1813,7 +1813,6 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
             0x42A0FA,
             (0x42A125, 0x42A171),
             5,
-            False,
         ),
     )
     for (
@@ -1822,7 +1821,6 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
         dispatcher_addr,
         expected_targets,
         successor_count,
-        uses_sweep,
     ) in cases:
         project = project_module.load_project(Path("angr-binaries/tests") / binary)
         cfg = build_extracted_cfg(project, KnowledgeBase(project), function_addr)
@@ -1838,7 +1836,7 @@ def test_extract_retains_static_targets_during_reconnecting_recovery() -> None:
             node.is_simprocedure and node.name == "UndecodableInstructionTarget"
             for node in cfg.graph.nodes()
         )
-        assert bool(cfg.extract_stats.sweep_runs) is uses_sweep
+        assert cfg.extract_stats.sweep_runs == 0
         if binary == "x86_64/rust_hello_world":
             assert (
                 cfg.extract_stats.exact_jump_proofs_by_flavor.get(
@@ -1922,7 +1920,8 @@ def test_extract_recovers_memory_selector_table_candidates() -> None:
     )
     assert cfg.extract_stats.static_jump_candidate_plans == 1
     assert cfg.extract_stats.static_jump_candidate_targets_accepted == 3
-    assert cfg.extract_stats.sweep_runs == 1
+    assert cfg.extract_stats.sweep_runs == 0
+    assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
 
 
 def test_extract_recovers_clamped_relative_jump_table() -> None:
@@ -1980,7 +1979,7 @@ def test_extract_recovers_clamped_relative_jump_table() -> None:
 
 
 def test_extract_skips_ambiguous_memory_selector_table_candidates() -> None:
-    """LSDA landing pads must not suppress an existing dispatcher sweep."""
+    """Keep LSDA edges without substituting a sweep for an unproved enum."""
 
     project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
     session = builder_module._ExtractionSession(
@@ -1989,15 +1988,14 @@ def test_extract_skips_ambiguous_memory_selector_table_candidates() -> None:
     cfg = session.build()
 
     assert cfg.extract_stats.static_jump_candidate_plans == 0
-    assert cfg.extract_stats.sweep_reconnecting_blocks == 26
-    assert cfg.extract_stats.exceptional_transfers_discovered == 149
-    assert {0x4F2ED5, 0x4F31FB, 0x4F360F, 0x4F42E6} <= session.blocks.keys()
-    covered = {
-        insn.address
-        for block in session.blocks.values()
-        for insn in decode_raw_capstone_insns(project, block.addr, block.size)
-    }
-    assert len(covered) >= 1333
+    assert cfg.extract_stats.sweep_runs == 0
+    assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
+    assert not session.sweep_component_roots
+    assert cfg.extract_stats.exception_edges_added > 0
+    source = next(node for node in cfg.graph if node.addr == 0x4F2E60)
+    successors = tuple(cfg.graph.successors(source))
+    assert len(successors) == 1
+    assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
 
 
 def test_extract_bounds_memory_selector_table_candidates() -> None:
@@ -2056,8 +2054,8 @@ def test_extract_does_not_reconnect_dynamic_memory_dispatch() -> None:
     assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
 
 
-def test_extract_proves_static_memory_dispatch_before_recovery() -> None:
-    """Resolve a two-level static table instead of sweeping its padding."""
+def test_extract_does_not_sweep_an_unproved_static_memory_dispatch() -> None:
+    """A mapped byte-map/table base is not evidence for padding-root edges."""
 
     project = project_module.load_project(Path("angr-binaries/tests/x86_64/static"))
     cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x451F40)
@@ -2065,10 +2063,12 @@ def test_extract_proves_static_memory_dispatch_before_recovery() -> None:
     dispatcher = nodes[0x45279C]
 
     successors = tuple(cfg.graph.successors(dispatcher))
-    assert len(successors) == 14
-    assert all(not node.is_simprocedure for node in successors)
-    assert cfg.extract_stats.static_jump_dynamic_memory_target == 0
+    assert len(successors) == 1
+    assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
+    assert 0x452FDF not in nodes
+    assert cfg.extract_stats.static_jump_dynamic_memory_target == 1
     assert cfg.extract_stats.sweep_runs == 0
+    assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
 
 
 def test_extract_resolves_abi_preserved_register_tail_target() -> None:
@@ -2434,8 +2434,8 @@ def test_extract_resolves_s390_table_loaded_register_branches() -> None:
         assert len(plan.entry_indices) == entry_count
 
 
-def test_extract_resolves_guarded_s390_byte_map_dispatch() -> None:
-    """The read-only guard and byte map prove all second-level targets."""
+def test_extract_keeps_unproved_s390_byte_map_dispatch_unresolved() -> None:
+    """Keep a table-loaded br as a jump without guessing second-level rows."""
 
     project = project_module.load_project(
         Path("angr-binaries/tests/s390x/test-instr_s390x")
@@ -2448,13 +2448,12 @@ def test_extract_resolves_guarded_s390_byte_map_dispatch() -> None:
     source = next(node for node in cfg.graph if node.addr == source_addr)
 
     assert session.blocks[source_addr].jumpkind == "Ijk_Boring"
-    assert len(session.static_targets[source_addr]) == 14
-    assert all(not node.is_simprocedure for node in cfg.graph.successors(source))
-    assert 0x8002A6DE in session.blocks
-    nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
-    assert cfg.graph.has_edge(nodes[0x8002B86A], nodes[0x8002BB14])
-    assert session.blocks[0x8002BB14].fallthrough_addr is None
-    assert 0x8002BB5A not in session.blocks  # After non-returning __assert_fail.
+    assert source_addr not in session.static_targets
+    successors = tuple(cfg.graph.successors(source))
+    assert len(successors) == 1
+    assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
+    assert cfg.extract_stats.sweep_runs == 0
+    assert cfg.extract_stats.sweep_dispatchers_ineligible == 1
 
 
 def test_extract_continues_after_valid_mips_vex_sigill() -> None:

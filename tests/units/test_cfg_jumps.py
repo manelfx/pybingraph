@@ -12,6 +12,7 @@ import pyvex
 
 from bingraph.cfg.jumps import (
     arithmetic_pc_dispatch_targets,
+    is_memory_dependent_indirect_jump,
     _jump_table_target_addr,
     plan_static_jump_table,
     _read_static_jump_table_targets,
@@ -59,6 +60,45 @@ def _table(
         signed_entries=False,
         target_displacement=target_displacement,
     )
+
+
+def test_memory_dependent_jump_tracks_only_the_computed_target() -> None:
+    """Unproved static, dynamic and relative loads all bar arbitrary sweeps."""
+
+    static_load = pyvex.expr.Load(
+        "Iend_LE", "Ity_I64", pyvex.expr.Const(pyvex.const.U64(0x4000))
+    )
+    dynamic_load = pyvex.expr.Load("Iend_LE", "Ity_I64", pyvex.expr.Get(16, "Ity_I64"))
+    relative = pyvex.expr.Binop(
+        "Iop_Add64", [pyvex.expr.Const(pyvex.const.U64(0x4000)), dynamic_load]
+    )
+    definitions = (pyvex.stmt.WrTmp(0, relative),)
+    for expression, expected in (
+        (static_load, True),
+        (dynamic_load, True),
+        (relative, True),
+        (pyvex.expr.RdTmp(0), True),
+        (pyvex.expr.Get(16, "Ity_I64"), False),
+        (pyvex.expr.Const(pyvex.const.U64(0x5000)), False),
+    ):
+        node = _Node(
+            0x1000,
+            8,
+            SimpleNamespace(
+                jumpkind="Ijk_Boring", next=expression, statements=definitions
+            ),
+        )
+        assert is_memory_dependent_indirect_jump(node) is expected
+
+    for jumpkind, expected in (("Ijk_Ret", True), ("Ijk_Call", False)):
+        node = _Node(
+            0x1000,
+            8,
+            SimpleNamespace(jumpkind=jumpkind, next=dynamic_load, statements=()),
+        )
+        assert is_memory_dependent_indirect_jump(node) is expected
+    with patch.object(jumps_module, "_node_vex", return_value=None):
+        assert not is_memory_dependent_indirect_jump(node)
 
 
 def test_mips_pic_join_requires_every_path_and_a_small_domain() -> None:

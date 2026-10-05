@@ -92,9 +92,11 @@ cross-architecture behavior before claiming a corpus-wide benefit.
 Follow-up: remove superseded resolvers without changing CFG behavior
 
 Keep this cleanup separate from new accuracy improvements. The shared engine
-currently runs after older resolvers, so winning-proof counters do not show
-which older paths it already subsumes. Zero corpus usage alone does not prove
-that a reachable safety branch or architecture-specific helper is dead code.
+now runs before legacy table fallbacks, so winning-proof counters identify the
+remaining fallback-owned sites, not every older path it already subsumes.
+Independent coverage audits are still needed before deleting a family. Zero
+corpus usage alone does not prove that a reachable safety branch or
+architecture-specific helper is dead code.
 
 - Freeze the current code and corpus results as a checkpoint before cleanup.
 - At each successful legacy dispatch, independently evaluate the shared

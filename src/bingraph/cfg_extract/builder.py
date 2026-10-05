@@ -42,14 +42,14 @@ from bingraph.cfg.jumps import (
     _read_static_jump_table_targets,
     abi_static_register_transfer_targets,
     conditional_pc_dispatch_targets,
-    is_direct_memory_indirect_jump,
+    is_memory_dependent_indirect_jump,
     plan_dynamic_selector_table_candidates,
     plan_mips_pic_relative_jump_table,
     plan_static_jump_table,
-    plan_x86_pic_relative_jump_table,
     s390_table_loaded_branch,
     static_jump_target_rejection_reason,
-    unconditional_arithmetic_pc_dispatch_targets,
+    vex_has_computed_pc_transfer,
+    vex_is_conditional_link_return,
 )
 from bingraph.cfg.models import (
     BlockSpec,
@@ -84,7 +84,6 @@ from .shared_table_proof import (
 )
 from .sweep import recover_executable_components, select_reconnecting_components
 from .syscalls import ResolvedSyscall, resolve_static_syscall, unknown_syscall_target
-from .two_level_tables import exact_two_level_table_targets
 
 
 _UNRESOLVABLE_CALL_ADDR = 0xFFFFFFFFFFFFFFD0
@@ -903,18 +902,12 @@ class _ExtractionSession:
                 # Exact resolvers share one leader worklist. A successful
                 # plan can reveal code needed by a later resolver round.
                 targets, reason = conditional_pc_dispatch_targets(
-                    self.project, self.bounds, node, graph
+                    self.project, self.bounds, node
                 )
                 proof_flavor = "conditional_pc" if targets is not None else None
                 plan = None
                 if targets is not None:
                     conditional_sources.add(addr)
-                if targets is None and reason == "not_conditional_pc":
-                    targets = unconditional_arithmetic_pc_dispatch_targets(
-                        self.project, graph, self.bounds, node
-                    )
-                    if targets is not None:
-                        proof_flavor = "arithmetic_pc"
                 if (
                     targets is None
                     and reason in {"not_conditional_pc", "no_vex"}
@@ -956,12 +949,6 @@ class _ExtractionSession:
                             node,
                             allow_predecessor_static_base=True,
                         )
-                    if plan is None and reason == "no_table_shape":
-                        plan = plan_x86_pic_relative_jump_table(
-                            self.project, graph, self.bounds, node
-                        )
-                        if plan is not None:
-                            reason = None
                     if plan is not None:
                         targets = _read_static_jump_table_targets(
                             self.project,
@@ -971,13 +958,6 @@ class _ExtractionSession:
                         )
                         if targets is not None:
                             proof_flavor = plan.proof_flavor
-                if targets is None and reason in {"no_table_shape", "unbounded_index"}:
-                    targets = exact_two_level_table_targets(
-                        self.project, graph, self.bounds, node
-                    )
-                    if targets is not None:
-                        reason = None
-                        proof_flavor = "two_level_table"
                 if targets is None and reason == "no_table_shape":
                     # The table query already ran against this snapshot. Do not
                     # repeat it after legacy planning or borrow its bounds.
@@ -1034,9 +1014,13 @@ class _ExtractionSession:
                                 candidate_plans[addr] = tuple(accepted_candidates)
                                 candidate_entry_counts[addr] = len(candidate_targets)
                 if targets is None:
-                    if reason == "no_table_shape" and is_direct_memory_indirect_jump(
-                        self.project, node
+                    if reason == "no_table_shape" and is_memory_dependent_indirect_jump(
+                        node
                     ):
+                        # Preserve the historical diagnostic name. This also
+                        # excludes unproved static/relative memory tables from
+                        # sweep recovery; exact proofs and table-backed dashed
+                        # candidates above are unaffected.
                         reason = "dynamic_memory_target"
                     unresolved_reasons[addr] = reason
                     self.stats.static_jump_unresolved_dispatcher_attempts += 1
@@ -1306,8 +1290,20 @@ class _ExtractionSession:
             if (
                 block.jumpkind == "Ijk_Boring"
                 and not block.direct_targets
-                and block.fallthrough_addr is None
                 and not self.static_targets.get(addr)
+                and (
+                    block.fallthrough_addr is None
+                    or (
+                        # The false-path continuation does not resolve a
+                        # conditional computed-PC branch's taken target.
+                        (vex := node_vex(source)) is not None
+                        and vex_has_computed_pc_transfer(vex, block.fallthrough_addr)
+                        # Caller-dependent return addresses are not UJTs.
+                        and not vex_is_conditional_link_return(
+                            vex, block.fallthrough_addr
+                        )
+                    )
+                )
             ):
                 unresolved = self._leaf(0xFFFFFFFFFFFFFFF0, "UnresolvableJumpTarget")
                 if add_successor_edge(
@@ -1326,8 +1322,10 @@ class _ExtractionSession:
         a table-like shape, for example an address with an unbounded index.
         Reconnecting arbitrary executable components behind that source would
         turn an incomplete proof into speculative targets. Sweep recovery is
-        therefore reserved for dispatchers where VEX exposed no table shape at
-        all; a recognized but unresolved table keeps only its explicit leaf.
+        therefore reserved for dispatchers where VEX exposed neither a table
+        shape nor a memory-derived target. A mapped table base alone does not
+        establish its selector domain or justify a sweep; unresolved memory
+        dispatch keeps its leaf and any independently table-backed candidates.
         """
 
         dispatchers = [

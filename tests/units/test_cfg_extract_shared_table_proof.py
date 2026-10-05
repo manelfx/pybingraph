@@ -155,8 +155,6 @@ def test_shared_primary_discovers_cfg_without_any_legacy_table_rescue(
     for name in (
         "plan_static_jump_table",
         "plan_mips_pic_relative_jump_table",
-        "plan_x86_pic_relative_jump_table",
-        "exact_two_level_table_targets",
     ):
         monkeypatch.setattr(builder_module, name, forbidden)
     monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")

@@ -72,38 +72,23 @@ def test_extract_recovers_a_guarded_arithmetic_pc_dispatch() -> None:
     assert cfg.extract_stats.conditional_pc_targets_recovered == 8
 
 
-def test_extract_recovers_a_clz_derived_arithmetic_pc_dispatch() -> None:
-    """Recover the bounded predicated dispatcher in ``__aeabi_idiv``."""
+def test_extract_keeps_an_unbounded_conditional_pc_branch_explicit() -> None:
+    """A known false path must not hide the unresolved taken branch."""
 
     project = load_project(Path("angr-binaries/tests/armel/test_division"))
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x8670)
-    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    session = builder_module._ExtractionSession(project, KnowledgeBase(project), 0x8670)
+    session._decode_all_blocks()
+    session._materialize_edges()
+    nodes = {node.addr: node for node in session.graph if not node.is_simprocedure}
     source = nodes[0x86A0]
-    successors = {node.addr for node in cfg.graph.successors(source)}
+    successors = tuple(session.graph.successors(source))
 
-    assert successors == {0x86BC, *range(0x86CC, 0x8835, 0xC)}
-    assert 0x86C0 not in successors
-    assert cfg.extract_stats.conditional_pc_dispatches_resolved == 1
-    assert cfg.extract_stats.conditional_pc_targets_recovered == 31
-
-
-def test_extract_recovers_an_unconditional_clz_arithmetic_pc_dispatch() -> None:
-    """Recover a bounded Thumb ``mov pc`` dispatch from its unique path."""
-
-    project = load_project(Path("angr-binaries/tests/armhf/float_int_conversion.elf"))
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0xEF19)
-    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
-    source = nodes[0xEF2F]
-    successors = {node.addr for node in cfg.graph.successors(source)}
-
-    assert successors == set(range(0xEF61, 0xF142, 0x10))
-    assert cfg.extract_stats.static_jump_plans_resolved == 1
-    assert cfg.extract_stats.exact_jump_proofs_by_flavor == {"arithmetic_pc": 1}
-    assert not any(
-        node.simprocedure_name == "UnresolvableJumpTarget"
-        for node in cfg.graph.nodes()
-        if node.is_simprocedure
-    )
+    assert len(successors) == 2
+    assert nodes[0x86BC] in successors
+    unknown = next(node for node in successors if node.is_simprocedure)
+    assert unknown.simprocedure_name == "UnresolvableJumpTarget"
+    assert session.graph[source][unknown]["unresolved_indirect"]
+    assert session.stats.unresolved_indirect_targets == 1
 
 
 def test_extract_recovers_an_unconditional_static_pc_load_table() -> None:
