@@ -57,6 +57,7 @@ def render_cfg(
     cfg_mode: CfgMode,
     cfg_exits: CfgExits,
     format: str,
+    cfg_recovery: bool = False,
 ) -> str:
     """
     Render the control flow graph (CFG) of a specific function as an SVG image.
@@ -80,7 +81,7 @@ def render_cfg(
     """
     # Extract the angr CFG first. We still prefer it when the lift succeeds,
     # because it carries richer metadata than a disassembly-only graph.
-    cfg = get_cfg(project, func_addr, cfg_mode)
+    cfg = get_cfg(project, func_addr, cfg_mode, cfg_recovery)
     # Check if function is found in CFG.
     function = cfg.functions.get(func_addr)
     if not function:

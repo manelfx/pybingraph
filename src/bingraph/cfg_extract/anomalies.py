@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import deque
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Iterable, Mapping
 
 from angr import Project
 from angr.knowledge_plugins.cfg import CFGNode
@@ -76,12 +76,15 @@ def find_extracted_cfg_anomalies(
     blocks: Mapping[int, BlockSpec],
     *,
     project: Project | None = None,
+    recovered_roots: Iterable[int] = (),
 ) -> tuple[ExtractedCFGAnomaly, ...]:
     """Validate invariants that the extractor itself promises to establish.
 
     Unresolved indirect transfers are not anomalies: they remain explicit
     leaves until a table resolver proves their targets. The checks below cover
     only errors the bounded leader worklist should never leave behind.
+    Explicit discovery roots exempt their regions from entry reachability,
+    not from instruction, overlap, or edge validation.
     """
 
     anomalies: list[ExtractedCFGAnomaly] = []
@@ -260,6 +263,9 @@ def find_extracted_cfg_anomalies(
         )
     else:
         reachable = _reachable_nodes(graph, entry)
+        for address in recovered_roots:
+            if (root := node_by_addr.get(address)) is not None:
+                reachable.update(_reachable_nodes(graph, root))
         for node in nodes:
             if node not in reachable:
                 anomalies.append(

@@ -17,6 +17,19 @@ class _Node:
     simprocedure_name: str | None = None
 
 
+def test_select_cfg_nodes_keeps_unknown_entry_sources() -> None:
+    """Keep structural discovery sources even when external exits are hidden."""
+
+    graph = nx.DiGraph()
+    entry = _Node(0x1000, 0x1000)
+    region = _Node(0x1010, 0x1000)
+    source = _Node(0xFFFF, 0x1000, True, "UnresolvedEntrySource")
+    graph.add_node(entry)
+    graph.add_edge(source, region, jumpkind="Ijk_Boring", unresolved_indirect=True)
+    for exits in ("never", "jump", "always"):
+        assert _select_cfg_nodes(graph, 0x1000, exits) == {entry, region, source}
+
+
 def test_select_cfg_nodes_shows_non_call_like_exits_by_default() -> None:
     """Keep direct branches while omitting call and syscall leaves."""
 

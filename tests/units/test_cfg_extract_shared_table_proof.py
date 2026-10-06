@@ -146,7 +146,7 @@ def test_shared_primary_discovers_cfg_without_any_legacy_table_rescue(
         monkeypatch.setattr(
             builder_module,
             "conditional_pc_dispatch_targets",
-            lambda *_args: (None, "no_vex"),
+            lambda *_args, **_kwargs: (None, "no_vex"),
         )
 
     def forbidden(*_args, **_kwargs):

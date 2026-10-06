@@ -2611,6 +2611,8 @@ def conditional_pc_dispatch_targets(
     project: Project,
     bounds: FunctionBounds,
     node: CFGNode,
+    *,
+    table_data: set[int] | None = None,
 ) -> tuple[tuple[int, ...] | None, str | None]:
     """Return finite targets of one VEX-proven conditional PC dispatcher.
 
@@ -2662,6 +2664,15 @@ def conditional_pc_dispatch_targets(
             return None, "table_unreadable"
         if not all(is_direct_target_valid(bounds, target) for target in targets):
             return None, "invalid_target"
+        if table_data is not None:
+            address = _jump_table_addr(table.static_base_addr, table)
+            for index in index_values:
+                table_data.update(
+                    range(
+                        address + index * table.entry_size,
+                        address + (index + 1) * table.entry_size,
+                    )
+                )
         return targets, None
 
     arithmetic = _conditional_pc_arithmetic_dispatch(vex, definitions, taken)

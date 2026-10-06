@@ -233,14 +233,31 @@ def _get_emu_cfg(
     )
 
 
+def get_cfg(
+    project: Project,
+    func_addr: int,
+    cfg_mode: CfgMode | None = None,
+    cfg_recovery: bool | None = None,
+) -> CFGBase:
+    """Resolve defaults before caching, including explicit recovery overrides."""
+
+    if cfg_mode is None or (cfg_mode == "extract" and cfg_recovery is None):
+        settings = get_settings()
+        cfg_mode = settings.cfg_mode if cfg_mode is None else cfg_mode
+        cfg_recovery = settings.cfg_recovery if cfg_recovery is None else cfg_recovery
+    # Recovery has no meaning outside extract; avoid duplicate custom caches.
+    return _get_cfg(
+        project, func_addr, cfg_mode, bool(cfg_recovery) and cfg_mode == "extract"
+    )
+
+
 @lru_cache
 @time_it
-def get_cfg(
-    project: Project, func_addr: int, cfg_mode: CfgMode | None = None
+def _get_cfg(
+    project: Project, func_addr: int, resolved_cfg_mode: CfgMode, cfg_recovery: bool
 ) -> CFGBase:
-    """Return the CFG for one function according to the configured fallback mode."""
+    """Build a graph with fully resolved settings forming its cache key."""
 
-    resolved_cfg_mode = cfg_mode or get_settings().cfg_mode
     logger.info(
         f"Getting CFG for function {func_addr:#x} with mode '{resolved_cfg_mode}'"
     )
@@ -252,7 +269,10 @@ def get_cfg(
     if resolved_cfg_mode == "extract":
         # This experimental path deliberately starts from bounded decoding,
         # rather than using CFGFast as a seed graph to repair.
-        cfg = cast(CFGBase, build_extracted_cfg(project, kb, func_addr))
+        cfg = cast(
+            CFGBase,
+            build_extracted_cfg(project, kb, func_addr, cfg_recovery=cfg_recovery),
+        )
     else:
         fast_cfg = _get_fast_cfg(project, kb, func_addr)
 
@@ -268,3 +288,8 @@ def get_cfg(
     if resolved_cfg_mode != "extract":
         log_cfg_status(cfg, func_addr, f"Selected CFG ({resolved_cfg_mode})")
     return cfg
+
+
+# Preserve the cache-control interface used by corpus runners and callers.
+cast(Any, get_cfg).cache_clear = _get_cfg.cache_clear
+cast(Any, get_cfg).cache_info = _get_cfg.cache_info

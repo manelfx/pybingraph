@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from bisect import bisect_left
+from collections.abc import Callable, Collection
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Mapping
 
 from angr import Project
@@ -16,8 +17,15 @@ from bingraph.cfg.models import BlockSpec, FunctionBounds
 from bingraph.cfg.decode import (
     alternate_block_entry_rejoin_addr,
     decode_bounded_block,
+    decode_raw_capstone_insns,
     is_valid_block_entry,
+    target_is_known_nonreturning,
 )
+from bingraph.helpers.capstone import InsnSemantics
+
+
+class SweepBudgetExceeded(Exception):
+    """A speculative scan exceeded its deterministic decoding-work bound."""
 
 
 @dataclass(frozen=True)
@@ -142,6 +150,8 @@ def _recover_direct_closure(
     blocks: dict[int, BlockSpec],
     leaders: set[int],
     stop_at_data: Callable[[int], bool] | None,
+    *,
+    resolve_static_memory_calls: bool = False,
 ) -> int:
     """Close sweep targets using the extractor's safe leader invariant."""
 
@@ -225,6 +235,7 @@ def _recover_direct_closure(
             preserve_conditional_return_fallthrough=True,
             split_syscall_blocks=True,
             resolve_declared_nonreturning=True,
+            resolve_static_memory_calls=resolve_static_memory_calls,
             allow_vex_linear_fallback=True,
             stop_at_data=stop_at_data,
         )
@@ -267,6 +278,8 @@ def recover_executable_components(
     recovered_blocks: Mapping[int, BlockSpec],
     *,
     stop_at_data: Callable[[int], bool] | None = None,
+    max_steps: int | None = None,
+    resolve_static_memory_calls: bool = False,
 ) -> ExecutableSweep:
     """Recover and validate disconnected executable components without a CFG.
 
@@ -274,7 +287,22 @@ def recover_executable_components(
     direct flow around each recovered target. It deliberately returns data only:
     callers decide whether unresolved indirect dispatches justify materializing
     these speculative components.
+    Static-memory call decoding is opt-in so presentation-only recovery can
+    match normal extraction without changing legacy sweep consumers.
     """
+
+    if max_steps is not None:
+        original_stop = stop_at_data
+        remaining = max_steps
+
+        def bounded_stop(addr: int) -> bool:
+            nonlocal remaining
+            remaining -= 1
+            if remaining < 0:
+                raise SweepBudgetExceeded
+            return original_stop(addr) if original_stop is not None else False
+
+        stop_at_data = bounded_stop
 
     blocks = dict(recovered_blocks)
     leaders = set(blocks)
@@ -304,6 +332,7 @@ def recover_executable_components(
             preserve_conditional_return_fallthrough=True,
             split_syscall_blocks=True,
             resolve_declared_nonreturning=True,
+            resolve_static_memory_calls=resolve_static_memory_calls,
             allow_vex_linear_fallback=True,
             stop_at_data=stop_at_data,
         )
@@ -317,7 +346,12 @@ def recover_executable_components(
         cursor = block.addr + block.size
 
     decode_failures += _recover_direct_closure(
-        project, bounds, blocks, leaders, stop_at_data
+        project,
+        bounds,
+        blocks,
+        leaders,
+        stop_at_data,
+        resolve_static_memory_calls=resolve_static_memory_calls,
     )
     reachable_addrs = _reachable_addrs(blocks, bounds)
     disconnected_addrs = set(blocks) - reachable_addrs
@@ -424,6 +458,241 @@ def select_reconnecting_components(
         component_count,
         reconnecting_block_count,
     )
+
+
+def validate_disconnected_baseline(
+    sweep: ExecutableSweep | Mapping[int, BlockSpec],
+    baseline: Mapping[int, BlockSpec],
+    *,
+    protected_sources: Collection[int] = (),
+) -> dict[int, BlockSpec] | None:
+    """Accept only lossless instruction-boundary partitions of known blocks.
+
+    Prefix fragments must flow sequentially into the next fragment; the final
+    fragment must retain the original terminal semantics and metadata. Exact
+    proof sources stay pinned: splitting them would require independently
+    revalidating their input facts, not trusting speculative predecessors.
+    The returned mapping is for presentation, never resolver analysis.
+    """
+
+    # Both a sweep and the late LSDA decoder produce the same block facts.
+    blocks = sweep.blocks if isinstance(sweep, ExecutableSweep) else sweep
+    starts = sorted(blocks)
+    validated: dict[int, BlockSpec] = {}
+    for addr, original in baseline.items():
+        if blocks.get(addr) == original:
+            validated[addr] = original
+            continue
+        if addr in protected_sources:
+            return None
+        end = addr + original.size
+        fragments = [
+            blocks[start]
+            for start in starts[bisect_left(starts, addr) : bisect_left(starts, end)]
+        ]
+        if (
+            not fragments
+            or fragments[0].addr != addr
+            or fragments[-1].addr + fragments[-1].size != end
+            or tuple(a for part in fragments for a in part.instruction_addrs)
+            != original.instruction_addrs
+        ):
+            return None
+        for prefix, following in zip(fragments, fragments[1:]):
+            if (
+                prefix.size <= 0
+                or prefix.addr + prefix.size != following.addr
+                or following.addr not in original.instruction_addrs
+                or prefix.jumpkind != "Ijk_Fallthrough"
+                or prefix.direct_targets
+                or prefix.fallthrough_addr != following.addr
+                or prefix.syscall_jumpkind is not None
+                or prefix.vex_linear_instruction_sizes
+            ):
+                return None
+        terminal = fragments[-1]
+        if (
+            terminal.size <= 0
+            or replace(
+                terminal,
+                addr=addr,
+                size=original.size,
+                instruction_addrs=original.instruction_addrs,
+            )
+            != original
+        ):
+            return None
+        validated.update((part.addr, part) for part in fragments)
+    return validated
+
+
+def select_disconnected_components(
+    project: Project,
+    sweep: ExecutableSweep,
+    baseline: Mapping[int, BlockSpec],
+    *,
+    bounds: FunctionBounds | None = None,
+) -> ReconnectingComponents:
+    """Select meaningful code for unknown-entry presentation, never exact proofs.
+
+    The baseline includes any instruction-boundary partitions accepted by
+    ``validate_disconnected_baseline``. Every fragment is established code,
+    not a newly recovered root, and must remain unchanged during selection.
+    Regions may contain further unknown jumps, kept explicit in the output.
+    Without a rejoin, require closed direct flow and evidence of a return,
+    decoded trap, known non-returning call, or tail exit outside ``bounds``.
+    An unknown exit is not such evidence.
+    Neither case establishes reachability from an unresolved dispatcher, and
+    alignment padding or isolated branch/return stubs are never payload.
+    """
+
+    if any(sweep.blocks.get(addr) != block for addr, block in baseline.items()):
+        return ReconnectingComponents({}, frozenset(), 0)
+    padding: dict[int, bool] = {}
+
+    def is_padding(insn) -> bool:
+        # Test single instructions: multi-instruction VEX lifts include
+        # intermediate IP writes which obscure otherwise transparent padding.
+        if insn.address not in padding:
+            padding[insn.address] = insn.mnemonic in {"nop", "nop.w", "nop.n"} or (
+                _is_transparent_fallthrough_padding(
+                    project,
+                    BlockSpec(
+                        insn.address, insn.size, (insn.address,), "Ijk_Fallthrough"
+                    ),
+                )
+            )
+        return padding[insn.address]
+
+    blocks = dict(sweep.blocks)
+    graph = _direct_flow_graph(blocks)
+    pending = deque(
+        addr for addr in blocks if addr not in baseline and not graph.in_degree(addr)
+    )
+    while pending:
+        addr = pending.popleft()
+        block = blocks[addr]
+        insns = decode_raw_capstone_insns(project, addr, block.size)
+        prefix = 0
+        for insn in insns:
+            if not is_padding(insn):
+                break
+            prefix += insn.size
+        if _is_transparent_fallthrough_padding(project, block) or prefix == block.size:
+            successors = tuple(graph.successors(addr))
+            graph.remove_node(addr)
+            del blocks[addr]
+            pending.extend(
+                s for s in successors if s not in baseline and not graph.in_degree(s)
+            )
+        elif prefix:
+            trimmed = replace(
+                block,
+                addr=addr + prefix,
+                size=block.size - prefix,
+                instruction_addrs=tuple(
+                    a for a in block.instruction_addrs if a >= addr + prefix
+                ),
+            )
+            del blocks[addr]
+            blocks[trimmed.addr] = trimmed
+    graph = _direct_flow_graph(blocks)
+    disconnected = graph.subgraph(set(blocks) - baseline.keys())
+    selected: dict[int, BlockSpec] = {}
+    roots: set[int] = set()
+    count = 0
+    for component in nx.weakly_connected_components(disconnected):
+        rejoins = any(
+            target in baseline for a in component for target in graph.successors(a)
+        )
+        if not rejoins:
+            # Return, trap and non-returning cases need not share an epilogue
+            # with known code. A missing call fall-through alone is not proof:
+            # the decoder may simply have reached the symbol's boundary.
+            has_exit = False
+            for addr in component:
+                block = blocks[addr]
+                external = tuple(
+                    t
+                    for t in block.direct_targets
+                    if bounds is not None and not bounds.addr <= t < bounds.end_addr
+                )
+                nonreturning_call = (
+                    block.jumpkind == "Ijk_Call"
+                    and block.fallthrough_addr is None
+                    and bool(block.direct_targets)
+                    and all(
+                        target_is_known_nonreturning(project, t)
+                        for t in block.direct_targets
+                    )
+                )
+                if (
+                    block.jumpkind
+                    not in {
+                        "Ijk_Boring",
+                        "Ijk_Call",
+                        "Ijk_Fallthrough",
+                        "Ijk_Ret",
+                        "Ijk_Terminal",
+                    }
+                    or (
+                        block.fallthrough_addr is not None
+                        and block.fallthrough_addr not in blocks
+                    )
+                    or any(
+                        t not in blocks and t not in external
+                        for t in block.direct_targets
+                    )
+                    or (
+                        block.jumpkind in {"Ijk_Call", "Ijk_Fallthrough"}
+                        and block.fallthrough_addr is None
+                        and not nonreturning_call
+                    )
+                ):
+                    break
+                has_exit |= (
+                    nonreturning_call
+                    or block.jumpkind in {"Ijk_Ret", "Ijk_Terminal"}
+                    or (block.jumpkind == "Ijk_Boring" and bool(external))
+                )
+            else:
+                if has_exit:
+                    rejoins = True
+            if not rejoins:
+                continue
+        payload = False
+        for addr in component:
+            block = blocks[addr]
+            insns = decode_raw_capstone_insns(project, addr, block.size)
+            if (
+                tuple(i.address for i in insns) != block.instruction_addrs
+                or sum(i.size for i in insns) != block.size
+            ):
+                break
+            for insn in insns:
+                semantic = InsnSemantics(insn)
+                if (
+                    not is_padding(insn)
+                    and not (semantic.is_jump() and not semantic.is_conditional_jump())
+                    and not semantic.is_ret()
+                    and not (
+                        block.jumpkind in {"Ijk_Ret", "Ijk_Terminal"}
+                        and insn.address == block.instruction_addrs[-1]
+                    )
+                ):
+                    payload = True
+        else:
+            if not payload:
+                continue
+            condensation = nx.condensation(disconnected.subgraph(component))
+            # All members of a source SCC are possible presentation entries;
+            # do not assert its lowest address is the actual runtime entry.
+            for source in condensation:
+                if not condensation.in_degree(source):
+                    roots.update(condensation.nodes[source]["members"])
+            selected.update((addr, blocks[addr]) for addr in component)
+            count += 1
+    return ReconnectingComponents(selected, frozenset(roots), count, len(selected))
 
 
 def audit_executable_range(

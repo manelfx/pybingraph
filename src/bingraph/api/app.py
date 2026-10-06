@@ -176,6 +176,7 @@ def create_app() -> FastAPI:
         mode: CfgMode | None = None,
         exits: CfgExits | None = None,
         format: str = "svg",
+        recovery: bool | None = None,
     ) -> str:
         func_addr = _resolve_faddr(function)
         project = _get_project(filepath)
@@ -183,6 +184,7 @@ def create_app() -> FastAPI:
         comments = settings.comments if comments is None else comments
         cfg_mode = mode or settings.cfg_mode
         cfg_exits = exits or settings.cfg_exits
+        cfg_recovery = settings.cfg_recovery if recovery is None else recovery
         return render_cfg(
             project,
             func_addr,
@@ -191,6 +193,7 @@ def create_app() -> FastAPI:
             cfg_mode,
             cfg_exits,
             format,
+            cfg_recovery,
         )
 
     @app.get("/cfg")
@@ -202,10 +205,20 @@ def create_app() -> FastAPI:
         comments: bool | None = Query(None),
         mode: CfgMode | None = Query(None),
         exits: CfgExits | None = Query(None),
+        recovery: bool | None = Query(None),
     ) -> Response:
         """Endpoint to return the CFG of a specified function as an SVG image."""
 
-        svg = _render_cfg(filepath, function, dfs, comments, mode, exits, format="svg")
+        svg = _render_cfg(
+            filepath,
+            function,
+            dfs,
+            comments,
+            mode,
+            exits,
+            format="svg",
+            recovery=recovery,
+        )
         return Response(content=svg, media_type="image/svg+xml")
 
     @app.get("/api/cfg", response_model=dict[str, str])
@@ -218,10 +231,13 @@ def create_app() -> FastAPI:
         comments: bool | None = Query(None),
         mode: CfgMode | None = Query(None),
         exits: CfgExits | None = Query(None),
+        recovery: bool | None = Query(None),
     ) -> dict[str, str]:
         """Endpoint to return the CFG of a specified function."""
 
-        cfg = _render_cfg(filepath, function, dfs, comments, mode, exits, format)
+        cfg = _render_cfg(
+            filepath, function, dfs, comments, mode, exits, format, recovery=recovery
+        )
         return {"graph": cfg}
 
     return app

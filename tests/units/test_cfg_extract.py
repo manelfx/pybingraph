@@ -25,7 +25,10 @@ from bingraph.cfg_extract.sweep import (
     ExecutableSweep,
     ExecutableSweepAudit,
     ReconnectingComponents,
+    SweepBudgetExceeded,
     recover_executable_components,
+    select_disconnected_components,
+    validate_disconnected_baseline,
     select_reconnecting_components,
 )
 from bingraph.cfg.jumps import (
@@ -70,6 +73,8 @@ def test_extract_builder_decodes_a_bounded_function_without_cfgfast() -> None:
         returns=1,
         direct_edges=1,
         fallthrough_edges=2,
+        discovered_instructions=7,
+        entry_connected_instructions=7,
     )
 
 
@@ -86,7 +91,7 @@ def test_extract_mode_bypasses_fast_cfg(monkeypatch) -> None:
         lambda *_args: (_ for _ in ()).throw(AssertionError("CFGFast called")),
     )
 
-    cfg = project_module.get_cfg(project, 0x40043C, "extract")
+    cfg = project_module.get_cfg(project, 0x40043C, "extract", False)
 
     assert sum(not node.is_simprocedure for node in cfg.graph.nodes()) == 3
 
@@ -117,6 +122,108 @@ def test_extract_recovers_elf_lsda_landing_pads() -> None:
         assert edge is not None
         assert edge["jumpkind"] == "Ijk_Boring"
         assert edge["exceptional"] is True
+
+
+@pytest.mark.parametrize(
+    ("entry", "added_edges", "added_instructions"),
+    [
+        (0x4F2AC0, 34, set()),
+        (0x4F6B60, 56, {0x4F77BD, 0x4F77CF, 0x4F77D4, 0x4F77D9}),
+    ],
+)
+def test_disconnected_lsda_closes_recovered_calls(
+    entry, added_edges, added_instructions
+) -> None:
+    """Metadata closes recovered cleanup flow without retrying jump proofs."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    before = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), entry, cfg_recovery=True
+    )
+    with patch.object(
+        builder_module._ExtractionSession,
+        "_discover_recovered_elf_exceptional_edges",
+    ):
+        old = before.build()
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), entry, cfg_recovery=True
+    )
+    cfg = session.build()
+    displayed = session._output_blocks()
+    sites = exceptional_call_sites_for_function(project, session.bounds)
+
+    for block in displayed.values():
+        for site in sites:
+            if session._call_block_matches_lsda_site(block, site):
+                edge = cfg.graph.get_edge_data(
+                    session.nodes[block.addr], session.nodes[site.landing_pad_addr]
+                )
+                assert edge is not None and edge["exceptional"]
+    assert (
+        cfg.extract_stats.exception_edges_added
+        - old.extract_stats.exception_edges_added
+        == added_edges
+    )
+    assert cfg.extract_stats.exception_edges_added == sum(
+        bool(edge.get("exceptional")) for _, _, edge in cfg.graph.edges(data=True)
+    )
+    assert session.blocks == before.blocks
+    assert session.static_targets == before.static_targets
+    assert session.static_target_candidates == before.static_target_candidates
+    assert session.recovered_roots == before.recovered_roots
+    assert (
+        validate_disconnected_baseline(displayed, before._output_blocks()) is not None
+    )
+    instructions = [a for b in displayed.values() for a in b.instruction_addrs]
+    previous = {
+        a for b in before._output_blocks().values() for a in b.instruction_addrs
+    }
+    assert len(instructions) == len(set(instructions))
+    assert set(instructions) - previous == added_instructions
+    assert previous <= set(instructions)
+    assert not added_instructions & session.recovered_roots
+    assert cfg.extract_stats.output_anomaly_count == 0
+    if entry == 0x4F6B60:
+        # The sweep knew this boundary inside a rejected jump-only region;
+        # LSDA now supplies the missing authority to display it.
+        assert 0x4F77BD not in before._output_blocks()
+        assert 0x4F77BD in displayed
+
+
+def test_disconnected_lsda_rejects_incompatible_decode(monkeypatch) -> None:
+    """A failed late snapshot must not alter code, targets or data claims."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x4F6B60, cfg_recovery=True
+    )
+    with patch.object(
+        builder_module._ExtractionSession,
+        "_discover_recovered_elf_exceptional_edges",
+    ):
+        session.build()
+    displayed = session._output_blocks()
+    targets = dict(session.exceptional_targets)
+    code_claims = set(session.data_regions.code_addrs)
+
+    def incompatible(late):
+        # Simulate a decoder changing established transfer semantics while
+        # discovering a pad. None of its private facts should be committed.
+        block = next(iter(late.blocks.values()))
+        late.blocks[block.addr] = replace(block, jumpkind="Ijk_Terminal")
+        late.exceptional_targets = {}
+        late.data_regions.claim_code(project, 0x4F77D9)
+
+    monkeypatch.setattr(
+        builder_module._ExtractionSession,
+        "_discover_elf_exceptional_edges",
+        incompatible,
+    )
+    session._discover_recovered_elf_exceptional_edges()
+
+    assert session._output_blocks() == displayed
+    assert session.exceptional_targets == targets
+    assert session.data_regions.code_addrs == code_claims
 
 
 def test_extract_names_nonreturning_unwind_plt_call() -> None:
@@ -1945,6 +2052,7 @@ def test_extract_static_table_discovery_discards_stale_snapshot_plans(
     session.static_targets = {}
     session.static_target_candidates = {}
     session.stats = ExtractedCFGStats()
+    session.recovery_enabled = False
     session.project = SimpleNamespace()
     session.data_regions = SimpleNamespace(
         contains=lambda *_args: False,
@@ -2743,6 +2851,426 @@ def test_executable_sweep_closes_direct_targets_before_reporting_components() ->
         for target in block.direct_targets:
             if session.bounds.addr <= target < session.bounds.end_addr:
                 assert target in sweep.blocks
+
+
+@pytest.mark.parametrize(
+    ("binary", "address"),
+    [
+        ("x86_64/static", 0x4542F0),
+        ("i386/bronze_ropchain", 0x80A6F40),
+        ("ppc64el/fauxware_static", 0x1005C820),
+        ("s390x/test-instr_s390x", 0x80029818),
+        ("mips64/true", 0x120002B70),
+        ("mipsel/mips_syscall_demo", 0x4508E8),
+        ("i386/bronze_ropchain", 0x80A7DB0),
+        ("i386/bronze_ropchain", 0x807DE20),
+        ("mipsel/mips_syscall_demo", 0x402320),
+        ("x86_64/fmt-rust", 0x4F6B60),
+        ("x86_64/fmt-rust", 0x4F2AC0),
+        ("mipsel/busybox", 0x41C3DC),
+        (
+            "x86_64/1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
+            0x435B50,
+        ),
+        ("x86_64/rust_hello_world", 0x426FD0),
+        ("armhf/float_int_conversion.elf", 0xEF19),
+        (
+            "x86_64/1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
+            0x435760,
+        ),
+        ("x86_64/fmt-rust", 0x4D3FF0),
+        ("x86_64/fmt-rust", 0x522CE0),
+        ("mipsel/mips_syscall_demo", 0x45A840),
+        (
+            "x86_64/1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
+            0x431900,
+        ),
+        ("x86_64/rust_hello_world", 0x423360),
+    ],
+)
+def test_disconnected_prototype_preserves_proofs(binary, address) -> None:
+    """Expose additional code without claiming its source or rerunning proofs."""
+
+    project = project_module.load_project(Path("angr-binaries/tests") / binary)
+    baseline = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), address
+    )
+    old = baseline.build()
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), address, cfg_recovery=True
+    )
+    cfg = session.build()
+    flow = nx.DiGraph()
+    flow.add_nodes_from(cfg.graph.nodes())
+    flow.add_edges_from(cfg.graph.edges())
+    source = next(n for n in cfg.graph if n.name == "UnresolvedEntrySource")
+    assert source.is_simprocedure
+    assert cfg.graph.in_degree(source) == 0
+    assert session.blocks == baseline.blocks
+    assert session.static_targets == baseline.static_targets
+    assert (
+        cfg.extract_stats.exact_jump_proofs_by_flavor
+        == old.extract_stats.exact_jump_proofs_by_flavor
+    )
+    for left, right, data in old.graph.edges(data=True):
+        assert (
+            cfg.graph.get_edge_data(
+                session.nodes.get(
+                    session.recovery_source_addrs.get(left.addr, left.addr), left
+                ),
+                session.nodes.get(right.addr, right),
+            )
+            == data
+        )
+    for root in cfg.graph.successors(source):
+        edge = cfg.graph.get_edge_data(source, root)
+        assert edge["unresolved_indirect"] and edge["recovered_entry"]
+        assert root.addr in session.recovered_roots
+        assert not nx.has_path(flow, session.nodes[address], root)
+    assert (
+        cfg.extract_summary.discovered_instructions
+        > old.extract_summary.discovered_instructions
+    )
+    assert (
+        cfg.extract_summary.entry_connected_instructions
+        == old.extract_summary.entry_connected_instructions
+    )
+    assert cfg.extract_summary.discovered_instructions == (
+        cfg.extract_summary.entry_connected_instructions
+        + cfg.extract_summary.disconnected_instructions
+    )
+    assert (
+        cfg.extract_stats.unresolved_indirect_targets
+        >= old.extract_stats.unresolved_indirect_targets
+        > 0
+    )
+    assert cfg.extract_stats.output_anomaly_count == 0
+    terminal_region_counts = {
+        0xEF19: 189,
+        0x435760: 210,
+        0x4D3FF0: 143,
+        0x522CE0: 95,
+        0x45A840: 100,  # Includes two $t9 definitions absent from the reference.
+        0x431900: 270,
+        0x423360: 270,
+    }
+    if address in terminal_region_counts:
+        # These formerly rejected regions must include the whole division/
+        # formatting body, including paths alongside a nested unknown jump.
+        assert (
+            cfg.extract_summary.discovered_instructions
+            == terminal_region_counts[address]
+        )
+    if address == 0x45A840:
+        # __libc_assert_fail has no false return edge to the standalone trap.
+        assert session.recovered_blocks[0x45A9AC].fallthrough_addr is None
+        assert 0x45A9D0 not in session._output_blocks()
+    # Even a later query must see only the original proof graph.
+    _, proof_nodes = session._analysis_graph(session.static_targets)
+    assert not session.recovered_blocks.keys() & proof_nodes.keys()
+    assert (
+        not (session.recovery_baseline.keys() - session.blocks.keys())
+        & proof_nodes.keys()
+    )
+    if session.recovery_source_addrs:
+        original_instructions = {
+            a for block in baseline.blocks.values() for a in block.instruction_addrs
+        }
+        assert original_instructions == {
+            a
+            for block in session.recovery_baseline.values()
+            for a in block.instruction_addrs
+        }
+        # Split suffixes are established code, not unknown-entry roots. The
+        # full rendered partition has no overlapping instruction ownership.
+        assert not session.recovered_roots & session.recovery_baseline.keys()
+        addresses = [
+            a
+            for block in session._output_blocks().values()
+            for a in block.instruction_addrs
+        ]
+        assert len(addresses) == len(set(addresses))
+
+
+def test_disconnected_sweep_static_call_decoding_is_opt_in() -> None:
+    """Re-decode split calls consistently without changing sweep defaults."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/x86_64/rust_hello_world")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x426FD0
+    )
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+    original = session.blocks[0x427023]
+    assert original.direct_targets
+
+    ordinary = recover_executable_components(project, session.bounds, session.blocks)
+    assert ordinary.blocks[0x42702B].direct_targets == ()
+    assert validate_disconnected_baseline(ordinary, session.blocks) is None
+
+    consistent = recover_executable_components(
+        project, session.bounds, session.blocks, resolve_static_memory_calls=True
+    )
+    assert consistent.blocks[0x42702B].direct_targets == original.direct_targets
+    assert validate_disconnected_baseline(consistent, session.blocks) is not None
+
+
+def test_disconnected_baseline_accepts_only_lossless_unprotected_splits() -> None:
+    """A new leader may partition code, never change its terminal transfer."""
+
+    original = BlockSpec(0x1000, 7, (0x1000, 0x1005), "Ijk_Boring", (0x2000,), 0x1007)
+    prefix = BlockSpec(0x1000, 5, (0x1000,), "Ijk_Fallthrough", (), 0x1005)
+    terminal = replace(original, addr=0x1005, size=2, instruction_addrs=(0x1005,))
+    sweep = ExecutableSweep(
+        {prefix.addr: prefix, terminal.addr: terminal},
+        frozenset({0x1000, 0x1005}),
+        frozenset(),
+        ExecutableSweepAudit(0, 0, 0, 0, 0),
+    )
+    baseline = {original.addr: original}
+    assert validate_disconnected_baseline(sweep, baseline) == dict(sweep.blocks)
+    assert (
+        validate_disconnected_baseline(sweep, baseline, protected_sources={0x1000})
+        is None
+    )
+    for invalid in (
+        replace(prefix, size=4),
+        replace(prefix, instruction_addrs=(0x1000, 0x1001)),
+        replace(prefix, jumpkind="Ijk_Call"),
+        replace(prefix, direct_targets=(0x3000,)),
+        replace(prefix, fallthrough_addr=0x3000),
+        replace(terminal, instruction_addrs=(0x1006,)),
+        replace(terminal, direct_targets=(0x3000,)),
+        replace(terminal, fallthrough_addr=None),
+        replace(terminal, jumpkind="Ijk_Ret"),
+    ):
+        changed = replace(sweep, blocks={**sweep.blocks, invalid.addr: invalid})
+        assert validate_disconnected_baseline(changed, baseline) is None
+
+
+def test_disconnected_selector_trims_padding_and_rejects_changed_baseline() -> None:
+    """Skip NOP/self-assignment roots without losing the meaningful payload."""
+
+    project = load_shellcode(
+        bytes.fromhex("ffe09090b801000000eb0190c3"), "X86", load_address=0x1000
+    )
+    bounds = FunctionBounds(0x1000, 0x100D, 13, SimpleNamespace(name="f"))
+    baseline = {
+        address: decode_bounded_block(project, bounds, address, {0x1000, 0x100C})
+        for address in (0x1000, 0x100C)
+    }
+    sweep = recover_executable_components(project, bounds, baseline, max_steps=200)
+    selected = select_disconnected_components(project, sweep, baseline)
+    assert selected.roots == frozenset({0x1004})
+    assert selected.blocks[0x1004].instruction_addrs == (0x1004, 0x1009)
+    changed = replace(
+        sweep, blocks={**sweep.blocks, 0x1000: replace(baseline[0x1000], size=1)}
+    )
+    assert not select_disconnected_components(project, changed, baseline).blocks
+
+    # These are all transparent, even though a multi-instruction VEX lift
+    # contains intermediate IP writes which obscure the whole-block check.
+    padding_project = load_shellcode(
+        bytes.fromhex("ffe08d760089f6c3"), "X86", load_address=0x1000
+    )
+    padding_bounds = replace(bounds, end_addr=0x1008, size=8)
+    padding_baseline = {
+        address: decode_bounded_block(
+            padding_project, padding_bounds, address, {0x1000, 0x1007}
+        )
+        for address in (0x1000, 0x1007)
+    }
+    padding_sweep = recover_executable_components(
+        padding_project, padding_bounds, padding_baseline
+    )
+    assert not select_disconnected_components(
+        padding_project, padding_sweep, padding_baseline
+    ).blocks
+
+
+def test_disconnected_sweep_budget_fails_closed(monkeypatch) -> None:
+    """A bounded scan cannot publish partial recovery when its budget expires."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/static"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x4542F0, cfg_recovery=True
+    )
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+    original = dict(session.blocks)
+    with pytest.raises(SweepBudgetExceeded):
+        recover_executable_components(
+            project, session.bounds, session.blocks, max_steps=0
+        )
+    monkeypatch.setattr(
+        builder_module,
+        "recover_executable_components",
+        lambda *_a, **_k: (_ for _ in ()).throw(SweepBudgetExceeded()),
+    )
+    session._recover_disconnected_components()
+    assert session.blocks == original
+    assert not session.recovered_blocks
+    assert session.stats.disconnected_recovery_budget_exhausted == 1
+
+
+@pytest.mark.parametrize(
+    ("code", "root"),
+    [
+        ("ffe09090b801000000c3", 0x1004),  # Useful work followed by a return.
+        ("ffe0b801000000e9f40f0000", 0x1002),  # Known external tail jump.
+        ("ffe085c07407b801000000ffe0b801000000c3", 0x1002),  # Return plus unknown exit.
+        ("ffe090c3", None),  # Padding and a bare return are not payload.
+        ("ffe0eb00c3", None),  # A branch to a bare return is also not payload.
+        ("ffe0b801000000ffe0", None),  # An unknown exit is not a closed region.
+        ("ffe0b801000000", None),  # Fall-through beyond the symbol boundary.
+        ("ffe0b8010000000f0b", 0x1002),  # Meaningful work followed by a trap.
+        ("ffe0900f0b", None),  # Padding and a bare trap are not payload.
+        ("ffe0b801000000ebf9", None),  # A closed cycle without an exit.
+        ("ffe0b801000000eb00ff", None),  # An undecodable local destination.
+    ],
+)
+def test_disconnected_selector_requires_meaningful_closed_isolated_regions(
+    code, root
+) -> None:
+    """Return/tail regions need payload and complete flow, not a guessed edge."""
+
+    data = bytes.fromhex(code)
+    project = load_shellcode(data, "X86", load_address=0x1000)
+    bounds = FunctionBounds(
+        0x1000, 0x1000 + len(data), len(data), SimpleNamespace(name="f")
+    )
+    baseline = {0x1000: decode_bounded_block(project, bounds, 0x1000, {0x1000})}
+    sweep = recover_executable_components(project, bounds, baseline, max_steps=200)
+    selected = select_disconnected_components(project, sweep, baseline, bounds=bounds)
+    assert selected.roots == (frozenset({root}) if root is not None else frozenset())
+    if root is not None:
+        assert selected.blocks[root].instruction_addrs[0] == root
+        # An isolated region must not be admitted if its decoder metadata is
+        # inconsistent, even when its declared terminal kind looks suitable.
+        original = next(
+            b for b in sweep.blocks.values() if b.addr <= root < b.addr + b.size
+        )
+        malformed = replace(original, size=original.size + 1)
+        changed = replace(sweep, blocks={**sweep.blocks, original.addr: malformed})
+        assert not select_disconnected_components(
+            project, changed, baseline, bounds=bounds
+        ).blocks
+
+
+def test_disconnected_selector_requires_a_known_nonreturning_callee() -> None:
+    """A call at the symbol boundary is not terminal evidence by itself."""
+
+    from angr import SIM_PROCEDURES
+
+    code = bytes.fromhex("ffe0b801000000e8f40f0000")
+    project = load_shellcode(code, "X86", load_address=0x1000)
+    bounds = FunctionBounds(0x1000, 0x100C, 12, SimpleNamespace(name="f"))
+    baseline = {0x1000: decode_bounded_block(project, bounds, 0x1000, {0x1000})}
+    sweep = recover_executable_components(project, bounds, baseline)
+    call = sweep.blocks[0x1002]
+    assert call.jumpkind == "Ijk_Call"
+    assert call.direct_targets == (0x2000,)
+    assert call.fallthrough_addr is None
+    assert not select_disconnected_components(
+        project, sweep, baseline, bounds=bounds
+    ).blocks
+
+    project.hook(0x2000, SIM_PROCEDURES["libc"]["abort"]())
+    selected = select_disconnected_components(project, sweep, baseline, bounds=bounds)
+    assert selected.roots == frozenset({0x1002})
+    assert selected.blocks[0x1002] == call
+    assert selected.blocks[0x1002].fallthrough_addr is None
+
+
+def test_disconnected_selector_preserves_cycle_and_unknown_targets() -> None:
+    """All source-SCC members are potential entries; nested jumps stay unknown."""
+
+    project = load_shellcode(
+        bytes.fromhex("ffe0b801000000eb0075f785c07502ffe0c3"),
+        "X86",
+        load_address=0x1000,
+    )
+    blocks = {
+        0x1000: BlockSpec(0x1000, 2, (0x1000,), "Ijk_Boring"),
+        0x1002: BlockSpec(0x1002, 7, (0x1002, 0x1007), "Ijk_Boring", (0x1009,)),
+        0x1009: BlockSpec(0x1009, 2, (0x1009,), "Ijk_Boring", (0x1002,), 0x100B),
+        0x100B: BlockSpec(0x100B, 4, (0x100B, 0x100D), "Ijk_Boring", (0x1011,), 0x100F),
+        0x100F: BlockSpec(0x100F, 2, (0x100F,), "Ijk_Boring"),
+        0x1011: BlockSpec(0x1011, 1, (0x1011,), "Ijk_Ret"),
+    }
+    # A second direct exit from the cycle provides the required rejoin.
+    # The nested indirect exit is not itself used as rejoin evidence.
+    baseline = {a: blocks[a] for a in (0x1000, 0x1011)}
+    sweep = ExecutableSweep(
+        blocks,
+        frozenset(baseline),
+        frozenset({0x1002, 0x1009, 0x100B, 0x100F}),
+        ExecutableSweepAudit(4, 6, 1, 0, 0),
+    )
+    selected = select_disconnected_components(project, sweep, baseline)
+    assert selected.roots == frozenset({0x1002, 0x1009})
+    assert selected.blocks[0x100F] == blocks[0x100F]
+
+
+def test_disconnected_prototype_excludes_bounded_inline_table(monkeypatch) -> None:
+    """ARM pointer rows must not become apparent conditional instructions."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/armel/btrfs.ko"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x401154, cfg_recovery=True
+    )
+    session._decode_all_blocks()
+    session._discover_static_jump_targets()
+    assert session.recovery_table_bytes >= set(range(0x401200, 0x401200 + 53 * 4))
+    # Force a discovery attempt to inspect its exclusions, independently of
+    # whether the existing proof already resolved every jump in this control.
+    session.blocks[session.func_addr] = replace(
+        session.blocks[session.func_addr],
+        jumpkind="Ijk_Boring",
+        direct_targets=(),
+        fallthrough_addr=None,
+    )
+    session.static_targets.pop(session.func_addr, None)
+
+    def capture(
+        _project,
+        _bounds,
+        blocks,
+        *,
+        stop_at_data,
+        max_steps,
+        resolve_static_memory_calls,
+    ):
+        assert max_steps == 20_000
+        assert resolve_static_memory_calls is True
+        assert stop_at_data(0x401200)
+        assert stop_at_data(0x401202)  # Not an ARM instruction boundary.
+        assert stop_at_data(0x401155)  # No speculative ARM-to-Thumb switch.
+        assert not stop_at_data(session.func_addr)
+        return ExecutableSweep(
+            blocks, frozenset(blocks), frozenset(), ExecutableSweepAudit(0, 0, 0, 0, 0)
+        )
+
+    monkeypatch.setattr(builder_module, "recover_executable_components", capture)
+    session._recover_disconnected_components()
+    assert session.stats.disconnected_recovery_runs == 1
+    assert not session.recovered_blocks
+
+
+def test_disconnected_validation_only_exempts_explicit_roots() -> None:
+    """A declared discovery root does not authorize an unrelated orphan."""
+
+    nodes = [_Node(a, 1, (a,)) for a in (0x1000, 0x1001, 0x1002)]
+    graph = nx.DiGraph()
+    graph.add_nodes_from(nodes)
+    bounds = FunctionBounds(0x1000, 0x1003, 3, SimpleNamespace(name="f"))
+    blocks = {n.addr: BlockSpec(n.addr, 1, (n.addr,), "Ijk_Ret") for n in nodes}
+    anomalies = find_extracted_cfg_anomalies(
+        graph, bounds, 0x1000, blocks, recovered_roots=(0x1001,)
+    )
+    assert [(a.kind, a.addr) for a in anomalies] == [("unreachable_block", 0x1002)]
 
 
 def test_extract_rejects_sweep_targets_inside_thumb_instructions() -> None:

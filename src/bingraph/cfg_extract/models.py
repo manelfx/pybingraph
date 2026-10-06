@@ -86,6 +86,11 @@ class ExtractedCFGStats:
     sweep_reconnecting_components: int = 0
     sweep_reconnecting_blocks: int = 0
     sweep_component_roots_attached: int = 0
+    disconnected_recovery_runs: int = 0
+    disconnected_recovery_budget_exhausted: int = 0
+    disconnected_recovery_rejected_changes: int = 0
+    disconnected_regions: int = 0
+    disconnected_blocks: int = 0
     output_anomaly_count: int = 0
     output_anomalies_by_kind: dict[str, int] = field(default_factory=dict)
 
@@ -111,6 +116,9 @@ class ExtractedCFGSummary:
     terminal_blocks: int = 0
     direct_edges: int = 0
     fallthrough_edges: int = 0
+    discovered_instructions: int = 0
+    entry_connected_instructions: int = 0
+    disconnected_instructions: int = 0
 
     def as_dict(self) -> dict[str, int]:
         """Return a stable log-friendly view of the materialized graph."""

@@ -106,6 +106,14 @@ def _select_cfg_nodes(
             )
         }
     )
+    # Unknown-entry sources have outgoing edges only, so the normal one-hop
+    # exit walk cannot find them. Structural sources explain selected blocks
+    # regardless of the external-call display policy.
+    selected.update(
+        node
+        for node in synthetic_targets.values()
+        if _is_structural_simprocedure(cfg_graph, node, selected)
+    )
 
     for source in tuple(selected):
         for destination in cfg_graph.successors(source):

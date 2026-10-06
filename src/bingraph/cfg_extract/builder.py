@@ -15,6 +15,7 @@ synthetic leaves. The extractor never reads CFGFast's discovered regions.
 from __future__ import annotations
 
 from collections import Counter, deque
+from copy import deepcopy
 from dataclasses import replace
 import os
 from types import SimpleNamespace
@@ -39,6 +40,7 @@ import networkx as nx
 from bingraph.cfg.anomalies import _lookup_function_bounds
 from bingraph.cfg.graph import CFGGraph, add_successor_edge, node_vex
 from bingraph.cfg.jumps import (
+    _jump_table_addr,
     _read_static_jump_table_targets,
     abi_static_register_transfer_targets,
     conditional_pc_dispatch_targets,
@@ -82,11 +84,18 @@ from .shared_table_proof import (
     shared_table_targets,
     table_predecessor_facts,
 )
-from .sweep import recover_executable_components, select_reconnecting_components
+from .sweep import (
+    SweepBudgetExceeded,
+    recover_executable_components,
+    select_disconnected_components,
+    validate_disconnected_baseline,
+    select_reconnecting_components,
+)
 from .syscalls import ResolvedSyscall, resolve_static_syscall, unknown_syscall_target
 
 
 _UNRESOLVABLE_CALL_ADDR = 0xFFFFFFFFFFFFFFD0
+_UNRESOLVED_ENTRY_ADDR = 0xFFFFFFFFFFFFFFC0
 _RECONNECTING_SWEEP_REASONS = frozenset({"no_vex", "no_table_shape"})
 # Candidate rows are decoded transitively, so keep their unproven frontier
 # small. Exact static table plans are not subject to this limit.
@@ -168,7 +177,14 @@ def _make_leaf_node(
 class _ExtractionSession:
     """Own the leader worklist and graph materialization for one function."""
 
-    def __init__(self, project: Project, kb: KnowledgeBase, func_addr: int) -> None:
+    def __init__(
+        self,
+        project: Project,
+        kb: KnowledgeBase,
+        func_addr: int,
+        *,
+        cfg_recovery: bool = False,
+    ) -> None:
         self.project = project
         self.kb = kb
         self.func_addr = func_addr
@@ -196,6 +212,13 @@ class _ExtractionSession:
         self.resolved_syscalls: dict[int, ResolvedSyscall] = {}
         self._abi_analysis_blocks: dict[int, BlockSpec] | None = None
         self._shared_register_blocks: dict[int, tuple[BlockSpec, BlockSpec]] = {}
+        self.recovery_enabled = cfg_recovery
+        # Presentation-only code must never enter _analysis_graph or its facts.
+        self.recovered_blocks: dict[int, BlockSpec] = {}
+        self.recovery_baseline: dict[int, BlockSpec] = {}
+        self.recovery_source_addrs: dict[int, int] = {}
+        self.recovered_roots: frozenset[int] = frozenset()
+        self.recovery_table_bytes: set[int] = set()
 
     def _is_data_leader(self, addr: int) -> bool:
         """Return whether this prospective leader is VEX-proven data."""
@@ -925,7 +948,12 @@ class _ExtractionSession:
                 # Exact resolvers share one leader worklist. A successful
                 # plan can reveal code needed by a later resolver round.
                 targets, reason = conditional_pc_dispatch_targets(
-                    self.project, self.bounds, node
+                    self.project,
+                    self.bounds,
+                    node,
+                    table_data=self.recovery_table_bytes
+                    if self.recovery_enabled
+                    else None,
                 )
                 proof_flavor = "conditional_pc" if targets is not None else None
                 plan = None
@@ -1075,6 +1103,21 @@ class _ExtractionSession:
                         accepted_targets.append(target)
                         discovered |= added and not before
                 plans[addr] = tuple(accepted_targets)
+                if self.recovery_enabled:
+                    # These bytes are evidence of data, not additional bounds
+                    # or targets. Keep them out of normal extraction decisions.
+                    if plan is not None:
+                        table_addr = _jump_table_addr(plan.base_addr, plan.table)
+                        for index in plan.entry_indices:
+                            address = table_addr + index * plan.table.entry_size
+                            self.recovery_table_bytes.update(
+                                range(address, address + plan.table.entry_size)
+                            )
+                    if shared_facts is not None:
+                        for address, size, _endness, _steps in shared_facts._table_rows:
+                            self.recovery_table_bytes.update(
+                                range(address, address + size)
+                            )
                 assert proof_flavor is not None
                 plan_flavors[addr] = proof_flavor
                 if (
@@ -1247,12 +1290,18 @@ class _ExtractionSession:
             addr: _make_block_node(
                 self.model, self.project, self.func_addr, self.bounds, block
             )
-            for addr, block in sorted(self.blocks.items())
+            for addr, block in sorted(self._output_blocks().items())
         }
         for node in self.nodes.values():
             self.graph.add_node(node)
 
-        for addr, block in sorted(self.blocks.items()):
+        # Exception metadata belongs to the call instruction, which may now
+        # terminate a suffix fragment. Exact proof sources were kept pinned.
+        exceptional_targets = {
+            self.recovery_source_addrs.get(addr, addr): targets
+            for addr, targets in self.exceptional_targets.items()
+        }
+        for addr, block in sorted(self._output_blocks().items()):
             source = self.nodes[addr]
             if block.jumpkind == "Ijk_Syscall":
                 syscall_target = self.resolved_syscalls.get(addr)
@@ -1280,7 +1329,7 @@ class _ExtractionSession:
                 if add_successor_edge(self.graph, source, destination, "Ijk_Boring"):
                     self.stats.static_jump_target_edges_added += 1
 
-            for target in self.exceptional_targets.get(addr, ()):
+            for target in exceptional_targets.get(addr, ()):
                 destination = self._target_node(target)
                 if add_successor_edge(
                     self.graph,
@@ -1337,6 +1386,171 @@ class _ExtractionSession:
                     unresolved_indirect=True,
                 ):
                     self.stats.unresolved_indirect_targets += 1
+
+    def _recover_disconnected_components(self) -> None:
+        """Opt-in discovery with unknown entry, not an indirect-target proof.
+
+        Only explicitly sized symbols are scanned. Alignment, execution mode,
+        and known data restrict decoding; a 20K callback budget bounds work.
+        Known blocks may only split losslessly at instruction boundaries;
+        exact proof sources remain pinned. Other changes reject the scan. Regions
+        must rejoin established code or have closed direct flow with a known
+        return, trap or known non-returning/tail exit. Isolated undecodable or
+        padding regions stay hidden.
+        """
+
+        if not self.recovery_enabled or not any(
+            block.jumpkind == "Ijk_Boring"
+            and not block.direct_targets
+            and block.fallthrough_addr is None
+            and not self.static_targets.get(addr)
+            for addr, block in self.blocks.items()
+        ):
+            return
+        if not any(
+            symbol.is_function
+            and symbol.rebased_addr == self.bounds.addr
+            and symbol.size == self.bounds.size
+            and symbol.size > 0
+            for symbol in self.project.loader.main_object.symbols
+        ):
+            return
+        code_addrs = {
+            address
+            for block in self.blocks.values()
+            for address in block.instruction_addrs
+        }
+        thumb = _thumb_mode(self.project, self.func_addr)
+        alignment = 2 if thumb else (self.project.arch.instruction_alignment or 1)
+
+        def excluded(address: int) -> bool:
+            physical = StaticDataRegions._memory_addr(self.project, address)
+            if address in code_addrs:
+                return False
+            return (
+                physical % alignment != 0
+                or _thumb_mode(self.project, address) != thumb
+                or physical in self.recovery_table_bytes
+                or self.data_regions.contains(self.project, address)
+            )
+
+        self.stats.disconnected_recovery_runs += 1
+        try:
+            sweep = recover_executable_components(
+                self.project,
+                self.bounds,
+                self.blocks,
+                stop_at_data=excluded,
+                max_steps=20_000,
+                resolve_static_memory_calls=True,
+            )
+        except SweepBudgetExceeded:
+            self.stats.disconnected_recovery_budget_exhausted += 1
+            return
+        baseline = validate_disconnected_baseline(
+            sweep,
+            self.blocks,
+            protected_sources=(
+                self.static_targets.keys()
+                | self.static_target_candidates.keys()
+                | self.resolved_syscalls.keys()
+                | self._shared_register_blocks.keys()
+            ),
+        )
+        if baseline is None:
+            self.stats.disconnected_recovery_rejected_changes += 1
+            return
+        selected = select_disconnected_components(
+            self.project, sweep, baseline, bounds=self.bounds
+        )
+        self.recovered_blocks = dict(selected.blocks)
+        self.recovered_roots = selected.roots
+        self.stats.disconnected_regions = selected.component_count
+        self.stats.disconnected_blocks = len(selected.blocks)
+        if selected.blocks:
+            self._set_recovery_partition(baseline | self.recovered_blocks)
+
+    def _set_recovery_partition(self, blocks: Mapping[int, BlockSpec]) -> None:
+        """Adopt validated display blocks while keeping proof inputs immutable."""
+
+        original_insns = {a for b in self.blocks.values() for a in b.instruction_addrs}
+        self.recovery_baseline = {
+            addr: block for addr, block in blocks.items() if addr in original_insns
+        }
+        self.recovered_blocks = {
+            addr: block for addr, block in blocks.items() if addr not in original_insns
+        }
+        terminals = {
+            b.addr + b.size: addr for addr, b in self.recovery_baseline.items()
+        }
+        self.recovery_source_addrs = {
+            addr: terminals[b.addr + b.size]
+            for addr, b in self.blocks.items()
+            if self.recovery_baseline.get(addr) != b
+        }
+
+    def _discover_recovered_elf_exceptional_edges(self) -> None:
+        """Apply LSDA to displayed calls without feeding recovery into proofs.
+
+        Reuse the ordinary LSDA/direct-decoding worklist on a private snapshot.
+        Its fixed point handles calls inside newly decoded landing pads too;
+        no indirect resolver runs. Only lossless partitions of the displayed
+        code can be adopted, with original exact-proof sources still pinned.
+        Metadata gives landing pads known incoming edges, so even a bare jump
+        pad is valid here; it does not need an unknown-entry recovery root.
+        """
+
+        if not self.recovered_blocks or not exceptional_call_sites_for_function(
+            self.project, self.bounds
+        ):
+            return
+        displayed = self._output_blocks()
+        late = _ExtractionSession(self.project, self.kb, self.func_addr)
+        late.blocks = dict(displayed)
+        late.leaders = set(displayed)
+        late.pending.clear()
+        late.pending_addrs.clear()
+        late.data_regions = deepcopy(self.data_regions)
+        late._discover_elf_exceptional_edges()
+        validated = validate_disconnected_baseline(
+            late.blocks,
+            displayed,
+            protected_sources=(
+                self.static_targets.keys()
+                | self.static_target_candidates.keys()
+                | self.resolved_syscalls.keys()
+                | self._shared_register_blocks.keys()
+            ),
+        )
+        if validated is None:
+            return
+        self._set_recovery_partition(late.blocks)
+        self.resolved_syscalls.update(late.resolved_syscalls)
+        self.exceptional_targets = late.exceptional_targets
+        self.stats.exceptional_transfers_discovered = sum(
+            len(targets) for targets in self.exceptional_targets.values()
+        )
+        self.stats.disconnected_blocks = len(self.recovered_blocks)
+
+    def _output_blocks(self) -> dict[int, BlockSpec]:
+        """Return the rendered block partition without changing proof inputs."""
+
+        return self.blocks | self.recovery_baseline | self.recovered_blocks
+
+    def _attach_disconnected_components(self) -> None:
+        """Explain discovered regions without inventing a dispatcher edge."""
+
+        if not self.recovered_roots:
+            return
+        source = self._leaf(_UNRESOLVED_ENTRY_ADDR, "UnresolvedEntrySource")
+        for address in sorted(self.recovered_roots):
+            target = self.nodes[address]
+            add_successor_edge(
+                self.graph, source, target, "Ijk_Boring", unresolved_indirect=True
+            )
+            edge = self.graph.get_edge_data(source, target)
+            assert edge is not None
+            edge["recovered_entry"] = True
 
     def _recover_reconnecting_components(self) -> None:
         """Attach leader-closed components behind one shape-free dispatcher.
@@ -1439,7 +1653,11 @@ class _ExtractionSession:
 
         if self.sweep_dispatcher_addr is None:
             return
-        dispatcher = self.nodes[self.sweep_dispatcher_addr]
+        dispatcher = self.nodes[
+            self.recovery_source_addrs.get(
+                self.sweep_dispatcher_addr, self.sweep_dispatcher_addr
+            )
+        ]
         for addr in self.sweep_component_roots:
             if add_successor_edge(
                 self.graph,
@@ -1468,11 +1686,12 @@ class _ExtractionSession:
     def _summarize_output(self) -> None:
         """Record the final graph shape separately from extraction decisions."""
 
-        self.summary.normal_blocks = len(self.blocks)
+        blocks = self._output_blocks()
+        self.summary.normal_blocks = len(blocks)
         self.summary.synthetic_leaves = len(self.leaf_nodes)
         self.summary.nodes = len(tuple(self.graph.nodes()))
         self.summary.edges = len(tuple(self.graph.edges()))
-        for block in self.blocks.values():
+        for block in blocks.values():
             if block.jumpkind == "Ijk_Call":
                 self.summary.calls += 1
             elif block.jumpkind == "Ijk_Syscall":
@@ -1484,6 +1703,31 @@ class _ExtractionSession:
             elif block.direct_targets:
                 self.summary.direct_branches += 1
                 self.summary.conditional_branches += block.fallthrough_addr is not None
+
+        # A dashed candidate/recovery edge is not a proven entry path. Count
+        # its instructions as discovered, but not entry-connected coverage.
+        connected: set[CFGNode] = set()
+        pending = (
+            deque([self.nodes[self.func_addr]])
+            if self.func_addr in self.nodes
+            else deque()
+        )
+        while pending:
+            node = pending.popleft()
+            if node in connected:
+                continue
+            connected.add(node)
+            for target in self.graph.successors(node):
+                data = self.graph.get_edge_data(node, target) or {}
+                if not data.get("unresolved_indirect") and not data.get(
+                    "recovered_entry"
+                ):
+                    pending.append(target)
+        all_insns = {a for block in blocks.values() for a in block.instruction_addrs}
+        connected_insns = {a for node in connected for a in node.instruction_addrs}
+        self.summary.discovered_instructions = len(all_insns)
+        self.summary.entry_connected_instructions = len(connected_insns & all_insns)
+        self.summary.disconnected_instructions = len(all_insns - connected_insns)
 
     def build(self) -> ExtractedCFG:
         """Run bounded extraction in decode, proof, recovery, render order.
@@ -1506,10 +1750,16 @@ class _ExtractionSession:
         # LSDA records attach to the stabilized call blocks, including those
         # reached through a recovered component or another landing pad.
         self._discover_elf_exceptional_edges()
+        # No proof query runs after this presentation-only discovery stage.
+        self._recover_disconnected_components()
+        # Recovered calls can unwind too. LSDA may supply missing cleanup
+        # leaders, but their code remains outside the original proof graph.
+        self._discover_recovered_elf_exceptional_edges()
         # Stage 4: materialize the stabilized graph and its conservative edges.
         self._materialize_edges()
         self._attach_static_jump_table_candidates()
         self._attach_reconnecting_components()
+        self._attach_disconnected_components()
         function = self.kb.functions.function(self.func_addr, create=True)
         if function is not None:
             # angr treats names such as ``sub_119320`` as address selectors.
@@ -1521,8 +1771,9 @@ class _ExtractionSession:
             self.graph,
             self.bounds,
             self.func_addr,
-            self.blocks,
+            self._output_blocks(),
             project=self.project,
+            recovered_roots=self.recovered_roots,
         )
         self.stats.output_anomaly_count = len(anomalies)
         self.stats.output_anomalies_by_kind = dict(
@@ -1546,12 +1797,16 @@ class _ExtractionSession:
 
 
 def build_extracted_cfg(
-    project: Project, kb: KnowledgeBase, func_addr: int
+    project: Project,
+    kb: KnowledgeBase,
+    func_addr: int,
+    *,
+    cfg_recovery: bool = False,
 ) -> ExtractedCFG:
     """Build one experimental function CFG without invoking CFGFast."""
 
     logger.info(f"Extracting CFG for function {func_addr:#x} without CFGFast")
-    cfg = _ExtractionSession(project, kb, func_addr).build()
+    cfg = _ExtractionSession(project, kb, func_addr, cfg_recovery=cfg_recovery).build()
     logger.info(
         f"Extracted CFG for {func_addr:#x}: "
         f"stats={cfg.extract_stats.as_dict()}, "
