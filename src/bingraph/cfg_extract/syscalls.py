@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import cast
 
-from angr import Project, options
+from angr import BP_AFTER, BP_BEFORE, Project, SimState, options
+from angr.concretization_strategies import SimConcretizationStrategySingle
 from angr.simos.userland import SimUserland
+from angr.state_plugins.globals import SimStateGlobals
 
 from bingraph.cfg.models import BlockSpec
 
@@ -52,7 +55,9 @@ def resolve_static_syscall(
     SimOS owns the architecture and ABI-specific syscall-number convention. The
     extractor executes only the linear prefix before the already-bounded
     syscall instruction from a blank symbolic state. Any symbolic, ambiguous,
-    or unsupported result remains unresolved.
+    or unsupported result remains unresolved. Ambiguous memory reads stay
+    symbolic, never constraining a register by choosing an arbitrary address.
+    An ambiguous store makes subsequent memory contents unknown as well.
     """
 
     if block.jumpkind != "Ijk_Syscall" or block.size <= 0:
@@ -67,8 +72,35 @@ def resolve_static_syscall(
             add_options={
                 options.SYMBOL_FILL_UNCONSTRAINED_MEMORY,
                 options.SYMBOL_FILL_UNCONSTRAINED_REGISTERS,
+                options.CONSERVATIVE_READ_STRATEGY,
+                options.CONSERVATIVE_WRITE_STRATEGY,
             },
         )
+        # Default strategies may pick an address and constrain its registers,
+        # making eval_one mistake that execution choice for a static proof.
+        state.memory.read_strategies = [SimConcretizationStrategySingle()]
+        state.memory.write_strategies = [SimConcretizationStrategySingle()]
+
+        def forget_ambiguous_store(state: SimState) -> None:
+            if (
+                state.inspect.attrs.address_concretization_action == "store"
+                and state.inspect.attrs.address_concretization_result is None
+            ):
+                cast(SimStateGlobals, state.globals)["syscall_memory_unknown"] = True
+
+        def read_after_ambiguous_store(state: SimState) -> None:
+            # Conservative writes skip an unknown address. It could alias any
+            # later load, including a concrete one, so do not trust old data.
+            if cast(SimStateGlobals, state.globals).get("syscall_memory_unknown"):
+                state.inspect.attrs.mem_read_expr = state.solver.Unconstrained(
+                    "syscall_unknown_memory",
+                    state.inspect.attrs.mem_read_length * state.arch.byte_width,
+                )
+
+        state.inspect.b(
+            "address_concretization", when=BP_AFTER, action=forget_ambiguous_store
+        )
+        state.inspect.b("mem_read", when=BP_BEFORE, action=read_after_ambiguous_store)
         syscall_addr = block.instruction_addrs[-1]
         prefix_size = syscall_addr - block.addr
         if prefix_size > 0:

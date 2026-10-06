@@ -108,6 +108,7 @@ SKIPPED_BINARIES = [
 class GoldenConfig:
     name: str
     cfg_mode: str
+    cfg_exits: str = "jump"
 
 
 CONFIGS = [
@@ -118,6 +119,8 @@ CONFIGS = [
     # The independent extractor is experimental. Its baseline starts as a
     # copy of custom artifacts so checkpoint tests show extractor differences.
     GoldenConfig(name="cfg_mode_extract", cfg_mode="extract"),
+    # Extract mode with info about external calls
+    GoldenConfig(name="cfg_mode_always", cfg_mode="extract", cfg_exits="always"),
 ]
 
 # Custom repair is the production CFG path and therefore the default golden
@@ -616,6 +619,7 @@ def _build_test_settings(config: GoldenConfig) -> settings_module.Settings:
     return settings_module.Settings.model_construct(
         root=PLAYGROUND_ROOT,
         cfg_mode=config.cfg_mode,
+        cfg_exits=config.cfg_exits,
         comments=False,
         server=None,
         client=None,

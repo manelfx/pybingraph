@@ -8,6 +8,7 @@ from unittest.mock import patch
 import archinfo
 from angr import KnowledgeBase
 import networkx as nx
+import pytest
 import pyvex
 
 from bingraph.cfg.jumps import (
@@ -143,6 +144,32 @@ def test_mips_pic_call_clobbers_registers_but_keeps_frame_save() -> None:
     assert gp not in output.registers
     assert t9 not in output.registers
     assert output.stack[16] == saved
+
+
+@pytest.mark.parametrize(
+    "binary,entry,source,target",
+    (
+        ("mipsel/busybox", 0x443178, 0x4431E0, 0x440DA4),
+        ("mips/dir", 0x4174B0, 0x417550, 0x5000AC),
+        ("mips64/true", 0x120006CB0, 0x120006CB0, 0x120100160),
+    ),
+)
+def test_mips_pic_entry_call_does_not_reject_valid_gp(
+    binary: str, entry: int, source: int, target: int
+) -> None:
+    """An entry-ending call clobbers GP without invalidating its prologue."""
+
+    project = load_project(Path("angr-binaries/tests") / binary)
+    session = _ExtractionSession(project, KnowledgeBase(project), entry)
+    session._decode_all_blocks()
+    assert session.blocks[entry].jumpkind == "Ijk_Call"
+
+    targets, exhausted, ran = jumps_module.abi_static_register_transfer_targets(
+        project, session.bounds, session.blocks
+    )
+
+    assert ran and not exhausted
+    assert targets[source] == (target,)
 
 
 def test_mips_pic_budget_discards_partial_target_sets() -> None:

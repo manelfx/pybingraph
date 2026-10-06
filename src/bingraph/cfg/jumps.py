@@ -494,8 +494,16 @@ def _mips_pic_register_transfer_targets(
         addr: _abi_successor_addrs(blocks, block) for addr, block in blocks.items()
     }
     initial = _MipsPicState({t9_offset: frozenset({bounds.addr})}, {})
+    # Validate the prologue's GP before an entry-ending call discards it.
+    # This temporary exemption is only for validation; propagation below
+    # still drops GP at calls and requires an explicit restore to use it again.
     entry_output, _ = _mips_pic_transfer(
-        project, blocks[bounds.addr], initial, gp_offset, sp_offset, preserved
+        project,
+        blocks[bounds.addr],
+        initial,
+        gp_offset,
+        sp_offset,
+        preserved | {gp_offset},
     )
     if entry_output.registers.get(gp_offset) != frozenset({gp}):
         return {}, False, True

@@ -41,6 +41,7 @@ from bingraph.cfg.decode import (
     target_is_known_nonreturning,
 )
 from bingraph.cfg_extract.models import ExtractedCFGStats, ExtractedCFGSummary
+from bingraph.cfg_extract.syscalls import resolve_static_syscall, unknown_syscall_target
 from bingraph.core import project as project_module
 
 
@@ -930,6 +931,102 @@ def test_extract_resolves_a_static_nonreturning_syscall() -> None:
     assert cfg.extract_stats.static_syscall_fallthroughs_suppressed == 1
 
 
+@pytest.mark.parametrize(
+    "code,instruction_offsets,resolved",
+    (
+        # A read or write through EAX must not fix its otherwise unknown value
+        # merely by choosing an address; EAX also holds the syscall number.
+        ("89f88a18cd80", (0, 2, 4), False),
+        ("89f8c60001cd80", (0, 2, 5), False),
+        # Keep a literal exit number, a number read from constant-address
+        # data, and a literal number following a constant-address store.
+        ("b801000000cd80", (0, 5), True),
+        ("a107004000cd8001000000", (0, 5), True),
+        ("b801000000c6050e00400001cd8000", (0, 5, 12), True),
+        # Unrelated unknown memory must not hide a literal syscall number.
+        ("8a1fb801000000cd80", (0, 2, 7), True),
+        ("c60701b801000000cd80", (0, 3, 8), True),
+        # An unknown store could overwrite the subsequent constant-address
+        # load. Skipping that store must not incorrectly prove exit again.
+        ("c60702a10a004000cd8001000000", (0, 3, 8), False),
+    ),
+)
+def test_extract_syscall_proof_does_not_guess_memory_addresses(
+    code: str, instruction_offsets: tuple[int, ...], resolved: bool
+) -> None:
+    """Memory concretization must not manufacture a known syscall number."""
+
+    entry = 0x400000
+    project = load_shellcode(
+        bytes.fromhex(code), "x86", load_address=entry, simos="linux"
+    )
+    block = BlockSpec(
+        entry,
+        instruction_offsets[-1] + 2,
+        tuple(entry + offset for offset in instruction_offsets),
+        "Ijk_Syscall",
+    )
+    target = resolve_static_syscall(project, block)
+
+    if resolved:
+        assert target is not None
+        assert target.name == "exit"
+        assert target.no_return
+    else:
+        assert target is None
+
+
+@pytest.mark.parametrize(
+    "binary,entry,source,name",
+    (
+        ("i386/bronze_ropchain", 0x8049410, 0x804956C, "set_thread_area"),
+        ("mips64/ld.so.1", 0x402040, 0x402188, "set_thread_area"),
+        ("mips64/ld.so.1", 0x402988, 0x404BCC, "set_thread_area"),
+        ("mips64/ld.so.1", 0x41C440, 0x41C54C, "close"),
+        ("mipsel/mips_syscall_demo", 0x4005A0, 0x400644, "rt_sigprocmask"),
+        ("mipsel/mips_syscall_demo", 0x401390, 0x401510, "set_thread_area"),
+        ("mipsel/mips_syscall_demo", 0x401390, 0x401680, "write"),
+        ("mipsel/mips_syscall_demo", 0x4195C0, 0x419670, "fcntl64"),
+        ("mipsel/mips_syscall_demo", 0x441CD0, 0x441F30, "futex"),
+        ("mipsel/mips_syscall_demo", 0x441CD0, 0x4423F0, "futex"),
+        ("mipsel/mips_syscall_demo", 0x4428B0, 0x442B04, "futex"),
+        ("mipsel/mips_syscall_demo", 0x443090, 0x44320C, "futex"),
+        ("mipsel/mips_syscall_demo", 0x443440, 0x443614, "futex"),
+        ("ppc64el/fauxware_static", 0x100809E0, 0x10080B38, "access"),
+    ),
+)
+def test_extract_keeps_literal_syscall_numbers_after_unknown_memory(
+    binary: str, entry: int, source: int, name: str
+) -> None:
+    """Recover all previously lost, memory-independent corpus syscall proofs."""
+
+    project = project_module.load_project(Path("angr-binaries/tests") / binary)
+    session = builder_module._ExtractionSession(project, KnowledgeBase(project), entry)
+    session.build()
+
+    assert session.resolved_syscalls[source].name == name
+
+
+def test_extract_s390_syscall_label_does_not_depend_on_a_chosen_tls_address() -> None:
+    """The unsupported TLS-based probe stays unknown and keeps its return."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/s390x/test-instr_s390x")
+    )
+    unknown = unknown_syscall_target(project)
+    for _ in range(3):
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), 0x80040368
+        )
+        cfg = session.build()
+        source = next(node for node in cfg.graph.nodes() if node.addr == 0x80040450)
+        syscall = next(node for node in cfg.graph.successors(source) if node.is_syscall)
+        assert 0x80040450 not in session.resolved_syscalls
+        assert syscall.addr == unknown.addr
+        assert syscall.name == unknown.name
+        assert session.blocks[0x80040450].fallthrough_addr == 0x80040474
+
+
 def test_extract_models_vex_traps_without_a_linear_successor() -> None:
     """Keep MIPS ``break`` as VEX's synchronous trap instead of falling through."""
 
@@ -1332,6 +1429,126 @@ def test_extract_abi_snapshot_excludes_candidates_and_skips_unchanged_inputs() -
         assert solver.call_count == 2
         assert solver.call_args.args[2][source].direct_targets == (0x45CD28,)
         assert session.blocks[source].direct_targets == ()
+
+
+@pytest.mark.parametrize(
+    "binary,entry,source,targets",
+    (
+        ("mipsel/btrfs-tools_btrfs-calc-size", 0x404B20, 0x404C78, (0x404554,)),
+        ("mips64/ld.so.1", 0x417EE8, 0x417EE8, (0x4171E0,)),
+        ("s390x/ld64.so.1", 0x413610, 0x413610, (0x4136C0,)),
+        ("armel/RTOSDemo.axf.issue_685", 0x818D, 0x8201, (0x8185,)),
+        (
+            "mipsel/mips_syscall_demo",
+            0x46A1B0,
+            0x46A854,
+            (0x469464, 0x4698D4, 0x4699F0),
+        ),
+    ),
+)
+def test_extract_shared_call_proofs_across_architectures(
+    binary: str, entry: int, source: int, targets: tuple[int, ...]
+) -> None:
+    """Reuse demand-driven facts, including a finite set of ABI-held callees."""
+
+    project = project_module.load_project(Path("angr-binaries/tests") / binary)
+    session = builder_module._ExtractionSession(project, KnowledgeBase(project), entry)
+    session.build()
+
+    assert set(session.blocks[source].direct_targets) == set(targets)
+    assert session.stats.shared_fact_steps > 0
+    assert session.stats.shared_fact_budget_exhausted == 0
+    session._resolve_abi_static_register_transfers(session.static_targets)
+    runs = session.stats.abi_static_target_analysis_runs
+    session._resolve_abi_static_register_transfers(session.static_targets)
+    assert session.stats.abi_static_target_analysis_runs == runs
+
+
+@pytest.mark.parametrize(
+    "binary,entry,source,targets",
+    (
+        ("mipsel/btrfs-tools_btrfs-calc-size", 0x404B20, 0x404C78, ()),
+        ("armel/RTOSDemo.axf.issue_685", 0x818D, 0x8201, (0x8185,)),
+    ),
+)
+def test_extract_shared_call_proofs_with_unknown_abi(
+    binary: str, entry: int, source: int, targets: tuple[int, ...]
+) -> None:
+    """Unknown ABIs forbid call preservation, not same-block target proofs."""
+
+    project = project_module.load_project(Path("angr-binaries/tests") / binary)
+    with patch.object(project.loader.main_object, "os", "unknown"):
+        session = builder_module._ExtractionSession(
+            project, KnowledgeBase(project), entry
+        )
+        session.build()
+
+    assert session.blocks[source].direct_targets == targets
+
+
+def test_extract_revalidates_shared_mips_call_after_new_incoming_flow() -> None:
+    """An incoming edge carrying a restored, unknown S2 withdraws the proof."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/mipsel/btrfs-tools_btrfs-calc-size")
+    )
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x404B20
+    )
+    session.build()
+    assert session.blocks[0x404C78].direct_targets == (0x404554,)
+    assert 0x404C78 in session._shared_register_blocks
+
+    # Simulate late edge discovery from the epilogue, which restores the
+    # caller's S2 rather than carrying this function's static callee.
+    session.blocks[0x404CFC] = replace(
+        session.blocks[0x404CFC], jumpkind="Ijk_Boring", direct_targets=(0x404C78,)
+    )
+    session._resolve_abi_static_register_transfers()
+
+    assert session.blocks[0x404C78].direct_targets == ()
+    assert 0x404C78 not in session._shared_register_blocks
+
+
+@pytest.mark.parametrize("shared_target", (None, 0x50000C, 0x500104))
+def test_extract_keeps_mips_private_frame_proof_ownership(
+    shared_target: int | None,
+) -> None:
+    """Fallback-only proofs stay independent; conflicting exact answers fail."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/mipsel/busybox"))
+    session = builder_module._ExtractionSession(
+        project, KnowledgeBase(project), 0x473DCC
+    )
+    session._decode_all_blocks()
+
+    def fallback(_project, _bounds, blocks):
+        return (
+            {0x473E80: (0x50000C,)} if not blocks[0x473E80].direct_targets else {},
+            False,
+            True,
+        )
+
+    def shared(_project, node, _facts):
+        if node.addr == 0x473E80 and shared_target is not None:
+            return (shared_target,)
+        return None
+
+    with (
+        patch.object(builder_module, "shared_register_targets", side_effect=shared),
+        patch.object(
+            builder_module, "abi_static_register_transfer_targets", side_effect=fallback
+        ),
+    ):
+        session._resolve_abi_static_register_transfers()
+        session._resolve_abi_static_register_transfers()
+        runs = session.stats.abi_static_target_analysis_runs
+        session._resolve_abi_static_register_transfers()
+
+    expected = () if shared_target == 0x500104 else (0x50000C,)
+    assert session.blocks[0x473E80].direct_targets == expected
+    assert 0x473E80 not in session._shared_register_blocks
+    assert session.stats.abi_static_target_analysis_runs == runs
 
 
 def test_extract_revalidates_register_proof_after_a_new_incoming_root() -> None:

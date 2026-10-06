@@ -570,12 +570,14 @@ class _ExtractionSession:
         callees into a common epilogue. Give the ABI solvers those exact edges,
         but never candidate or sweep edges. Cache the immutable input snapshot
         so an unchanged discovery round does not repeat the bounded analysis.
-        AMD64 uses shared facts; MIPS retains its private-frame analysis.
+        Shared facts resolve calls on any architecture and jumps on AMD64.
+        Only known ABIs preserve register facts across calls; local proofs
+        need no preservation rule, even on architectures without an ABI adapter.
+        MIPS also retains its independent private-frame analysis.
         Register proofs belong to their incoming-flow snapshot, not just their
         source block. Rebuild them from decoded facts when that snapshot changes.
         """
 
-        shared = self.project.arch.name == "AMD64"
         originals = {
             addr: original
             for addr, (original, proved) in self._shared_register_blocks.items()
@@ -595,6 +597,7 @@ class _ExtractionSession:
         # must not keep its nonreturning side effect or prove itself via its edge.
         self._restore_shared_register_blocks(tuple(self._shared_register_blocks))
         invalidated: set[int] = set()
+        conflicts: set[int] = set()
         while True:
             analysis_blocks = {
                 addr: replace(block, direct_targets=static_targets[addr])
@@ -611,7 +614,13 @@ class _ExtractionSession:
                 if block.jumpkind in {"Ijk_Boring", "Ijk_Call"}
                 and not block.direct_targets
             }
-            if shared and (candidates or self._shared_register_blocks):
+            shared_candidates = {
+                addr
+                for addr in candidates
+                if self.project.arch.name == "AMD64"
+                or analysis_blocks[addr].jumpkind == "Ijk_Call"
+            }
+            if shared_candidates or self._shared_register_blocks:
                 graph, nodes = self._analysis_graph(static_targets)
                 # A no-return conclusion must not remove a path while proving
                 # its own callee. Query with the decoded continuations restored.
@@ -625,7 +634,8 @@ class _ExtractionSession:
                 facts = table_predecessor_facts(self.project, graph, self.bounds)
                 shared_ran = True
                 for addr in sorted(
-                    (candidates | self._shared_register_blocks.keys()) - invalidated
+                    (shared_candidates | self._shared_register_blocks.keys())
+                    - invalidated
                 ):
                     exact = shared_register_targets(self.project, nodes[addr], facts)
                     if exact is not None:
@@ -648,17 +658,32 @@ class _ExtractionSession:
                 }
                 self._restore_shared_register_blocks(lost | changed)
                 invalidated.update(lost)
-            if not shared and candidates:
+            shared_sources = set(targets)
+            if self.project.arch.name.startswith("MIPS") and candidates:
                 fallback, exhausted, ran = abi_static_register_transfer_targets(
                     self.project, self.bounds, analysis_blocks
                 )
                 shared_ran |= ran
                 self.stats.abi_static_target_analysis_budget_exhausted += exhausted
                 if not exhausted:
-                    targets = fallback
+                    # Private-frame proofs have their own lifetime. Shared
+                    # facts cannot revalidate spills, so track only their own
+                    # answers. Conflicting exact proofs must fail closed.
+                    conflicts.update(
+                        addr
+                        for addr in targets.keys() & fallback.keys()
+                        if set(targets[addr]) != set(fallback[addr])
+                    )
+                    targets = {
+                        addr: exact
+                        for addr, exact in (fallback | targets).items()
+                        if addr not in conflicts
+                    }
+                    shared_sources -= fallback.keys()
+                    invalidated.update(conflicts)
             self.stats.abi_static_target_analysis_runs += shared_ran
             if not targets:
-                if shared and lost:
+                if lost:
                     continue
                 return
 
@@ -676,7 +701,7 @@ class _ExtractionSession:
                 self.blocks[addr] = replace(
                     block, direct_targets=exact_targets, fallthrough_addr=fallthrough
                 )
-                if shared:
+                if addr in shared_sources:
                     self._shared_register_blocks[addr] = block, self.blocks[addr]
                 if block.jumpkind == "Ijk_Call":
                     self.stats.abi_static_call_targets_resolved += 1
@@ -688,8 +713,6 @@ class _ExtractionSession:
                         before = target in self.blocks or target in self.pending_addrs
                         if self._add_leader(target):
                             discovered |= not before
-            if not discovered and not shared:
-                return
             if discovered:
                 self._decode_all_blocks()
             # Each shared round either establishes a new site or permanently
