@@ -95,7 +95,7 @@ JSON.
 
 `function` accepts either decimal or `0x`-prefixed hexadecimal addresses. CFG
 routes also accept optional `mode=none|custom|extract`, `comments=true|false`,
-`dfs=true|false`, `exits=never|jump|always`, and `recovery=true|false` query
+`dfs=true|false`, and `exits=never|jump|always` query
 parameters. A request value overrides the corresponding
 application setting for that render only.
 
@@ -119,23 +119,24 @@ CFG modes:
   structural anomalies when present.
 - `none`: return the bounded `CFGFast` graph without custom repair; useful for
   comparison and diagnostics.
+- `extract`: independently decode and prove bounded control flow, then recover
+  eligible disconnected code without treating it as proven entry-reachable code.
 
-The extract-only disconnected-code prototype defaults to disabled. Enable it
-with `--cfg-recovery` on the CLI or `recovery=true` on either CFG endpoint.
-`--no-cfg-recovery` and `recovery=false`
-disable it; the normal settings environment override is
-`BINGRAPH_CFG_RECOVERY=true`, also usable in `.bingraphenv` and supported by the
-golden corpus harness. It scans explicitly sized functions with unresolved
-jumps, rejects padding and known data, and
-shows selected rejoining or validated return/trap/non-returning-exit regions behind
-dashed-orange `UnresolvedEntrySource` edges. These are discovery hints, not proven
-jump targets. Extract summaries
-separate discovered, entry-connected, and disconnected instruction counts.
+Disconnected-code recovery is part of extract mode, including API requests and
+golden corpus runs. It scans only eligible explicitly sized functions with
+unresolved jumps, rejects padding and known data, and shows selected rejoining
+or validated return/trap/non-returning-exit regions behind dashed-orange
+`UnresolvableEntrySource` edges. These are discovery hints, not proven jump targets.
+Extract summaries separate discovered, entry-connected, and disconnected
+instruction counts.
 Recovery may split established blocks at existing instruction boundaries while
 preserving their instructions and terminal transfers. Exact proof sources stay
 pinned, and recovered code never contributes resolver facts.
 Recovered calls are also checked against ELF LSDA metadata; proven cleanup
 edges remain dotted gray and can discover additional landing pads.
+The former recovery setting, CLI flags and API override have been removed.
+Remove `BINGRAPH_CFG_RECOVERY` entries from `.bingraphenv` and omit
+`--cfg-recovery`/`--no-cfg-recovery` from commands; no enable flag is needed.
 
 ## Development
 

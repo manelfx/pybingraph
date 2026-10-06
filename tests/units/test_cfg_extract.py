@@ -91,7 +91,7 @@ def test_extract_mode_bypasses_fast_cfg(monkeypatch) -> None:
         lambda *_args: (_ for _ in ()).throw(AssertionError("CFGFast called")),
     )
 
-    cfg = project_module.get_cfg(project, 0x40043C, "extract", False)
+    cfg = project_module.get_cfg(project, 0x40043C, "extract")
 
     assert sum(not node.is_simprocedure for node in cfg.graph.nodes()) == 3
 
@@ -137,17 +137,13 @@ def test_disconnected_lsda_closes_recovered_calls(
     """Metadata closes recovered cleanup flow without retrying jump proofs."""
 
     project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
-    before = builder_module._ExtractionSession(
-        project, KnowledgeBase(project), entry, cfg_recovery=True
-    )
+    before = builder_module._ExtractionSession(project, KnowledgeBase(project), entry)
     with patch.object(
         builder_module._ExtractionSession,
         "_discover_recovered_elf_exceptional_edges",
     ):
         old = before.build()
-    session = builder_module._ExtractionSession(
-        project, KnowledgeBase(project), entry, cfg_recovery=True
-    )
+    session = builder_module._ExtractionSession(project, KnowledgeBase(project), entry)
     cfg = session.build()
     displayed = session._output_blocks()
     sites = exceptional_call_sites_for_function(project, session.bounds)
@@ -195,7 +191,7 @@ def test_disconnected_lsda_rejects_incompatible_decode(monkeypatch) -> None:
 
     project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
     session = builder_module._ExtractionSession(
-        project, KnowledgeBase(project), 0x4F6B60, cfg_recovery=True
+        project, KnowledgeBase(project), 0x4F6B60
     )
     with patch.object(
         builder_module._ExtractionSession,
@@ -2052,7 +2048,7 @@ def test_extract_static_table_discovery_discards_stale_snapshot_plans(
     session.static_targets = {}
     session.static_target_candidates = {}
     session.stats = ExtractedCFGStats()
-    session.recovery_enabled = False
+    session.recovery_table_bytes = set()
     session.project = SimpleNamespace()
     session.data_regions = SimpleNamespace(
         contains=lambda *_args: False,
@@ -2895,15 +2891,15 @@ def test_disconnected_prototype_preserves_proofs(binary, address) -> None:
     baseline = builder_module._ExtractionSession(
         project, KnowledgeBase(project), address
     )
-    old = baseline.build()
+    old = baseline.build(recover_disconnected=False)
     session = builder_module._ExtractionSession(
-        project, KnowledgeBase(project), address, cfg_recovery=True
+        project, KnowledgeBase(project), address
     )
     cfg = session.build()
     flow = nx.DiGraph()
     flow.add_nodes_from(cfg.graph.nodes())
     flow.add_edges_from(cfg.graph.edges())
-    source = next(n for n in cfg.graph if n.name == "UnresolvedEntrySource")
+    source = next(n for n in cfg.graph if n.name == "UnresolvableEntrySource")
     assert source.is_simprocedure
     assert cfg.graph.in_degree(source) == 0
     assert session.blocks == baseline.blocks
@@ -3095,7 +3091,7 @@ def test_disconnected_sweep_budget_fails_closed(monkeypatch) -> None:
 
     project = project_module.load_project(Path("angr-binaries/tests/x86_64/static"))
     session = builder_module._ExtractionSession(
-        project, KnowledgeBase(project), 0x4542F0, cfg_recovery=True
+        project, KnowledgeBase(project), 0x4542F0
     )
     session._decode_all_blocks()
     session._discover_static_jump_targets()
@@ -3219,7 +3215,7 @@ def test_disconnected_prototype_excludes_bounded_inline_table(monkeypatch) -> No
 
     project = project_module.load_project(Path("angr-binaries/tests/armel/btrfs.ko"))
     session = builder_module._ExtractionSession(
-        project, KnowledgeBase(project), 0x401154, cfg_recovery=True
+        project, KnowledgeBase(project), 0x401154
     )
     session._decode_all_blocks()
     session._discover_static_jump_targets()

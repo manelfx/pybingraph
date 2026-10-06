@@ -95,7 +95,7 @@ from .syscalls import ResolvedSyscall, resolve_static_syscall, unknown_syscall_t
 
 
 _UNRESOLVABLE_CALL_ADDR = 0xFFFFFFFFFFFFFFD0
-_UNRESOLVED_ENTRY_ADDR = 0xFFFFFFFFFFFFFFC0
+_UNRESOLVABLE_ENTRY_ADDR = 0xFFFFFFFFFFFFFFC0
 _RECONNECTING_SWEEP_REASONS = frozenset({"no_vex", "no_table_shape"})
 # Candidate rows are decoded transitively, so keep their unproven frontier
 # small. Exact static table plans are not subject to this limit.
@@ -182,8 +182,6 @@ class _ExtractionSession:
         project: Project,
         kb: KnowledgeBase,
         func_addr: int,
-        *,
-        cfg_recovery: bool = False,
     ) -> None:
         self.project = project
         self.kb = kb
@@ -212,7 +210,6 @@ class _ExtractionSession:
         self.resolved_syscalls: dict[int, ResolvedSyscall] = {}
         self._abi_analysis_blocks: dict[int, BlockSpec] | None = None
         self._shared_register_blocks: dict[int, tuple[BlockSpec, BlockSpec]] = {}
-        self.recovery_enabled = cfg_recovery
         # Presentation-only code must never enter _analysis_graph or its facts.
         self.recovered_blocks: dict[int, BlockSpec] = {}
         self.recovery_baseline: dict[int, BlockSpec] = {}
@@ -951,9 +948,7 @@ class _ExtractionSession:
                     self.project,
                     self.bounds,
                     node,
-                    table_data=self.recovery_table_bytes
-                    if self.recovery_enabled
-                    else None,
+                    table_data=self.recovery_table_bytes,
                 )
                 proof_flavor = "conditional_pc" if targets is not None else None
                 plan = None
@@ -1103,21 +1098,18 @@ class _ExtractionSession:
                         accepted_targets.append(target)
                         discovered |= added and not before
                 plans[addr] = tuple(accepted_targets)
-                if self.recovery_enabled:
-                    # These bytes are evidence of data, not additional bounds
-                    # or targets. Keep them out of normal extraction decisions.
-                    if plan is not None:
-                        table_addr = _jump_table_addr(plan.base_addr, plan.table)
-                        for index in plan.entry_indices:
-                            address = table_addr + index * plan.table.entry_size
-                            self.recovery_table_bytes.update(
-                                range(address, address + plan.table.entry_size)
-                            )
-                    if shared_facts is not None:
-                        for address, size, _endness, _steps in shared_facts._table_rows:
-                            self.recovery_table_bytes.update(
-                                range(address, address + size)
-                            )
+                # These bytes are evidence of data, not additional bounds
+                # or targets. Keep them out of normal extraction decisions.
+                if plan is not None:
+                    table_addr = _jump_table_addr(plan.base_addr, plan.table)
+                    for index in plan.entry_indices:
+                        address = table_addr + index * plan.table.entry_size
+                        self.recovery_table_bytes.update(
+                            range(address, address + plan.table.entry_size)
+                        )
+                if shared_facts is not None:
+                    for address, size, _endness, _steps in shared_facts._table_rows:
+                        self.recovery_table_bytes.update(range(address, address + size))
                 assert proof_flavor is not None
                 plan_flavors[addr] = proof_flavor
                 if (
@@ -1399,7 +1391,7 @@ class _ExtractionSession:
         padding regions stay hidden.
         """
 
-        if not self.recovery_enabled or not any(
+        if not any(
             block.jumpkind == "Ijk_Boring"
             and not block.direct_targets
             and block.fallthrough_addr is None
@@ -1542,7 +1534,7 @@ class _ExtractionSession:
 
         if not self.recovered_roots:
             return
-        source = self._leaf(_UNRESOLVED_ENTRY_ADDR, "UnresolvedEntrySource")
+        source = self._leaf(_UNRESOLVABLE_ENTRY_ADDR, "UnresolvableEntrySource")
         for address in sorted(self.recovered_roots):
             target = self.nodes[address]
             add_successor_edge(
@@ -1729,13 +1721,15 @@ class _ExtractionSession:
         self.summary.entry_connected_instructions = len(connected_insns & all_insns)
         self.summary.disconnected_instructions = len(all_insns - connected_insns)
 
-    def build(self) -> ExtractedCFG:
+    def build(self, *, recover_disconnected: bool = True) -> ExtractedCFG:
         """Run bounded extraction in decode, proof, recovery, render order.
 
         Exact target discovery precedes any sweep so that a static table never
         depends on speculative recovered code. Rendering is deliberately last:
         it consumes the stabilized block set and records unresolved targets
         that the proof stages intentionally declined to resolve.
+        The private ``recover_disconnected=False`` audit hook exposes the
+        pre-recovery baseline; public extraction always enables this phase.
         """
 
         # Stage 1: direct decoding establishes the initial bounded CFG.
@@ -1751,10 +1745,11 @@ class _ExtractionSession:
         # reached through a recovered component or another landing pad.
         self._discover_elf_exceptional_edges()
         # No proof query runs after this presentation-only discovery stage.
-        self._recover_disconnected_components()
-        # Recovered calls can unwind too. LSDA may supply missing cleanup
-        # leaders, but their code remains outside the original proof graph.
-        self._discover_recovered_elf_exceptional_edges()
+        if recover_disconnected:
+            self._recover_disconnected_components()
+            # Recovered calls can unwind too. LSDA may supply missing cleanup
+            # leaders, but their code remains outside the original proof graph.
+            self._discover_recovered_elf_exceptional_edges()
         # Stage 4: materialize the stabilized graph and its conservative edges.
         self._materialize_edges()
         self._attach_static_jump_table_candidates()
@@ -1800,13 +1795,11 @@ def build_extracted_cfg(
     project: Project,
     kb: KnowledgeBase,
     func_addr: int,
-    *,
-    cfg_recovery: bool = False,
 ) -> ExtractedCFG:
-    """Build one experimental function CFG without invoking CFGFast."""
+    """Build one bounded function CFG with recovery, without invoking CFGFast."""
 
     logger.info(f"Extracting CFG for function {func_addr:#x} without CFGFast")
-    cfg = _ExtractionSession(project, kb, func_addr, cfg_recovery=cfg_recovery).build()
+    cfg = _ExtractionSession(project, kb, func_addr).build()
     logger.info(
         f"Extracted CFG for {func_addr:#x}: "
         f"stats={cfg.extract_stats.as_dict()}, "

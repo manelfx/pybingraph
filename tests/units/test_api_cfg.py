@@ -57,18 +57,14 @@ def test_cfg_api_exits_query_overrides_the_default(monkeypatch, tmp_path) -> Non
 
 
 @pytest.mark.parametrize("endpoint", ["/cfg", "/api/cfg"])
-@pytest.mark.parametrize("default", [False, True])
-def test_cfg_api_recovery_overrides_default(
-    monkeypatch, tmp_path, endpoint, default
-) -> None:
-    """Omission inherits settings; explicit false must disable recovery."""
+def test_cfg_api_has_no_recovery_parameter(monkeypatch, tmp_path, endpoint) -> None:
+    """Recovery is not a public route parameter or renderer cache dimension."""
 
     binary = tmp_path / "binary"
     binary.touch()
     settings = Settings.model_construct(
         root=tmp_path,
         cfg_mode="extract",
-        cfg_recovery=default,
         server=None,
         client=None,
     )
@@ -78,67 +74,32 @@ def test_cfg_api_recovery_overrides_default(
     monkeypatch.setattr(
         app_module, "render_cfg", lambda *args: calls.append(args) or "graph"
     )
-    client = TestClient(app_module.create_app())
+    app = app_module.create_app()
+    client = TestClient(app)
     params = {"filepath": binary.name, "function": "0x10", "format": "raw"}
-    for override, expected in [(None, default), ("true", True), ("false", False)]:
-        query = params if override is None else {**params, "recovery": override}
-        assert client.get(endpoint, params=query).status_code == 200
-        assert calls[-1][7] is expected
-    assert (
-        client.get(endpoint, params={**params, "recovery": "invalid"}).status_code
-        >= 400
-    )
-    assert len(calls) == 3
+    assert client.get(endpoint, params=params).status_code == 200
+    assert len(calls) == 1 and len(calls[0]) == 7
+    names = {p["name"] for p in app.openapi()["paths"][endpoint]["get"]["parameters"]}
+    assert "recovery" not in names
 
 
-def test_cfg_recovery_settings_support_cli_and_config_file(
-    monkeypatch, tmp_path
-) -> None:
-    """Expose the knob through normal settings, not a special runtime flag."""
+@pytest.mark.parametrize("flag", ["--cfg-recovery", "--no-cfg-recovery"])
+def test_cfg_recovery_setting_and_cli_flags_are_removed(tmp_path, flag) -> None:
+    """Retire both directions of the flag, rather than retain a hidden knob."""
 
-    monkeypatch.delenv("BINGRAPH_CFG_RECOVERY", raising=False)
-    config = tmp_path / ".bingraphenv"
-    config.write_text("BINGRAPH_CFG_RECOVERY=true\n")
-    assert (
-        GlobalSettings(
-            root=tmp_path, _env_file=config, _cli_parse_args=False
-        ).cfg_recovery
-        is True
-    )
-    assert (
-        GlobalSettings(
-            root=tmp_path, _env_file=config, _cli_parse_args=["--no-cfg-recovery"]
-        ).cfg_recovery
-        is False
-    )
-    assert (
-        GlobalSettings(
-            root=tmp_path, _env_file=None, _cli_parse_args=["--cfg-recovery"]
-        ).cfg_recovery
-        is True
-    )
-    assert (
-        GlobalSettings(
-            root=tmp_path, _env_file=None, _cli_parse_args=False
-        ).cfg_recovery
-        is False
-    )
-    monkeypatch.setenv("BINGRAPH_CFG_RECOVERY", "true")
-    assert (
-        GlobalSettings(
-            root=tmp_path, _env_file=None, _cli_parse_args=False
-        ).cfg_recovery
-        is True
-    )
+    assert "cfg_recovery" not in GlobalSettings.model_fields
+    with pytest.raises(SystemExit) as exc:
+        GlobalSettings(root=tmp_path, _env_file=None, _cli_parse_args=[flag])
+    assert exc.value.code == 2
 
 
-def test_cfg_api_recovery_switches_real_extract_graph(monkeypatch) -> None:
-    """Request overrides must reach extraction and both cache layers."""
+def test_cfg_api_extract_always_recovers_disconnected_code(monkeypatch) -> None:
+    """Default requests recover code, and obsolete overrides cannot disable it."""
 
+    monkeypatch.setenv("BINGRAPH_CFG_RECOVERY", "false")
     settings = Settings.model_construct(
         root=Path("angr-binaries/tests"),
         cfg_mode="extract",
-        cfg_recovery=True,
         comments=False,
         server=None,
         client=None,
@@ -153,21 +114,18 @@ def test_cfg_api_recovery_switches_real_extract_graph(monkeypatch) -> None:
         "format": "raw",
     }
     try:
-        old_response = client.get("/api/cfg", params={**params, "recovery": "false"})
-        assert old_response.status_code == 200
-        original = old_response.json()["graph"]
-        assert "UnresolvedEntrySource" not in original
         new_response = client.get("/api/cfg", params=params)
         assert new_response.status_code == 200
         recovered = new_response.json()["graph"]
-        assert "UnresolvedEntrySource" in recovered
+        assert "UnresolvableEntrySource" in recovered
+        assert "UnresolvedEntrySource" not in recovered
         assert '"0xffffffffffffffc0" ->' in recovered
         assert "color=orange, style=dashed" in recovered
         assert (
             client.get("/api/cfg", params={**params, "recovery": "false"}).json()[
                 "graph"
             ]
-            == original
+            == recovered
         )
         assert (
             client.get("/api/cfg", params={**params, "recovery": "true"}).json()[

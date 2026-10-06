@@ -237,25 +237,15 @@ def get_cfg(
     project: Project,
     func_addr: int,
     cfg_mode: CfgMode | None = None,
-    cfg_recovery: bool | None = None,
 ) -> CFGBase:
-    """Resolve defaults before caching, including explicit recovery overrides."""
+    """Resolve the CFG mode before caching its graph."""
 
-    if cfg_mode is None or (cfg_mode == "extract" and cfg_recovery is None):
-        settings = get_settings()
-        cfg_mode = settings.cfg_mode if cfg_mode is None else cfg_mode
-        cfg_recovery = settings.cfg_recovery if cfg_recovery is None else cfg_recovery
-    # Recovery has no meaning outside extract; avoid duplicate custom caches.
-    return _get_cfg(
-        project, func_addr, cfg_mode, bool(cfg_recovery) and cfg_mode == "extract"
-    )
+    return _get_cfg(project, func_addr, cfg_mode or get_settings().cfg_mode)
 
 
 @lru_cache
 @time_it
-def _get_cfg(
-    project: Project, func_addr: int, resolved_cfg_mode: CfgMode, cfg_recovery: bool
-) -> CFGBase:
+def _get_cfg(project: Project, func_addr: int, resolved_cfg_mode: CfgMode) -> CFGBase:
     """Build a graph with fully resolved settings forming its cache key."""
 
     logger.info(
@@ -269,10 +259,7 @@ def _get_cfg(
     if resolved_cfg_mode == "extract":
         # This experimental path deliberately starts from bounded decoding,
         # rather than using CFGFast as a seed graph to repair.
-        cfg = cast(
-            CFGBase,
-            build_extracted_cfg(project, kb, func_addr, cfg_recovery=cfg_recovery),
-        )
+        cfg = cast(CFGBase, build_extracted_cfg(project, kb, func_addr))
     else:
         fast_cfg = _get_fast_cfg(project, kb, func_addr)
 

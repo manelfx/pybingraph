@@ -620,9 +620,6 @@ def _build_test_settings(config: GoldenConfig) -> settings_module.Settings:
         root=PLAYGROUND_ROOT,
         cfg_mode=config.cfg_mode,
         cfg_exits=config.cfg_exits,
-        cfg_recovery=settings_module.Settings(
-            _cli_parse_args=False, root=PLAYGROUND_ROOT, server=None, client=None
-        ).cfg_recovery,
         comments=False,
         server=None,
         client=None,

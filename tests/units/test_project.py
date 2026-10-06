@@ -7,29 +7,39 @@ from capstone import CS_GRP_CALL, CS_OP_IMM
 from bingraph.core import project as project_module
 
 
-def test_cfg_cache_uses_resolved_recovery_setting(monkeypatch) -> None:
-    """Changing defaults or request overrides must select the right graph."""
+def test_cfg_cache_uses_resolved_mode(monkeypatch) -> None:
+    """Default and explicit requests for the same mode share one graph."""
 
-    settings = SimpleNamespace(cfg_mode="extract", cfg_recovery=False)
+    settings = SimpleNamespace(cfg_mode="extract")
     monkeypatch.setattr(project_module, "get_settings", lambda: settings)
     monkeypatch.setattr(project_module, "KnowledgeBase", lambda _: object())
     calls = []
 
-    def build(_project, _kb, _addr, *, cfg_recovery):
-        calls.append(cfg_recovery)
-        return SimpleNamespace(recovery=cfg_recovery)
+    def build(_project, _kb, _addr):
+        calls.append("extract")
+        return SimpleNamespace(mode="extract")
 
     monkeypatch.setattr(project_module, "build_extracted_cfg", build)
+    fast = object()
+    monkeypatch.setattr(project_module, "_get_fast_cfg", lambda *_args: fast)
+    monkeypatch.setattr(
+        project_module,
+        "build_custom_cfg",
+        lambda *_args: SimpleNamespace(mode="custom"),
+    )
+    monkeypatch.setattr(project_module, "log_cfg_status", lambda *_args: None)
     project_module.get_cfg.cache_clear()
     project = object()
     try:
-        baseline = project_module.get_cfg(project, 0x1000)
-        settings.cfg_recovery = True
-        recovered = project_module.get_cfg(project, 0x1000)
-        assert recovered is not baseline
-        assert project_module.get_cfg(project, 0x1000, "extract", False) is baseline
-        assert project_module.get_cfg(project, 0x1000, "extract", True) is recovered
-        assert calls == [False, True]
+        extracted = project_module.get_cfg(project, 0x1000)
+        assert project_module.get_cfg(project, 0x1000, "extract") is extracted
+        settings.cfg_mode = "custom"
+        custom = project_module.get_cfg(project, 0x1000)
+        assert custom is not extracted
+        assert project_module.get_cfg(project, 0x1000, "custom") is custom
+        assert project_module.get_cfg(project, 0x1000, "extract") is extracted
+        assert project_module.get_cfg(project, 0x1000, "none") is fast
+        assert calls == ["extract"]
     finally:
         project_module.get_cfg.cache_clear()
 

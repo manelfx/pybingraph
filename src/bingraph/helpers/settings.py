@@ -41,9 +41,6 @@ class GlobalSettings(BaseSettings):
     cfg_exits: CfgExits = Field(
         "jump", description="Which CFG exits to render outside the function"
     )
-    cfg_recovery: CliImplicitFlag[bool] = Field(
-        False, description="Discover disconnected code regions in extract mode"
-    )
     comments: CliImplicitFlag[bool] = Field(
         True, description="Appends comments to instructions when available"
     )
