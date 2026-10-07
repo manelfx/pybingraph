@@ -78,6 +78,36 @@ def test_custom_builder_decodes_a_bounded_function_without_cfgfast() -> None:
     )
 
 
+def test_custom_titles_use_local_labels_without_changing_the_cfg() -> None:
+    project = project_module.load_project(
+        Path("angr-binaries/tests/armel/p2im_drone.elf")
+    )
+    with patch.object(builder_module, "_local_node_names", return_value={}):
+        baseline = build_custom_cfg(project, KnowledgeBase(project), 0x80052B5)
+    with patch.object(project.analyses, "CFGFast", side_effect=AssertionError):
+        cfg = build_custom_cfg(project, KnowledgeBase(project), 0x80052B5)
+
+    nodes = {node.addr: node for node in cfg.graph.nodes if not node.is_simprocedure}
+    for addr, name in {
+        0x80052B5: "Reset_Handler",
+        0x80052B9: "CopyDataInit",
+        0x80052C1: "LoopCopyDataInit",
+        0x80052CF: "FillZerobss",
+        0x80052D5: "LoopFillZerobss",
+        0x80052CB: "Reset_Handler+0x16",
+    }.items():
+        assert nodes[addr].name == name
+        assert nodes[addr].block_id == addr
+    assert cfg.custom_summary == baseline.custom_summary
+    assert cfg.custom_stats == baseline.custom_stats
+    assert {(n.addr, n.size, tuple(n.instruction_addrs)) for n in cfg.graph.nodes} == {
+        (n.addr, n.size, tuple(n.instruction_addrs)) for n in baseline.graph.nodes
+    }
+    assert {(a.addr, b.addr): d for a, b, d in cfg.graph.edges(data=True)} == {
+        (a.addr, b.addr): d for a, b, d in baseline.graph.edges(data=True)
+    }
+
+
 def test_custom_mode_bypasses_fast_cfg(monkeypatch) -> None:
     """Route the public custom mode directly to independent construction."""
 

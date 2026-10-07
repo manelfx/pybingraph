@@ -121,21 +121,13 @@ CFG modes:
 - `none`: return the bounded `CFGFast` graph without custom construction; useful
   for comparison and diagnostics.
 
-Disconnected-code recovery is part of custom mode, including API requests and
-golden corpus runs. It scans only eligible explicitly sized functions with
+Disconnected-code recovery is part of custom mode.
+It scans only eligible explicitly sized functions with
 unresolved jumps, rejects padding and known data, and shows selected rejoining
 or validated return/trap/non-returning-exit regions behind dashed-orange
 `UnresolvableEntrySource` edges. These are discovery hints, not proven jump targets.
 Custom summaries separate discovered, entry-connected, and disconnected
 instruction counts.
-Recovery may split established blocks at existing instruction boundaries while
-preserving their instructions and terminal transfers. Exact proof sources stay
-pinned, and recovered code never contributes resolver facts.
-Recovered calls are also checked against ELF LSDA metadata; proven cleanup
-edges remain dotted gray and can discover additional landing pads.
-The former recovery setting, CLI flags and API override have been removed.
-Remove `BINGRAPH_CFG_RECOVERY` entries from `.bingraphenv` and omit
-`--cfg-recovery`/`--no-cfg-recovery` from commands; no enable flag is needed.
 
 ## Development
 

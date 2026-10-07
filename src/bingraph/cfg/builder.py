@@ -18,6 +18,7 @@ from collections import Counter, deque
 from copy import deepcopy
 from dataclasses import replace
 import os
+import re
 from types import SimpleNamespace
 from typing import Iterable, Mapping, cast
 
@@ -34,6 +35,7 @@ from capstone.arm import (
     ARM_REG_PC,
     ARM_REG_SP,
 )
+from cle.backends.symbol import SymbolType
 from loguru import logger
 import networkx as nx
 
@@ -119,12 +121,51 @@ def _node_name(bounds: FunctionBounds, addr: int) -> str:
     return f"{bounds.name}+0x{addr - bounds.addr:x}"
 
 
+def _local_node_names(project: Project, addrs: Iterable[int]) -> dict[int, str]:
+    """Choose local code labels at existing block starts, never new leaders.
+
+    Untyped assembler labels precede local function aliases, then names sort
+    lexically so symbol-table order cannot change the title. Object, section,
+    and file symbols are not code labels; ARM mapping symbols only describe
+    decoding regions. Normalize Thumb execution addresses to their byte address.
+    """
+
+    starts = {addr: addr - int(_thumb_mode(project, addr)) for addr in addrs}
+    byte_addrs = set(starts.values())
+    aliases: dict[int, tuple[bool, str]] = {}
+    arm = project.arch.name.startswith("ARM") or project.arch.name == "AARCH64"
+    for symbol in project.loader.main_object.symbols:
+        if (
+            not symbol.is_local
+            or symbol.is_import
+            or symbol.type not in (SymbolType.TYPE_NONE, SymbolType.TYPE_FUNCTION)
+            or not symbol.name
+        ):
+            continue
+        addr = symbol.rebased_addr
+        addr -= int(_thumb_mode(project, addr))
+        if addr not in byte_addrs or (
+            arm and re.fullmatch(r"\$[adtx](?:\..*)?", symbol.name)
+        ):
+            continue
+        rank = (symbol.is_function, symbol.name)
+        if addr not in aliases or rank < aliases[addr]:
+            aliases[addr] = rank
+    return {
+        addr: aliases[byte_addr][1]
+        for addr, byte_addr in starts.items()
+        if byte_addr in aliases
+    }
+
+
 def _make_block_node(
     model: CFGModel,
     project: Project,
     func_addr: int,
     bounds: FunctionBounds,
     block: BlockSpec,
+    *,
+    name: str | None = None,
 ) -> CFGNode:
     """Materialize one recovered normal CFG node."""
 
@@ -136,7 +177,7 @@ def _make_block_node(
         block_id=block.addr,
         instruction_addrs=block.instruction_addrs,
         thumb=_thumb_mode(project, block.addr),
-        name=_node_name(bounds, block.addr),
+        name=name or _node_name(bounds, block.addr),
         vex_linear_instruction_sizes=dict(block.vex_linear_instruction_sizes),
     )
 
@@ -1278,11 +1319,21 @@ class _BuildSession:
         remove that explicit unknown-target fallback.
         """
 
+        # Labels affect final titles only, not proof snapshots or block discovery.
+        blocks = self._output_blocks()
+        local_names = _local_node_names(
+            self.project, (addr for addr in blocks if addr != self.func_addr)
+        )
         self.nodes = {
             addr: _make_block_node(
-                self.model, self.project, self.func_addr, self.bounds, block
+                self.model,
+                self.project,
+                self.func_addr,
+                self.bounds,
+                block,
+                name=local_names.get(addr),
             )
-            for addr, block in sorted(self._output_blocks().items())
+            for addr, block in sorted(blocks.items())
         }
         for node in self.nodes.values():
             self.graph.add_node(node)

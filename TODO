@@ -76,40 +76,6 @@ If indirect-jump resolution is revisited:
   negative cases and budgets, without requiring a larger replacement solely
   to reproduce every legacy result.
 
-=== Avoid very large function names in nodes ===
-
-If function names are very large, nodes become wide.
-We want to show, instead of something like:
-
-(0x4ad824) _ZN13fluent_bundle5types11FluentValue5write17hd5d59ec48b6606d8E+0xc4
-
-show something like:
-
-(0x4ad824) _ZN13fluent_bundle5types...+0xc4
-
-=== Preserve meaningful local labels in custom CFG mode
-
-`cfg_mode=custom` currently gives every non-entry block a canonical
-`function_name+offset` title. That is deterministic, but it loses useful
-ELF-local labels inside a function. For example, in
-`armel/p2im_drone.elf:Reset_Handler` at `0x80052b5`, the labels
-`CopyDataInit`, `LoopCopyDataInit`, `FillZerobss`, and `LoopFillZerobss`
-describe the startup routine more clearly than offsets alone.
-
-Add a deterministic node-title resolver for custom mode:
-
-- Keep the selected function name for the entry block.
-- For another block, look up symbols at its normalized execution address
-  (including ARM/Thumb address normalization).
-- Prefer a meaningful in-function local label when one exists, using a
-  documented deterministic priority for aliases.
-- Fall back to `function_name+offset` when no suitable label exists.
-
-Decide separately, based on comparison with CFGFast behavior, whether ARM
-mapping symbols such as `$a`, `$d`, and `$t` should be filtered or preserved.
-They are local symbols too, but may be less useful than a canonical offset;
-do not hard-code that policy before auditing representative artifacts.
-
 === Address comments
 
 - Bring back comments by default in tests.

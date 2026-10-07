@@ -28,7 +28,7 @@ edge [fontname=monospace, fontsize=8];
 "0x808fb3c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x808fb3c)</TD><TD ><B>__wunderflow+0x12c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0808fb3c&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0x10</TD></TR><TR><TD ALIGN="LEFT">0x0808fb3f&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x808fa8f</TD></TR></TABLE> }>];
 "0x808fb48" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x808fb48)</TD><TD ><B>__wunderflow+0x138</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0808fb48&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x8052740</TD></TR></TABLE> }>];
 "0x808fb4d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x808fb4d)</TD><TD ><B>__wunderflow+0x13d</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0808fb4d&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x808faaf</TD></TR></TABLE> }>];
-"0xfffffffffffffff0" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0xfffffffffffffff0)</TD><TD ><B>UnresolvableJumpTarget</B></TD><TD > SIMP</TD></TR></TABLE> }>];
+"0xfffffffffffffff0" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ><B>UnresolvableJumpTarget</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x808fa10" -> "0x808fa1c" [color=gray, style=dashed];
 "0x808fa1c" -> "0x808fa2d" [color=red];
 "0x808fa1c" -> "0x808fae5" [color=green];

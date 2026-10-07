@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from angr import Project
@@ -9,12 +10,37 @@ from archinfo.archerror import ArchError
 from loguru import logger
 
 
+MAX_NODE_LABEL_LENGTH = 30
+
+
+def _short_node_name(name: str | None) -> str | None:
+    """Limit the displayed label while preserving its trailing block offset."""
+
+    if name is None:
+        return None
+    offset_match = re.search(r"[+-]0x[0-9a-fA-F]+$", name)
+    label = name[: offset_match.start()] if offset_match else name
+    offset = offset_match.group() if offset_match else ""
+    if len(label) > MAX_NODE_LABEL_LENGTH:
+        label = label[:MAX_NODE_LABEL_LENGTH] + "..."
+    return label + offset
+
+
 class NodeHead(Content):
     name: str = "head"
     columns: list[str] = ["addr", "name", "attributes"]
 
     def gen_render(self, node: Node) -> None:
         cfg_node = node.obj
+        display_name = cfg_node.name
+        if cfg_node.is_simprocedure and re.fullmatch(
+            r"ExternalTarget_0x[0-9a-fA-F]+", display_name or ""
+        ):
+            display_name = "ExternalTarget"
+        show_addr = not (
+            cfg_node.is_simprocedure
+            and (cfg_node.simprocedure_name or "").startswith("Unresolvable")
+        )
         attributes = []
         if cfg_node.is_simprocedure:
             attributes.append(" SIMP")
@@ -27,13 +53,15 @@ class NodeHead(Content):
             "data": [
                 {
                     "addr": {
-                        "content": "({:#08x})".format(cfg_node.addr),
+                        "content": "({:#08x})".format(cfg_node.addr)
+                        if show_addr
+                        else None,
                     },
-                    "name": {"content": cfg_node.name, "style": "B"},
+                    "name": {"content": _short_node_name(display_name), "style": "B"},
                     "attributes": {"content": " ".join(attributes)},
                 }
             ],
-            "columns": self.columns,
+            "columns": self.columns if show_addr else self.columns[1:],
         }
 
 
