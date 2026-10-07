@@ -217,9 +217,5 @@ edge [fontname=monospace, fontsize=8];
 "0x80024150" -> "0x80024122" [color=blue];
 "0x8002416a" -> "0x80023ea6" [color=blue];
 "0x80024172" -> "0x80023cba" [color=blue];
-"0x8002417a" -> "0x80024196" [color=gray, style=dashed];
-"0x80024196" -> "0x800241b2" [color=gray, style=dashed];
 "0x800241b2" -> "0x80023e50" [color=blue];
-"0x800241ba" -> "0x800241d6" [color=gray, style=dashed];
-"0x800241d6" -> "0x800241f2" [color=gray, style=dashed];
 }

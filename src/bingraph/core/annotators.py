@@ -375,13 +375,13 @@ def _capstone_direct_branch_edge_type(edge, exit_targets: set[int]) -> str | Non
 def _capstone_linear_tail_edge_type(edge, vex) -> str | None:
     """Classify a sole fall-through after VEX stops inside a recovered block.
 
-    CFGFast can cap VEX lifting before a recovered block's actual end. When
+    VEX can stop lifting before a decoded block's actual end. When
     Capstone finds no control transfer in the complete block, VEX's default
     target remains inside its byte range, and the source has one successor at
     that decoded end, the edge is the architectural fall-through. A VEX
     warning jumpkind may instead preserve the decoded next address exactly;
     that narrow case is also linear. Both patterns occur on multiple
-    architectures after custom repair merges CFGFast fragments into one block.
+    architectures when bounded decoding continues beyond VEX's first boundary.
     """
 
     source_node = edge.src.obj
@@ -552,9 +552,8 @@ def _edge_type(edge) -> str:
     if edge.meta.get("exceptional"):
         return "EXCEPTION"
 
-    # Custom CFG repair may flatten an UnresolvableJumpTarget placeholder into
-    # direct candidate edges. The marker keeps that unresolved semantics
-    # visible after the synthetic endpoint itself has been removed.
+    # Candidate edges carry unresolved semantics even when their destination
+    # is a decoded block rather than an unknown-target synthetic leaf.
     if edge.meta.get("unresolved_indirect"):
         return "UNRESOLVED_INDIRECT"
 
@@ -585,7 +584,7 @@ def _edge_type(edge) -> str:
 
 
 class ColorEdgesVex(EdgeAnnotator):
-    """Apply semantic edge styles derived from VEX and repair metadata."""
+    """Apply semantic edge styles derived from VEX and CFG metadata."""
 
     def annotate_edge(self, edge) -> None:
         """Style one edge without inferring branch kind from successor count."""

@@ -157,6 +157,8 @@ edge [fontname=monospace, fontsize=8];
 "0x41f63f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41f63f)</TD><TD ><B>_ZN4core5slice4sort7recurse17hd058b2fe4aceddedE+0xe8f</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041f63f&#58;&nbsp;</TD><TD ALIGN="LEFT">ud2</TD><TD></TD></TR></TABLE> }>];
 "0x41f641" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41f641)</TD><TD ><B>_ZN4core5slice4sort7recurse17hd058b2fe4aceddedE+0xe91</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041f641&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rip + 0x3e540]</TD></TR><TR><TD ALIGN="LEFT">0x0041f648&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdx, [rip + 0x55929]</TD></TR><TR><TD ALIGN="LEFT">0x0041f64f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, 0x23</TD></TR><TR><TD ALIGN="LEFT">0x0041f654&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">qword ptr [rip + 0x58436]</TD></TR></TABLE> }>];
 "0x41f65a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41f65a)</TD><TD ><B>_ZN4core5slice4sort7recurse17hd058b2fe4aceddedE+0xeaa</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041f65a&#58;&nbsp;</TD><TD ALIGN="LEFT">ud2</TD><TD></TD></TR></TABLE> }>];
+"0x41f65c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41f65c)</TD><TD ><B>_ZN4core5slice4sort7recurse17hd058b2fe4aceddedE+0xeac</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041f65c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, rax</TD></TR><TR><TD ALIGN="LEFT">0x0041f65f&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rsp + 0x110]</TD></TR><TR><TD ALIGN="LEFT">0x0041f667&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x41cda0</TD></TR></TABLE> }>];
+"0x41f66c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41f66c)</TD><TD ><B>_ZN4core5slice4sort7recurse17hd058b2fe4aceddedE+0xebc</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041f66c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, rbx</TD></TR><TR><TD ALIGN="LEFT">0x0041f66f&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x408060</TD></TR></TABLE> }>];
 subgraph entry_rank {
 rank=source;
 "0x41e7b0";
@@ -379,7 +381,10 @@ rank=source;
 "0x41f5f6" -> "0x41f606" [color=gray, style=dashed];
 "0x41f608" -> "0x41f618" [color=gray, style=dashed];
 "0x41f61a" -> "0x41f62a" [color=gray, style=dashed];
+"0x41f61a" -> "0x41f65c" [color=gray, style=dotted];
 "0x41f62a" -> "0x41f63f" [color=blue];
 "0x41f62c" -> "0x41f63f" [color=gray, style=dashed];
+"0x41f62c" -> "0x41f65c" [color=gray, style=dotted];
 "0x41f641" -> "0x41f65a" [color=gray, style=dashed];
+"0x41f65c" -> "0x41f66c" [color=gray, style=dashed];
 }

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
 import pytest
 
 import bingraph.api.app as app_module
@@ -11,6 +12,50 @@ from bingraph.helpers import Settings
 from bingraph.helpers.settings import GlobalSettings
 from bingraph.core import project as project_module
 from bingraph.core import render as render_module
+
+
+def test_cfg_settings_and_cli_only_support_current_modes(tmp_path) -> None:
+    """The default and CLI advertise only bounded custom construction or CFGFast."""
+
+    settings = GlobalSettings(root=tmp_path, _env_file=None, _cli_parse_args=False)
+    assert settings.cfg_mode == "custom"
+    for mode in ("none", "custom"):
+        settings = GlobalSettings(
+            root=tmp_path,
+            _env_file=None,
+            _cli_parse_args=["--cfg-mode", mode],
+        )
+        assert settings.cfg_mode == mode
+    with pytest.raises(ValidationError):
+        GlobalSettings(
+            root=tmp_path, cfg_mode="extract", _env_file=None, _cli_parse_args=False
+        )
+    with pytest.raises(ValidationError):
+        GlobalSettings(
+            root=tmp_path, _env_file=None, _cli_parse_args=["--cfg-mode", "extract"]
+        )
+
+
+@pytest.mark.parametrize("endpoint", ["/cfg", "/api/cfg"])
+def test_cfg_api_rejects_the_retired_mode(monkeypatch, tmp_path, endpoint) -> None:
+    """Do not retain an implicit compatibility alias in either API route."""
+
+    settings = Settings.model_construct(root=tmp_path, server=None, client=None)
+    monkeypatch.setattr(settings_module, "_settings", settings)
+    client = TestClient(app_module.create_app())
+    response = client.get(
+        endpoint,
+        params={
+            "filepath": "binary",
+            "function": "0x10",
+            "format": "raw",
+            "mode": "extract",
+        },
+    )
+    # Preserve the route interceptor's existing validation-error response.
+    assert response.status_code == 500
+    assert "Input should be" in response.text
+    assert "none" in response.text and "custom" in response.text
 
 
 def test_cfg_api_exits_query_overrides_the_default(monkeypatch, tmp_path) -> None:
@@ -64,7 +109,7 @@ def test_cfg_api_has_no_recovery_parameter(monkeypatch, tmp_path, endpoint) -> N
     binary.touch()
     settings = Settings.model_construct(
         root=tmp_path,
-        cfg_mode="extract",
+        cfg_mode="custom",
         server=None,
         client=None,
     )
@@ -93,13 +138,13 @@ def test_cfg_recovery_setting_and_cli_flags_are_removed(tmp_path, flag) -> None:
     assert exc.value.code == 2
 
 
-def test_cfg_api_extract_always_recovers_disconnected_code(monkeypatch) -> None:
+def test_cfg_api_custom_always_recovers_disconnected_code(monkeypatch) -> None:
     """Default requests recover code, and obsolete overrides cannot disable it."""
 
     monkeypatch.setenv("BINGRAPH_CFG_RECOVERY", "false")
     settings = Settings.model_construct(
         root=Path("angr-binaries/tests"),
-        cfg_mode="extract",
+        cfg_mode="custom",
         comments=False,
         server=None,
         client=None,

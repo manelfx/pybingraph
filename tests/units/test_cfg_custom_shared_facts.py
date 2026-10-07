@@ -9,7 +9,7 @@ import pyvex
 import pytest
 
 from bingraph.cfg.models import FunctionBounds
-from bingraph.cfg_extract.shared_facts import PredecessorFacts
+from bingraph.cfg.shared_facts import PredecessorFacts
 
 
 @dataclass(eq=False)

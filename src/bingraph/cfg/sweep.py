@@ -30,7 +30,7 @@ class SweepBudgetExceeded(Exception):
 
 @dataclass(frozen=True)
 class ExecutableSweepAudit:
-    """Candidate blocks found without changing the extracted CFG."""
+    """Candidate blocks found without changing the custom CFG."""
 
     candidate_blocks: int
     candidate_instructions: int
@@ -41,7 +41,7 @@ class ExecutableSweepAudit:
 
 @dataclass(frozen=True)
 class ExecutableSweep:
-    """Closed direct-flow components discovered outside extracted reachability."""
+    """Closed direct-flow components discovered outside custom entry reachability."""
 
     blocks: Mapping[int, BlockSpec]
     reachable_addrs: frozenset[int]
@@ -153,7 +153,7 @@ def _recover_direct_closure(
     *,
     resolve_static_memory_calls: bool = False,
 ) -> int:
-    """Close sweep targets using the extractor's safe leader invariant."""
+    """Close sweep targets using the builder's safe leader invariant."""
 
     pending: deque[int] = deque()
     pending_addrs: set[int] = set()
@@ -288,7 +288,7 @@ def recover_executable_components(
     callers decide whether unresolved indirect dispatches justify materializing
     these speculative components.
     Static-memory call decoding is opt-in so presentation-only recovery can
-    match normal extraction without changing legacy sweep consumers.
+    match normal construction without changing other sweep consumers.
     """
 
     if max_steps is not None:
@@ -384,7 +384,7 @@ def select_reconnecting_components(
 
     Executable bytes alone do not prove an indirect-jump target. A component
     becomes a candidate only when its decoded direct flow reaches a block from
-    the original extraction, it contains no additional unresolved indirect
+    the original construction, it contains no additional unresolved indirect
     branch, and it does not target the middle of original code. The latter two
     cases need their own target evidence, not inherited trust from the outer
     dispatcher.

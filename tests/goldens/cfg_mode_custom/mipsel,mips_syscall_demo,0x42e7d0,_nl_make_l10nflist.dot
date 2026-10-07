@@ -102,6 +102,10 @@ edge [fontname=monospace, fontsize=8];
 "0x42ee4c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42ee4c)</TD><TD ><B>_nl_make_l10nflist+0x67c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0042ee4c&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $zero, 1</TD></TR><TR><TD ALIGN="LEFT">0x0042ee50&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x42eb38</TD></TR><TR><TD ALIGN="LEFT">0x0042ee54&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$s1, ($fp)</TD></TR></TABLE> }>];
 "0x42ee58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42ee58)</TD><TD ><B>_nl_make_l10nflist+0x688</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0042ee58&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t9, -0x7e78($gp)</TD></TR><TR><TD ALIGN="LEFT">0x0042ee5c&#58;&nbsp;</TD><TD ALIGN="LEFT">bal</TD><TD ALIGN="LEFT">0x4146e8</TD></TR><TR><TD ALIGN="LEFT">0x0042ee60&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a0, $s1</TD></TR></TABLE> }>];
 "0x42ee64" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42ee64)</TD><TD ><B>_nl_make_l10nflist+0x694</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0042ee64&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x42ea00</TD></TR><TR><TD ALIGN="LEFT">0x0042ee68&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$fp, $zero</TD></TR></TABLE> }>];
+subgraph entry_rank {
+rank=source;
+"0x42e7d0";
+}
 "0x42e7d0" -> "0x42e838" [color=gray, style=dashed];
 "0x42e838" -> "0x42e840" [color=red];
 "0x42e838" -> "0x42ea4c" [color=green];
@@ -200,6 +204,7 @@ edge [fontname=monospace, fontsize=8];
 "0x42ebb8" -> "0x42ec7c" [color=green];
 "0x42ebc0" -> "0x42ebdc" [color=blue, style=dashed];
 "0x42ebdc" -> "0x42ebe8" [color=gray, style=dashed];
+"0x42ebe8" -> "0x42e7d0" [color=gray];
 "0x42ebe8" -> "0x42ec40" [color=gray, style=dashed];
 "0x42ec40" -> "0x42ec5c" [color=red];
 "0x42ec40" -> "0x42ec7c" [color=green];
@@ -218,6 +223,7 @@ edge [fontname=monospace, fontsize=8];
 "0x42ecd0" -> "0x42ecec" [color=green];
 "0x42ecdc" -> "0x42ecdc" [color=green];
 "0x42ecdc" -> "0x42ecec" [color=red];
+"0x42ecec" -> "0x42e7d0" [color=gray];
 "0x42ecec" -> "0x42ed3c" [color=gray, style=dashed];
 "0x42ed3c" -> "0x42ecd0" [color=green];
 "0x42ed3c" -> "0x42ed54" [color=red];

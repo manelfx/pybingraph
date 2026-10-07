@@ -2,6 +2,7 @@ digraph G {
 rankdir=TB;
 node [shape=Mrecord, fontname=monospace, fontsize=8];
 edge [fontname=monospace, fontsize=8];
+"0x4085e0" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4085e0)</TD><TD ><B>_IO_new_do_write</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x43edcc" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43edcc)</TD><TD ><B>_IO_wdo_write</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x43faa8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43faa8)</TD><TD ><B>_IO_wfile_overflow</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043faa8&#58;&nbsp;</TD><TD ALIGN="LEFT">lui</TD><TD ALIGN="LEFT">$gp, 7</TD></TR><TR><TD ALIGN="LEFT">0x0043faac&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$gp, $gp, -0x6b28</TD></TR><TR><TD ALIGN="LEFT">0x0043fab0&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$gp, $gp, $t9</TD></TR><TR><TD ALIGN="LEFT">0x0043fab4&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$sp, $sp, -0x28</TD></TR><TR><TD ALIGN="LEFT">0x0043fab8&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$s0, 0x1c($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043fabc&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$s0, $a0</TD></TR><TR><TD ALIGN="LEFT">0x0043fac0&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$gp, 0x10($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043fac4&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$ra, 0x24($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043fac8&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$s1, 0x20($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043facc&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a0, ($a0)</TD></TR><TR><TD ALIGN="LEFT">0x0043fad0&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">$v1, $a0, 8</TD></TR><TR><TD ALIGN="LEFT">0x0043fad4&#58;&nbsp;</TD><TD ALIGN="LEFT">bnez</TD><TD ALIGN="LEFT">$v1, 0x43fc5c</TD></TR><TR><TD ALIGN="LEFT">0x0043fad8&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$s1, $zero, -1</TD></TR></TABLE> }>];
 "0x43fadc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43fadc)</TD><TD ><B>_IO_wfile_overflow+0x34</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043fadc&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v1, 0x5c($s0)</TD></TR><TR><TD ALIGN="LEFT">0x0043fae0&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">$a2, $a0, 0x800</TD></TR><TR><TD ALIGN="LEFT">0x0043fae4&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$s1, $a1</TD></TR><TR><TD ALIGN="LEFT">0x0043fae8&#58;&nbsp;</TD><TD ALIGN="LEFT">bnez</TD><TD ALIGN="LEFT">$a2, 0x43fbb4</TD></TR><TR><TD ALIGN="LEFT">0x0043faec&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 0xc($v1)</TD></TR></TABLE> }>];
@@ -85,6 +86,7 @@ edge [fontname=monospace, fontsize=8];
 "0x43fc38" -> "0x43fc40" [color=red];
 "0x43fc40" -> "0x43fc44" [color=blue, style=dashed];
 "0x43fc5c" -> "0x43fc44" [color=blue];
+"0x43fc7c" -> "0x4085e0" [color=gray];
 "0x43fc7c" -> "0x43fc94" [color=gray, style=dashed];
 "0x43fc94" -> "0x43fc38" [color=blue];
 "0x43fca0" -> "0x43fcac" [color=red];
@@ -99,8 +101,10 @@ edge [fontname=monospace, fontsize=8];
 "0x43fce0" -> "0x43fd58" [color=green];
 "0x43fcec" -> "0x43edcc" [color=blue];
 "0x43fd14" -> "0x43fb14" [color=blue];
+"0x43fd34" -> "0x4085e0" [color=gray];
 "0x43fd34" -> "0x43fd48" [color=gray, style=dashed];
 "0x43fd48" -> "0x43fccc" [color=blue];
+"0x43fd58" -> "0x4085e0" [color=orange];
 "0x43fd7c" -> "0x43fd88" [color=gray, style=dashed];
 "0x43fd88" -> "0x43fb14" [color=blue];
 }

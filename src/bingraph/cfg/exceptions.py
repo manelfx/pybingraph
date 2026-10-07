@@ -1,6 +1,6 @@
 """Recover proven ELF Itanium/DWARF exceptional call destinations.
 
-The normal extractor deliberately does not infer exception flow from opaque
+The normal builder deliberately does not infer exception flow from opaque
 cleanup code. ELF binaries with an LSDA provide a stronger source of truth:
 each call-site record names the instruction range that can unwind and its
 landing pad. This module reads only that narrowly scoped metadata and returns
@@ -207,7 +207,7 @@ def exceptional_call_sites_for_function(
 
     All addresses returned are rebased to the project's loader address space.
     Unsupported metadata and non-file-backed objects deliberately return no
-    records, leaving the extractor's ordinary direct-flow result unchanged.
+    records, leaving the builder's ordinary direct-flow result unchanged.
     """
 
     try:

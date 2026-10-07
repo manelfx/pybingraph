@@ -2,7 +2,7 @@ digraph G {
 rankdir=TB;
 node [shape=Mrecord, fontname=monospace, fontsize=8];
 edge [fontname=monospace, fontsize=8];
-"0x404190" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x404190)</TD><TD ><B>ExternalTarget_0x404190</B></TD><TD > SIMP</TD></TR></TABLE> }>];
+"0x404190" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x404190)</TD><TD ><B>mkdir</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x41ef50" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41ef50)</TD><TD ><B>error</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x4218a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4218a0)</TD><TD ><B>make_directories</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004218a0&#58;&nbsp;</TD><TD ALIGN="LEFT">endbr64</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x004218a4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [rip + 0xab1d6]</TD></TR><TR><TD ALIGN="LEFT">0x004218aa&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">eax, eax</TD></TR><TR><TD ALIGN="LEFT">0x004218ac&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x4218b0</TD></TR></TABLE> }>];
 "0x4218ae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4218ae)</TD><TD ><B>make_directories+0xe</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004218ae&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];

@@ -7,16 +7,16 @@ from angr import KnowledgeBase, options as sim_options
 import pytest
 
 from bingraph.cfg.jumps import plan_dynamic_selector_table_candidates
-from bingraph.cfg_extract.builder import _ExtractionSession, build_extracted_cfg
-from bingraph.cfg_extract import builder as builder_module
-from bingraph.cfg_extract import shared_table_proof as proof_module
-from bingraph.cfg_extract.shared_table_proof import (
+from bingraph.cfg.builder import _BuildSession, build_custom_cfg
+from bingraph.cfg import builder as builder_module
+from bingraph.cfg import shared_table_proof as proof_module
+from bingraph.cfg.shared_table_proof import (
     shared_register_targets,
     shared_table_targets,
     table_predecessor_facts,
 )
 from bingraph.core.project import load_project
-from test_cfg_extract_shared_facts import RBX, const, get, node, setup
+from test_cfg_custom_shared_facts import RBX, const, get, node, setup
 import pyvex
 
 
@@ -40,7 +40,7 @@ def test_shared_affine_tables_prove_exact_targets_without_candidates(
     """Resolve ordered affine dispatches without speculative table rows."""
 
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
-    session = _ExtractionSession(project, KnowledgeBase(project), function)
+    session = _BuildSession(project, KnowledgeBase(project), function)
     session._decode_all_blocks()
     graph, nodes = session._analysis_graph({})
 
@@ -83,18 +83,18 @@ def test_shared_shadow_proof_does_not_change_exact_targets(
 ) -> None:
     monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")
     project = load_project(Path("angr-binaries/tests") / binary)
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), function)
+    cfg = build_custom_cfg(project, KnowledgeBase(project), function)
 
-    assert cfg.extract_stats.shadow_table_attempts >= 1
+    assert cfg.custom_stats.shadow_table_attempts >= 1
     if expect_match:
-        assert cfg.extract_stats.shadow_table_matches >= 1
+        assert cfg.custom_stats.shadow_table_matches >= 1
     else:
-        assert cfg.extract_stats.shadow_table_inconclusive >= 1
-    assert cfg.extract_stats.shadow_table_disagreements == 0
-    assert cfg.extract_stats.shadow_table_attempts == (
-        cfg.extract_stats.shadow_table_matches
-        + cfg.extract_stats.shadow_table_inconclusive
-        + cfg.extract_stats.shadow_table_disagreements
+        assert cfg.custom_stats.shadow_table_inconclusive >= 1
+    assert cfg.custom_stats.shadow_table_disagreements == 0
+    assert cfg.custom_stats.shadow_table_attempts == (
+        cfg.custom_stats.shadow_table_matches
+        + cfg.custom_stats.shadow_table_inconclusive
+        + cfg.custom_stats.shadow_table_disagreements
     )
 
 
@@ -103,16 +103,16 @@ def test_repeated_dispatch_searches_share_scans_without_exhausting_budget(
 ) -> None:
     monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")
     project = load_project(Path("angr-binaries/tests/mipsel/mips_syscall_demo"))
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x42C460)
+    cfg = build_custom_cfg(project, KnowledgeBase(project), 0x42C460)
 
     # This large function previously repeated the same backward statement
     # scans at each dispatch and exhausted the shared 20K allowance.
-    assert cfg.extract_stats.shadow_fact_steps < 20000
-    assert cfg.extract_stats.shadow_fact_budget_exhausted == 0
-    assert cfg.extract_stats.shadow_table_attempts == 14
-    assert cfg.extract_stats.shadow_table_matches == 1
-    assert cfg.extract_stats.shadow_table_inconclusive == 13
-    assert cfg.extract_stats.shadow_table_disagreements == 0
+    assert cfg.custom_stats.shadow_fact_steps < 20000
+    assert cfg.custom_stats.shadow_fact_budget_exhausted == 0
+    assert cfg.custom_stats.shadow_table_attempts == 14
+    assert cfg.custom_stats.shadow_table_matches == 1
+    assert cfg.custom_stats.shadow_table_inconclusive == 13
+    assert cfg.custom_stats.shadow_table_disagreements == 0
 
 
 @pytest.mark.parametrize("conditional_lift_fails", [False, True])
@@ -138,7 +138,7 @@ def test_shared_primary_discovers_cfg_without_any_legacy_table_rescue(
     """Start from entry decoding, not code already recovered by a legacy proof."""
 
     project = load_project(Path("angr-binaries/tests") / binary)
-    baseline = _ExtractionSession(project, KnowledgeBase(project), function)
+    baseline = _BuildSession(project, KnowledgeBase(project), function)
     baseline.build()
     if conditional_lift_fails:
         # Failure of the separate conditional-PC re-lift must not hide the
@@ -158,7 +158,7 @@ def test_shared_primary_discovers_cfg_without_any_legacy_table_rescue(
     ):
         monkeypatch.setattr(builder_module, name, forbidden)
     monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")
-    independent = _ExtractionSession(project, KnowledgeBase(project), function)
+    independent = _BuildSession(project, KnowledgeBase(project), function)
     independent.build()
 
     def edges(session):
@@ -253,14 +253,14 @@ def test_shared_engine_recovers_compact_table_edges_without_legacy_plans(
 
     monkeypatch.setattr(builder_module, "plan_static_jump_table", forbidden)
     project = load_project(Path("angr-binaries/tests") / binary)
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), function)
+    cfg = build_custom_cfg(project, KnowledgeBase(project), function)
     nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
     assert {node.addr for node in cfg.graph.successors(nodes[dispatcher])} == expected
-    assert cfg.extract_stats.static_jump_plans_resolved == 1
-    assert cfg.extract_stats.exact_jump_proofs_by_flavor == {"shared_finite_table": 1}
-    assert cfg.extract_stats.static_jump_target_edges_added == len(expected)
-    assert cfg.extract_stats.unresolved_indirect_targets == 0
-    assert cfg.extract_stats.shared_fact_budget_exhausted == 0
+    assert cfg.custom_stats.static_jump_plans_resolved == 1
+    assert cfg.custom_stats.exact_jump_proofs_by_flavor == {"shared_finite_table": 1}
+    assert cfg.custom_stats.static_jump_target_edges_added == len(expected)
+    assert cfg.custom_stats.unresolved_indirect_targets == 0
+    assert cfg.custom_stats.shared_fact_budget_exhausted == 0
 
 
 def expression_fixture(raw, bits=8, endian="little", **kwargs):
@@ -417,7 +417,7 @@ def test_typed_guards_independently_bound_rust_and_s390_dispatches(
     binary, function, source, table, count, size, endian
 ):
     project = load_project(Path("angr-binaries/tests") / binary)
-    session = _ExtractionSession(project, KnowledgeBase(project), function)
+    session = _BuildSession(project, KnowledgeBase(project), function)
     session._decode_all_blocks()
     session._discover_static_jump_targets()
     # Legacy recovery makes decoded code available, but supplies no selector
@@ -449,15 +449,15 @@ def test_shared_finite_proof_recovers_masked_or_guarded_static_tables(
     address, dispatcher, count
 ):
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), address)
+    cfg = build_custom_cfg(project, KnowledgeBase(project), address)
     nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
     successors = tuple(cfg.graph.successors(nodes[dispatcher]))
     assert len(successors) == count
     assert all(not node.is_simprocedure for node in successors)
     assert (
-        cfg.extract_stats.exact_jump_proofs_by_flavor.get("shared_finite_table", 0) >= 1
+        cfg.custom_stats.exact_jump_proofs_by_flavor.get("shared_finite_table", 0) >= 1
     )
-    assert cfg.extract_stats.shared_fact_budget_exhausted == 0
+    assert cfg.custom_stats.shared_fact_budget_exhausted == 0
 
 
 @pytest.mark.parametrize(
@@ -528,7 +528,7 @@ def test_arithmetic_guard_proofs_resolve_all_memcpy_tail_rows(
     function, dispatchers, base, count, remaining_ujts
 ):
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), function)
+    cfg = build_custom_cfg(project, KnowledgeBase(project), function)
     expected = {
         base
         + int.from_bytes(
@@ -554,7 +554,7 @@ def test_arithmetic_guard_proofs_resolve_all_memcpy_tail_rows(
         )
     ]
     assert len(unresolved) == remaining_ujts
-    assert cfg.extract_stats.shared_fact_budget_exhausted == 0
+    assert cfg.custom_stats.shared_fact_budget_exhausted == 0
 
 
 @pytest.mark.parametrize("reject_target", [False, True])
@@ -629,7 +629,7 @@ def test_shared_relro_load_resolves_register_call_to_memcpy() -> None:
     """Recover a register-carried memcpy target from protected RELRO bytes."""
 
     project = load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
-    session = _ExtractionSession(project, KnowledgeBase(project), 0x4D9A10)
+    session = _BuildSession(project, KnowledgeBase(project), 0x4D9A10)
     session._decode_all_blocks()
     session._discover_static_jump_targets()
 
@@ -658,7 +658,7 @@ def test_lower_guards_independently_bound_every_memmove_and_memcmp_tail_row(
     function, source, table, count
 ):
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
-    session = _ExtractionSession(project, KnowledgeBase(project), function)
+    session = _BuildSession(project, KnowledgeBase(project), function)
     session._decode_all_blocks()
     session._discover_static_jump_targets()
     # Decoding supplies instructions, not legacy selector domains or dispatch
@@ -732,7 +732,7 @@ def test_relational_guards_independently_bound_comparison_table_rows(
     function, source, table
 ):
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
-    session = _ExtractionSession(project, KnowledgeBase(project), function)
+    session = _BuildSession(project, KnowledgeBase(project), function)
     session._decode_all_blocks()
     session._discover_static_jump_targets()
     graph, nodes = session._analysis_graph()
@@ -752,7 +752,7 @@ def test_relational_guards_independently_bound_comparison_table_rows(
 
 def test_memmove_retains_dispatch_carriers_through_initial_and_loop_jumps():
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x42F210)
+    cfg = build_custom_cfg(project, KnowledgeBase(project), 0x42F210)
     nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
     for base in (0x4A2EF0, 0x4A2F30):
         for index in range(1, 16):
@@ -784,12 +784,12 @@ def test_memmove_retains_dispatch_carriers_through_initial_and_loop_jumps():
     # The same shared facts can now resolve carriers in the earlier ABI stage,
     # rather than waiting for the non-table jump fallback.
     assert (
-        cfg.extract_stats.exact_jump_proofs_by_flavor.get("shared_finite_register", 0)
-        + cfg.extract_stats.abi_static_jump_targets_resolved
+        cfg.custom_stats.exact_jump_proofs_by_flavor.get("shared_finite_register", 0)
+        + cfg.custom_stats.abi_static_jump_targets_resolved
     ) == 60
-    assert cfg.extract_stats.unresolved_indirect_targets == 0
-    assert cfg.extract_stats.shared_fact_budget_exhausted == 0
-    assert cfg.extract_stats.output_anomaly_count == 0
+    assert cfg.custom_stats.unresolved_indirect_targets == 0
+    assert cfg.custom_stats.shared_fact_budget_exhausted == 0
+    assert cfg.custom_stats.output_anomaly_count == 0
 
 
 @pytest.mark.parametrize(
@@ -808,7 +808,7 @@ def test_unconstrained_rust_bytes_keep_ujt_without_external_table_expansion(
     binary, function, dispatcher
 ):
     project = load_project(Path("angr-binaries/tests") / binary)
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), function)
+    cfg = build_custom_cfg(project, KnowledgeBase(project), function)
     source = next(
         node
         for node in cfg.graph
@@ -826,7 +826,7 @@ def test_unconstrained_rust_bytes_keep_ujt_without_external_table_expansion(
         for node in successors
     )
     assert (
-        cfg.extract_stats.exact_jump_proofs_by_flavor.get("shared_finite_table", 0) == 0
+        cfg.custom_stats.exact_jump_proofs_by_flavor.get("shared_finite_table", 0) == 0
     )
 
 
@@ -843,9 +843,9 @@ def test_shadow_proof_does_not_change_cfg(
 ) -> None:
     project = load_project(Path("angr-binaries/tests") / binary)
     monkeypatch.delenv("BINGRAPH_SHADOW_TABLE_PROOFS", raising=False)
-    baseline = build_extracted_cfg(project, KnowledgeBase(project), function)
+    baseline = build_custom_cfg(project, KnowledgeBase(project), function)
     monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")
-    shadowed = build_extracted_cfg(project, KnowledgeBase(project), function)
+    shadowed = build_custom_cfg(project, KnowledgeBase(project), function)
 
     def shape(cfg):
         nodes = {(node.addr, node.is_simprocedure) for node in cfg.graph.nodes()}
@@ -856,5 +856,5 @@ def test_shadow_proof_does_not_change_cfg(
         return nodes, edges
 
     assert shape(shadowed) == shape(baseline)
-    assert baseline.extract_stats.shadow_table_attempts == 0
-    assert shadowed.extract_stats.shadow_table_matches >= 1
+    assert baseline.custom_stats.shadow_table_attempts == 0
+    assert shadowed.custom_stats.shadow_table_matches >= 1

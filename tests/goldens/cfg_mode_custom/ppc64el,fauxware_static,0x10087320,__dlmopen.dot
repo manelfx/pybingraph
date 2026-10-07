@@ -11,7 +11,6 @@ edge [fontname=monospace, fontsize=8];
 "0x1008739c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1008739c)</TD><TD ><B>__dlmopen+0x7c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1008739c&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r1, r1, 0x50</TD></TR><TR><TD ALIGN="LEFT">0x100873a0&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r0, 0x10(r1)</TD></TR><TR><TD ALIGN="LEFT">0x100873a4&#58;&nbsp;</TD><TD ALIGN="LEFT">mtlr</TD><TD ALIGN="LEFT">r0</TD></TR><TR><TD ALIGN="LEFT">0x100873a8&#58;&nbsp;</TD><TD ALIGN="LEFT">blr</TD><TD></TD></TR></TABLE> }>];
 "0x100873b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x100873b0)</TD><TD ><B>__dlmopen+0x90</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100873b0&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r3, 0</TD></TR><TR><TD ALIGN="LEFT">0x100873b4&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x10087388</TD></TR></TABLE> }>];
 "0x100873b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x100873b8)</TD><TD ><B>__dlmopen+0x98</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100873b8&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x100873bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x100873bc)</TD><TD ><B>__dlmopen+0x9c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100873bc&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x10087320" -> "0x10087360" [color=gray, style=dashed];
 "0x10087360" -> "0x1008736c" [color=red];
 "0x10087360" -> "0x100873b0" [color=green];
@@ -21,5 +20,4 @@ edge [fontname=monospace, fontsize=8];
 "0x10087388" -> "0x1008739c" [color=red];
 "0x10087388" -> "0x100873b8" [color=green];
 "0x100873b0" -> "0x10087388" [color=blue];
-"0x100873b8" -> "0x100873bc" [color=gray, style=dashed];
 }

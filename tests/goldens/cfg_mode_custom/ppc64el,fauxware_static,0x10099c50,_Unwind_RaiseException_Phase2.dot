@@ -14,7 +14,6 @@ edge [fontname=monospace, fontsize=8];
 "0x10099d28" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10099d28)</TD><TD ><B>_Unwind_RaiseException_Phase2+0xd8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10099d28&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r9, 2</TD></TR></TABLE> }>];
 "0x10099d2c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10099d2c)</TD><TD ><B>_Unwind_RaiseException_Phase2+0xdc</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10099d2c&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r1, r1, 0x9c0</TD></TR><TR><TD ALIGN="LEFT">0x10099d30&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r3, r9</TD></TR><TR><TD ALIGN="LEFT">0x10099d34&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r0, 0x10(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10099d38&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r28, -0x20(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10099d3c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r29, -0x18(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10099d40&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r30, -0x10(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10099d44&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r31, -8(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10099d48&#58;&nbsp;</TD><TD ALIGN="LEFT">mtlr</TD><TD ALIGN="LEFT">r0</TD></TR><TR><TD ALIGN="LEFT">0x10099d4c&#58;&nbsp;</TD><TD ALIGN="LEFT">blr</TD><TD></TD></TR></TABLE> }>];
 "0x10099d50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10099d50)</TD><TD ><B>_Unwind_RaiseException_Phase2+0x100</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10099d50&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x1000ed78</TD></TR></TABLE> }>];
-"0x10099d54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10099d54)</TD><TD ><B>_Unwind_RaiseException_Phase2+0x104</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10099d54&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x10099c50" -> "0x10099cf0" [color=blue];
 "0x10099c90" -> "0x10099c9c" [color=red];
 "0x10099c90" -> "0x10099cdc" [color=green];
@@ -30,5 +29,4 @@ edge [fontname=monospace, fontsize=8];
 "0x10099cfc" -> "0x10099c90" [color=green];
 "0x10099cfc" -> "0x10099d28" [color=red];
 "0x10099d28" -> "0x10099d2c" [color=blue, style=dashed];
-"0x10099d50" -> "0x10099d54" [color=gray, style=dashed];
 }

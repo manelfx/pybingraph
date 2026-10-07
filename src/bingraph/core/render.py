@@ -9,9 +9,9 @@ from angr.analyses.cfg import CFGBase
 from loguru import logger
 
 from bingraph.helpers import CfgExits, CfgMode
-from bingraph.cfg_extract.models import ExtractedCFG
+from bingraph.cfg.models import CustomCFG
 from . import get_cfg
-from .comments import collect_extract_comments
+from .comments import collect_custom_comments
 from .annotators import ColorSimprocedures, CommentsDataRef, ColorEdgesVex
 from .contents import NodeHead, NodeAsm
 from .vis import Annotator, Vis
@@ -34,8 +34,8 @@ def plot_cfg(
     annotators: list[Annotator] = []
     annotators.append(ColorSimprocedures())
     if comments:
-        if isinstance(cfg, ExtractedCFG):
-            collect_extract_comments(cfg)
+        if isinstance(cfg, CustomCFG):
+            collect_custom_comments(cfg)
         annotators.append(CommentsDataRef())
     annotators.append(ColorEdgesVex())
 
@@ -82,7 +82,7 @@ def render_cfg(
         KeyError: If the function address is not found in the CFG.
         RuntimeError: If the CFG graph is not available for visualization.
     """
-    # Extract the angr CFG first. We still prefer it when the lift succeeds,
+    # Obtain the CFG first. We still prefer its block when the lift succeeds,
     # because it carries richer metadata than a disassembly-only graph.
     cfg = get_cfg(project, func_addr, cfg_mode)
     # Check if function is found in CFG.

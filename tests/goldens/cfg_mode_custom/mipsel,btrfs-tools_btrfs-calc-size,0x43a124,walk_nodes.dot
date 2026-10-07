@@ -93,10 +93,6 @@ edge [fontname=monospace, fontsize=8];
 "0x43a748" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43a748)</TD><TD ><B>walk_nodes+0x624</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043a748&#58;&nbsp;</TD><TD ALIGN="LEFT">bnel</TD><TD ALIGN="LEFT">$s3, $zero, 0x43a64c</TD></TR><TR><TD ALIGN="LEFT">0x0043a74c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 0x28($s5)</TD></TR></TABLE> }>];
 "0x43a750" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43a750)</TD><TD ><B>walk_nodes+0x62c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043a750&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x43a674</TD></TR><TR><TD ALIGN="LEFT">0x0043a754&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 0x30($s5)</TD></TR></TABLE> }>];
 "0x43a758" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43a758)</TD><TD ><B>walk_nodes+0x634</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043a758&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$ra, 0x8c($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a75c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$fp, 0x88($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a760&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s7, 0x84($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a764&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s6, 0x80($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a768&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s5, 0x7c($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a76c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s4, 0x78($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a770&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s3, 0x74($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a774&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s2, 0x70($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a778&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s1, 0x6c($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a77c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s0, 0x68($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043a780&#58;&nbsp;</TD><TD ALIGN="LEFT">jr</TD><TD ALIGN="LEFT">$ra</TD></TR><TR><TD ALIGN="LEFT">0x0043a784&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$sp, $sp, 0x90</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x43a124";
-}
 "0x43a124" -> "0x43a1e8" [color=gray, style=dashed];
 "0x43a1e8" -> "0x43a208" [color=blue, style=dashed];
 "0x43a208" -> "0x43a21c" [color=gray, style=dashed];
@@ -117,7 +113,6 @@ rank=source;
 "0x43a304" -> "0x43a310" [color=blue, style=dashed];
 "0x43a310" -> "0x43a320" [color=red];
 "0x43a310" -> "0x43a34c" [color=green];
-"0x43a320" -> "0x43a124" [color=gray];
 "0x43a320" -> "0x43a344" [color=gray, style=dashed];
 "0x43a344" -> "0x43a370" [color=blue];
 "0x43a34c" -> "0x43a36c" [color=gray, style=dashed];

@@ -40,10 +40,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8054568" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8054568)</TD><TD ><B>_IO_file_xsputn+0x1c8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08054568&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x8052740</TD></TR></TABLE> }>];
 "0x805456d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x805456d)</TD><TD ><B>_IO_file_xsputn+0x1cd</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0805456d&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8054400</TD></TR></TABLE> }>];
 "0x8054578" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8054578)</TD><TD ><B>_IO_file_xsputn+0x1d8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08054578&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ebp, 1</TD></TR><TR><TD ALIGN="LEFT">0x0805457d&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8054492</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x80543a0";
-}
 "0x80543a0" -> "0x80543ab" [color=gray, style=dashed];
 "0x80543ab" -> "0x80543c0" [color=red];
 "0x80543ab" -> "0x805443e" [color=green];
@@ -54,7 +50,6 @@ rank=source;
 "0x80543dc" -> "0x80543e0" [color=blue, style=dashed];
 "0x80543e0" -> "0x8054400" [color=red];
 "0x80543e0" -> "0x8054568" [color=green];
-"0x8054400" -> "0x80543a0" [color=gray];
 "0x8054400" -> "0x8054409" [color=gray, style=dashed];
 "0x8054409" -> "0x8054415" [color=red];
 "0x8054409" -> "0x80544e8" [color=green];

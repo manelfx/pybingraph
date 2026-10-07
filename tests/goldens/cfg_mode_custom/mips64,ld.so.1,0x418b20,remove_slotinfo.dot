@@ -54,5 +54,4 @@ rank=source;
 "0x418c30" -> "0x418b90" [color=blue];
 "0x418c68" -> "0x418b88" [color=green];
 "0x418c68" -> "0x418c70" [color=red];
-"0x418c70" -> "0x418c90" [color=gray, style=dashed];
 }

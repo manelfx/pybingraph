@@ -1,6 +1,5 @@
-"""Custom CFG discovery, validation, and localized repair."""
+"""Bounded custom CFG construction independent of CFGFast."""
 
-from .anomalies import iter_function_nodes, log_cfg_status
-from .repair import build_custom_cfg
+from .builder import build_custom_cfg
 
-__all__ = ["build_custom_cfg", "iter_function_nodes", "log_cfg_status"]
+__all__ = ["build_custom_cfg"]

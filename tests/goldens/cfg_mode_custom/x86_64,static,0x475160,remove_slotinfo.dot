@@ -50,5 +50,4 @@ rank=source;
 "0x475258" -> "0x47525c" [color=red];
 "0x475258" -> "0x475264" [color=green];
 "0x47525c" -> "0x4751a1" [color=blue];
-"0x475264" -> "0x47527d" [color=gray, style=dashed];
 }

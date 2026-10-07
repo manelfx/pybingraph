@@ -2,6 +2,7 @@ digraph G {
 rankdir=TB;
 node [shape=Mrecord, fontname=monospace, fontsize=8];
 edge [fontname=monospace, fontsize=8];
+"0x43b100" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43b100)</TD><TD ><B>__rb_rotate_set_parents</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x43b414" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43b414)</TD><TD ><B>rb_insert_color</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043b414&#58;&nbsp;</TD><TD ALIGN="LEFT">lui</TD><TD ALIGN="LEFT">$gp, 2</TD></TR><TR><TD ALIGN="LEFT">0x0043b418&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$gp, $gp, -0x2d4</TD></TR><TR><TD ALIGN="LEFT">0x0043b41c&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$gp, $gp, $t9</TD></TR><TR><TD ALIGN="LEFT">0x0043b420&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a2, $a1</TD></TR><TR><TD ALIGN="LEFT">0x0043b424&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a1, ($a0)</TD></TR><TR><TD ALIGN="LEFT">0x0043b428&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$v0, $a0</TD></TR><TR><TD ALIGN="LEFT">0x0043b42c&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$t0, $zero, -4</TD></TR></TABLE> }>];
 "0x43b430" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43b430)</TD><TD ><B>rb_insert_color+0x1c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043b430&#58;&nbsp;</TD><TD ALIGN="LEFT">bnel</TD><TD ALIGN="LEFT">$a1, $zero, 0x43b444</TD></TR><TR><TD ALIGN="LEFT">0x0043b434&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a0, ($a1)</TD></TR></TABLE> }>];
 "0x43b438" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43b438)</TD><TD ><B>rb_insert_color+0x24</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043b438&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v1, $zero, 1</TD></TR><TR><TD ALIGN="LEFT">0x0043b43c&#58;&nbsp;</TD><TD ALIGN="LEFT">jr</TD><TD ALIGN="LEFT">$ra</TD></TR><TR><TD ALIGN="LEFT">0x0043b440&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$v1, ($v0)</TD></TR></TABLE> }>];
@@ -63,4 +64,5 @@ edge [fontname=monospace, fontsize=8];
 "0x43b51c" -> "0x43b524" [color=red];
 "0x43b51c" -> "0x43b528" [color=green];
 "0x43b524" -> "0x43b528" [color=blue, style=dashed];
+"0x43b528" -> "0x43b100" [color=orange];
 }

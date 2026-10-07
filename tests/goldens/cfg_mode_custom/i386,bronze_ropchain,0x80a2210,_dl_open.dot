@@ -86,7 +86,6 @@ edge [fontname=monospace, fontsize=8];
 "0x80a23ad" -> "0x80a23b0" [color=blue, style=dashed];
 "0x80a23b0" -> "0x80a2360" [color=blue];
 "0x80a23c0" -> "0x80a23cc" [color=blue, style=dashed];
-"0x80a23cc" -> "0x80a23df" [color=gray, style=dashed];
 "0x80a23df" -> "0x80a2341" [color=blue];
 "0x80a23ea" -> "0x80a23cc" [color=blue];
 }

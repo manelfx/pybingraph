@@ -57,7 +57,6 @@ edge [fontname=monospace, fontsize=8];
 "0x10005900" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10005900)</TD><TD ><B>_nl_find_domain+0x3a0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005900&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r4, r28</TD></TR><TR><TD ALIGN="LEFT">0x10005904&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r3, r31</TD></TR><TR><TD ALIGN="LEFT">0x10005908&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x10005938</TD></TR></TABLE> }>];
 "0x1000590c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1000590c)</TD><TD ><B>_nl_find_domain+0x3ac</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1000590c&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x10005910&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1000584c</TD></TR></TABLE> }>];
 "0x10005914" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10005914)</TD><TD ><B>_nl_find_domain+0x3b4</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005914&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r22, 0xb0(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10005918&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r23, 0xb8(r1)</TD></TR><TR><TD ALIGN="LEFT">0x1000591c&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x10005920" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10005920)</TD><TD ><B>_nl_find_domain+0x3c0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005920&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x10005560" -> "0x100055d0" [color=red];
 "0x10005560" -> "0x100055dc" [color=green];
 "0x100055d0" -> "0x100055dc" [color=blue, style=dashed];
@@ -135,5 +134,4 @@ edge [fontname=monospace, fontsize=8];
 "0x100058ec" -> "0x100058c0" [color=blue];
 "0x10005900" -> "0x1000590c" [color=gray, style=dashed];
 "0x1000590c" -> "0x1000584c" [color=blue];
-"0x10005914" -> "0x10005920" [color=gray, style=dashed];
 }

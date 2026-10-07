@@ -24,10 +24,6 @@ edge [fontname=monospace, fontsize=8];
 "0x40bf00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40bf00)</TD><TD ><B>_IO_default_xsputn+0x13c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040bf00&#58;&nbsp;</TD><TD ALIGN="LEFT">bal</TD><TD ALIGN="LEFT">0x407a50</TD></TR><TR><TD ALIGN="LEFT">0x0040bf04&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x40bf08" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40bf08)</TD><TD ><B>_IO_default_xsputn+0x144</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040bf08&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x40be6c</TD></TR><TR><TD ALIGN="LEFT">0x0040bf0c&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">$a1, ($s0)</TD></TR></TABLE> }>];
 "0x40bf10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40bf10)</TD><TD ><B>_IO_default_xsputn+0x14c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040bf10&#58;&nbsp;</TD><TD ALIGN="LEFT">jr</TD><TD ALIGN="LEFT">$ra</TD></TR><TR><TD ALIGN="LEFT">0x0040bf14&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$v0, $zero</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x40bdc4";
-}
 "0x40bdc4" -> "0x40bdd8" [color=red];
 "0x40bdc4" -> "0x40bf10" [color=green];
 "0x40bdd8" -> "0x40be18" [color=blue, style=dashed];
@@ -43,7 +39,6 @@ rank=source;
 "0x40be54" -> "0x40be68" [color=red];
 "0x40be54" -> "0x40bf00" [color=green];
 "0x40be68" -> "0x40be6c" [color=blue, style=dashed];
-"0x40be6c" -> "0x40bdc4" [color=gray];
 "0x40be6c" -> "0x40be7c" [color=gray, style=dashed];
 "0x40be7c" -> "0x40be84" [color=red];
 "0x40be7c" -> "0x40bed0" [color=green];

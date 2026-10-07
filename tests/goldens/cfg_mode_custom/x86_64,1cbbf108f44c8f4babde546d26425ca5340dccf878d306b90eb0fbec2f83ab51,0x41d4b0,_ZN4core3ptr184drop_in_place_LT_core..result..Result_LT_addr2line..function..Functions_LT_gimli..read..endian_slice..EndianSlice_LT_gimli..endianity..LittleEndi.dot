@@ -2,6 +2,7 @@ digraph G {
 rankdir=TB;
 node [shape=Mrecord, fontname=monospace, fontsize=8];
 edge [fontname=monospace, fontsize=8];
+"0x40f050" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40f050)</TD><TD ><B>__rust_dealloc</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x41d4b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41d4b0)</TD><TD ><B>_ZN4core3ptr184drop_in_place$LT$core..result..Result$LT$addr2line..function..Functions$LT$gimli..read..endian_slice..EndianSlice$LT$gimli..endianity..LittleEndian$GT$$GT$$C$gimli..read..Error$GT$$GT$17h87712a43f79b1a99E</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041d4b0&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r15</TD></TR><TR><TD ALIGN="LEFT">0x0041d4b2&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r14</TD></TR><TR><TD ALIGN="LEFT">0x0041d4b4&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r13</TD></TR><TR><TD ALIGN="LEFT">0x0041d4b6&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r12</TD></TR><TR><TD ALIGN="LEFT">0x0041d4b8&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbx</TD></TR><TR><TD ALIGN="LEFT">0x0041d4b9&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">qword ptr [rdi], 0</TD></TR><TR><TD ALIGN="LEFT">0x0041d4bd&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x41d4c9</TD></TR></TABLE> }>];
 "0x41d4bf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41d4bf)</TD><TD ><B>_ZN4core3ptr184drop_in_place$LT$core..result..Result$LT$addr2line..function..Functions$LT$gimli..read..endian_slice..EndianSlice$LT$gimli..endianity..LittleEndian$GT$$GT$$C$gimli..read..Error$GT$$GT$17h87712a43f79b1a99E+0xf</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041d4bf&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbx</TD></TR><TR><TD ALIGN="LEFT">0x0041d4c0&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r12</TD></TR><TR><TD ALIGN="LEFT">0x0041d4c2&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r13</TD></TR><TR><TD ALIGN="LEFT">0x0041d4c4&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r14</TD></TR><TR><TD ALIGN="LEFT">0x0041d4c6&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r15</TD></TR><TR><TD ALIGN="LEFT">0x0041d4c8&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
 "0x41d4c9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41d4c9)</TD><TD ><B>_ZN4core3ptr184drop_in_place$LT$core..result..Result$LT$addr2line..function..Functions$LT$gimli..read..endian_slice..EndianSlice$LT$gimli..endianity..LittleEndian$GT$$GT$$C$gimli..read..Error$GT$$GT$17h87712a43f79b1a99E+0x19</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041d4c9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r14, rdi</TD></TR><TR><TD ALIGN="LEFT">0x0041d4cc&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rdi + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x0041d4d0&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">rax, rax</TD></TR><TR><TD ALIGN="LEFT">0x0041d4d3&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x41d55a</TD></TR></TABLE> }>];
@@ -28,14 +29,18 @@ edge [fontname=monospace, fontsize=8];
 "0x41d4f9" -> "0x41d501" [color=red];
 "0x41d501" -> "0x41d513" [color=red];
 "0x41d501" -> "0x41d520" [color=green];
+"0x41d513" -> "0x40f050" [color=gray];
 "0x41d513" -> "0x41d520" [color=gray, style=dashed];
 "0x41d520" -> "0x41d4f0" [color=green];
 "0x41d520" -> "0x41d52b" [color=red];
+"0x41d52b" -> "0x40f050" [color=gray];
 "0x41d52b" -> "0x41d538" [color=gray, style=dashed];
 "0x41d538" -> "0x41d4f0" [color=blue];
 "0x41d53a" -> "0x41d54b" [color=red];
 "0x41d53a" -> "0x41d55a" [color=green];
+"0x41d54b" -> "0x40f050" [color=gray];
 "0x41d54b" -> "0x41d55a" [color=gray, style=dashed];
 "0x41d55a" -> "0x41d4bf" [color=green];
 "0x41d55a" -> "0x41d56f" [color=red];
+"0x41d56f" -> "0x40f050" [color=orange];
 }

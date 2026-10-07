@@ -12,7 +12,6 @@ edge [fontname=monospace, fontsize=8];
 "0x49b6d0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x49b6d0)</TD><TD ><B>uw_update_context+0x60</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0049b6d0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">byte ptr [rbx + rax + 0xd8], 0</TD></TR><TR><TD ALIGN="LEFT">0x0049b6d8&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x49b6bd</TD></TR></TABLE> }>];
 "0x49b6da" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x49b6da)</TD><TD ><B>uw_update_context+0x6a</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0049b6da&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">ecx, 8</TD></TR><TR><TD ALIGN="LEFT">0x0049b6dd&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x49b6ba</TD></TR></TABLE> }>];
 "0x49b6df" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x49b6df)</TD><TD ><B>uw_update_context+0x6f</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0049b6df&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x40dc00</TD></TR></TABLE> }>];
-"0x49b6e4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x49b6e4)</TD><TD ><B>uw_update_context+0x74</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0049b6e4&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD ALIGN="LEFT">dword ptr [rax]</TD></TR></TABLE> }>];
 "0x49b6e8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x49b6e8)</TD><TD ><B>uw_update_context+0x78</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0049b6e8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rbx + 0x98], 0</TD></TR><TR><TD ALIGN="LEFT">0x0049b6f3&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 8</TD></TR><TR><TD ALIGN="LEFT">0x0049b6f7&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbx</TD></TR><TR><TD ALIGN="LEFT">0x0049b6f8&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x0049b6f9&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
 "0x49b670" -> "0x49b681" [color=gray, style=dashed];
 "0x49b681" -> "0x49b696" [color=red];
@@ -28,6 +27,4 @@ edge [fontname=monospace, fontsize=8];
 "0x49b6d0" -> "0x49b6da" [color=red];
 "0x49b6da" -> "0x49b6ba" [color=green];
 "0x49b6da" -> "0x49b6df" [color=red];
-"0x49b6df" -> "0x49b6e4" [color=gray, style=dashed];
-"0x49b6e4" -> "0x49b6e8" [color=blue, style=dashed];
 }

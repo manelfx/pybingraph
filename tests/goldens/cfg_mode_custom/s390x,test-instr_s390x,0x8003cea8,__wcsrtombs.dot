@@ -64,14 +64,11 @@ edge [fontname=monospace, fontsize=8];
 "0x8003d0b6" -> "0x8003d0e4" [color=green];
 "0x8003d0c2" -> "0x8003cff0" [color=green];
 "0x8003d0c2" -> "0x8003d0c8" [color=red];
-"0x8003d0c8" -> "0x8003d0e4" [color=gray, style=dashed];
 "0x8003d11e" -> "0x8003cff0" [color=green];
 "0x8003d11e" -> "0x8003d12c" [color=red];
-"0x8003d12c" -> "0x8003d148" [color=gray, style=dashed];
 "0x8003d148" -> "0x8003d154" [color=red];
 "0x8003d148" -> "0x8003d168" [color=green];
 "0x8003d154" -> "0x8003d15e" [color=gray, style=dashed];
 "0x8003d15e" -> "0x8003cf16" [color=blue];
 "0x8003d168" -> "0x8003cf16" [color=blue];
-"0x8003d172" -> "0x8003d18e" [color=gray, style=dashed];
 }

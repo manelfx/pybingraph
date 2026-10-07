@@ -19,6 +19,7 @@ edge [fontname=monospace, fontsize=8];
 "0x120002450" -> "0x120002480" [color=red];
 "0x120002450" -> "0x1200024c0" [color=green];
 "0x120002480" -> "0x1200024b0" [color=gray, style=dashed];
+"0x1200024b0" -> "0x1200024c0" [color=gray, style=dashed];
 "0x1200024c0" -> "0x1200024d8" [color=gray, style=dashed];
 "0x1200024d8" -> "0x1200024e8" [color=red];
 "0x1200024d8" -> "0x1200024f8" [color=green];

@@ -1,4 +1,4 @@
-"""Collect extract's presentation-only data references without running CFGFast."""
+"""Collect custom's presentation-only data references without running CFGFast."""
 
 from typing import Any, cast
 
@@ -10,7 +10,7 @@ import pyvex
 from angr.rustylib import SegmentList  # ty: ignore[unresolved-import]
 from loguru import logger
 
-from bingraph.cfg_extract.models import ExtractedCFG
+from bingraph.cfg.models import CustomCFG
 
 
 def _is_scalar_reference(
@@ -38,12 +38,12 @@ def _is_scalar_reference(
     )
 
 
-def collect_extract_comments(cfg: ExtractedCFG) -> None:
+def collect_custom_comments(cfg: CustomCFG) -> None:
     """Enrich the finalized blocks once, only when a render requests comments.
 
     VEX supplies instruction-addressed references; angr's existing data
     classifier supplies their string/pointer descriptions. Neither operation
-    discovers blocks or contributes facts to the extractor's exact proofs.
+    discovers blocks or contributes facts to the builder's exact proofs.
     """
 
     if cfg._comments_collected:
@@ -172,5 +172,5 @@ def collect_extract_comments(cfg: ExtractedCFG) -> None:
             if content:
                 memory_data.content = content[0]
         except Exception as exc:
-            logger.warning(f"Cannot classify extract comment data at {addr:#x}: {exc}")
+            logger.warning(f"Cannot classify custom comment data at {addr:#x}: {exc}")
     cfg._comments_collected = True

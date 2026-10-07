@@ -214,7 +214,6 @@ edge [fontname=monospace, fontsize=8];
 "0x10005524" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10005524)</TD><TD ><B>__dcigettext+0xf74</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005524&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x10005528&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r9, 0xb0(r31)</TD></TR><TR><TD ALIGN="LEFT">0x1000552c&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x100052a0</TD></TR></TABLE> }>];
 "0x10005530" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10005530)</TD><TD ><B>__dcigettext+0xf80</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005530&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r9, r3</TD></TR><TR><TD ALIGN="LEFT">0x10005534&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x100050dc</TD></TR></TABLE> }>];
 "0x10005538" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10005538)</TD><TD ><B>__dcigettext+0xf88</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005538&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x1000553c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1000553c)</TD><TD ><B>__dcigettext+0xf8c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1000553c&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x10005540" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10005540)</TD><TD ><B>__dcigettext+0xf90</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005540&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r9, r3</TD></TR><TR><TD ALIGN="LEFT">0x10005544&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x100052b8</TD></TR></TABLE> }>];
 "0x100045b0" -> "0x10004634" [color=red];
 "0x100045b0" -> "0x100052f0" [color=green];
@@ -550,7 +549,5 @@ edge [fontname=monospace, fontsize=8];
 "0x10005518" -> "0x10005524" [color=gray, style=dashed];
 "0x10005524" -> "0x100052a0" [color=blue];
 "0x10005530" -> "0x100050dc" [color=blue];
-"0x10005538" -> "0x1000553c" [color=gray, style=dashed];
-"0x1000553c" -> "0x10005540" [color=blue, style=dashed];
 "0x10005540" -> "0x100052b8" [color=blue];
 }

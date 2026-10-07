@@ -24,10 +24,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8054285" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8054285)</TD><TD ><B>_IO_file_seekoff_mmap+0x145</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08054285&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [esp + 8]</TD></TR><TR><TD ALIGN="LEFT">0x08054289&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ebx, dword ptr [esp + 0xc]</TD></TR><TR><TD ALIGN="LEFT">0x0805428d&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x80541a7</TD></TR></TABLE> }>];
 "0x8054292" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8054292)</TD><TD ><B>_IO_file_seekoff_mmap+0x152</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08054292&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, 0xffffffe0</TD></TR><TR><TD ALIGN="LEFT">0x08054298&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, 0xffffffff</TD></TR><TR><TD ALIGN="LEFT">0x0805429d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ebx, 0xffffffff</TD></TR><TR><TD ALIGN="LEFT">0x080542a2&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr gs&#58;[eax], 0x16</TD></TR><TR><TD ALIGN="LEFT">0x080542a9&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8054200</TD></TR></TABLE> }>];
 "0x80542ae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x80542ae)</TD><TD ><B>_IO_file_seekoff_mmap+0x16e</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x080542ae&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, 0xffffffff</TD></TR><TR><TD ALIGN="LEFT">0x080542b3&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ebx, 0xffffffff</TD></TR><TR><TD ALIGN="LEFT">0x080542b8&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8054200</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x8054140";
-}
 "0x8054140" -> "0x8054149" [color=gray, style=dashed];
 "0x8054149" -> "0x8054169" [color=red];
 "0x8054149" -> "0x8054210" [color=green];
@@ -39,7 +35,6 @@ rank=source;
 "0x805417f" -> "0x8054292" [color=green];
 "0x8054187" -> "0x80541a7" [color=red];
 "0x8054187" -> "0x8054278" [color=green];
-"0x80541a7" -> "0x8054140" [color=gray];
 "0x80541a7" -> "0x80541b7" [color=gray, style=dashed];
 "0x80541b7" -> "0x80541c4" [color=red];
 "0x80541b7" -> "0x80542ae" [color=green];

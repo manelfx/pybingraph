@@ -26,7 +26,7 @@ from bingraph.cfg.jumps import (
     _x86_pic_thunk_reads_return_address,
 )
 from bingraph.cfg.models import FunctionBounds
-from bingraph.cfg_extract.shared_relations import RelationalValues
+from bingraph.cfg.shared_relations import RelationalValues
 
 
 # These are preserved integer registers under the ELF ABIs used by the corpus.

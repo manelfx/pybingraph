@@ -1,4 +1,4 @@
-"""Tests for VEX-only linear decoding in the independent CFG extractor."""
+"""Tests for VEX-only linear decoding in the independent CFG builder."""
 
 from __future__ import annotations
 
@@ -7,17 +7,17 @@ from pathlib import Path
 from angr import KnowledgeBase
 
 from bingraph.cfg.decode import decode_bounded_block
-from bingraph.cfg_extract import build_extracted_cfg
-from bingraph.cfg_extract import builder as builder_module
+from bingraph.cfg import build_custom_cfg
+from bingraph.cfg import builder as builder_module
 from bingraph.core import project as project_module
 from bingraph.core.render import render_cfg
 
 
-def test_extract_recovers_mips_fpu_compare_missing_from_capstone() -> None:
+def test_custom_recovers_mips_fpu_compare_missing_from_capstone() -> None:
     """Use VEX for one linear MIPS FPU compare Capstone cannot decode."""
 
     project = project_module.load_project(Path("angr-binaries/tests/mips/dir"))
-    bounds = builder_module._ExtractionSession(
+    bounds = builder_module._BuildSession(
         project, KnowledgeBase(project), 0x40F6F4
     ).bounds
 
@@ -38,9 +38,9 @@ def test_extract_recovers_mips_fpu_compare_missing_from_capstone() -> None:
     assert 0x40F878 in with_fallback.instruction_addrs
     assert with_fallback.direct_targets == (0x40F890,)
 
-    cfg = build_extracted_cfg(project, KnowledgeBase(project), 0x40F6F4)
+    cfg = build_custom_cfg(project, KnowledgeBase(project), 0x40F6F4)
 
-    assert cfg.extract_stats.vex_linear_fallbacks >= 1
+    assert cfg.custom_stats.vex_linear_fallbacks >= 1
     assert any(
         node.addr <= 0x40F870 < node.addr + node.size
         for node in cfg.graph.nodes()
@@ -53,7 +53,7 @@ def test_extract_recovers_mips_fpu_compare_missing_from_capstone() -> None:
         0x40F6F4,
         dfs_rank=False,
         comments=True,
-        cfg_mode="extract",
+        cfg_mode="custom",
         cfg_exits="jump",
         format="raw",
     )
@@ -69,7 +69,7 @@ def test_extract_recovers_mips_fpu_compare_missing_from_capstone() -> None:
         0x40F6F4,
         dfs_rank=False,
         comments=False,
-        cfg_mode="extract",
+        cfg_mode="custom",
         cfg_exits="jump",
         format="raw",
     )

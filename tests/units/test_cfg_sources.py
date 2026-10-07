@@ -63,7 +63,7 @@ def test_select_cfg_nodes_respects_the_exit_display_policy() -> None:
 
     graph = nx.DiGraph()
     function_node = _Node(0x1000, 0x1000)
-    # Extractor-created leaves carry the current function owner, so selection
+    # Builder-created leaves carry the current function owner, so selection
     # must classify them by their incoming edge instead of their ownership.
     callee = _Node(0x4000, 0x1000, is_simprocedure=True)
     direct_branch = _Node(0x5000, 0x1000, is_simprocedure=True)

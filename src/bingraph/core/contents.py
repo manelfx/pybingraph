@@ -51,8 +51,8 @@ class NodeAsm(Content):
             return "<unavailable>"
         return f"0x{raw.hex()}"
 
-    def _extracted_insns(self, node: Node) -> list[dict[str, Any]] | None:
-        """Render extractor VEX spans without losing later Capstone instructions."""
+    def _custom_insns(self, node: Node) -> list[dict[str, Any]] | None:
+        """Render builder VEX spans without losing later Capstone instructions."""
 
         cfg_node = node.obj
         vex_sizes = getattr(cfg_node, "vex_linear_instruction_sizes", None)
@@ -125,10 +125,10 @@ class NodeAsm(Content):
         if is_simprocedure or is_syscall:
             return None
 
-        extracted_data = self._extracted_insns(node)
-        if extracted_data is not None:
+        custom_data = self._custom_insns(node)
+        if custom_data is not None:
             node.content[self.name] = {
-                "data": extracted_data,
+                "data": custom_data,
                 "columns": self.columns,
             }
             return

@@ -5,7 +5,7 @@ import archinfo
 import pyvex
 import pytest
 
-from test_cfg_extract_shared_facts import ARCH, RAX, RBX, const, get, node, setup
+from test_cfg_custom_shared_facts import ARCH, RAX, RBX, const, get, node, setup
 
 
 def exit_to(comparison, address, arch=ARCH):

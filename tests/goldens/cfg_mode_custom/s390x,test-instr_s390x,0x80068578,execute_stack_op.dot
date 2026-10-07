@@ -134,7 +134,6 @@ edge [fontname=monospace, fontsize=8];
 "0x80068596" -> "0x800685b8" [color=blue, style=dashed];
 "0x800685b8" -> "0x800685ce" [color=red];
 "0x800685b8" -> "0x800685d4" [color=green];
-"0x800685ce" -> "0x800685d4" [color=gray, style=dashed];
 "0x800685d4" -> "0x800685ce" [color=orange];
 "0x800685d4" -> "0x800685e4" [color=orange];
 "0x800685d4" -> "0x80068644" [color=orange];

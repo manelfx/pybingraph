@@ -13,6 +13,9 @@ edge [fontname=monospace, fontsize=8];
 "0x4e4da1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4e4da1)</TD><TD ><B>_ZN5alloc3vec16Vec$LT$T$C$A$GT$16extend_desugared17he7315b4c991e4728E+0xb1</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004e4da1&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rsp + 0x40]</TD></TR><TR><TD ALIGN="LEFT">0x004e4da6&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x4de020</TD></TR></TABLE> }>];
 "0x4e4dab" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4e4dab)</TD><TD ><B>_ZN5alloc3vec16Vec$LT$T$C$A$GT$16extend_desugared17he7315b4c991e4728E+0xbb</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004e4dab&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, qword ptr [rsp + 0x40]</TD></TR><TR><TD ALIGN="LEFT">0x004e4db0&#58;&nbsp;</TD><TD ALIGN="LEFT">inc</TD><TD ALIGN="LEFT">rsi</TD></TR><TR><TD ALIGN="LEFT">0x004e4db3&#58;&nbsp;</TD><TD ALIGN="LEFT">cmove</TD><TD ALIGN="LEFT">rsi, rbp</TD></TR><TR><TD ALIGN="LEFT">0x004e4db7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, r14</TD></TR><TR><TD ALIGN="LEFT">0x004e4dba&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x4e5250</TD></TR></TABLE> }>];
 "0x4e4dbf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4e4dbf)</TD><TD ><B>_ZN5alloc3vec16Vec$LT$T$C$A$GT$16extend_desugared17he7315b4c991e4728E+0xcf</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004e4dbf&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x4e4d50</TD></TR></TABLE> }>];
+"0x4e4dc1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4e4dc1)</TD><TD ><B>_ZN5alloc3vec16Vec$LT$T$C$A$GT$16extend_desugared17he7315b4c991e4728E+0xd1</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004e4dc1&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, rax</TD></TR><TR><TD ALIGN="LEFT">0x004e4dc4&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rsp + 0x20]</TD></TR><TR><TD ALIGN="LEFT">0x004e4dc9&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x4e0ff0</TD></TR></TABLE> }>];
+"0x4e4dce" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4e4dce)</TD><TD ><B>_ZN5alloc3vec16Vec$LT$T$C$A$GT$16extend_desugared17he7315b4c991e4728E+0xde</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004e4dce&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, rbx</TD></TR><TR><TD ALIGN="LEFT">0x004e4dd1&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x5725a0</TD></TR></TABLE> }>];
+"0x4e4dd6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4e4dd6)</TD><TD ><B>_ZN5alloc3vec16Vec$LT$T$C$A$GT$16extend_desugared17he7315b4c991e4728E+0xe6</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004e4dd6&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">qword ptr [rip + 0x9f374]</TD></TR></TABLE> }>];
 "0x4e4cf0" -> "0x4e4d0e" [color=gray, style=dashed];
 "0x4e4d0e" -> "0x4e4d17" [color=red];
 "0x4e4d0e" -> "0x4e4d30" [color=green];
@@ -25,5 +28,8 @@ edge [fontname=monospace, fontsize=8];
 "0x4e4d84" -> "0x4e4da1" [color=red];
 "0x4e4da1" -> "0x4e4dab" [color=gray, style=dashed];
 "0x4e4dab" -> "0x4e4dbf" [color=gray, style=dashed];
+"0x4e4dab" -> "0x4e4dc1" [color=gray, style=dotted];
 "0x4e4dbf" -> "0x4e4d50" [color=blue];
+"0x4e4dc1" -> "0x4e4dce" [color=gray, style=dashed];
+"0x4e4dc1" -> "0x4e4dd6" [color=gray, style=dotted];
 }

@@ -51,6 +51,5 @@ rank=source;
 "0x45d2c8" -> "0x45d2cc" [color=blue, style=dashed];
 "0x45d2e0" -> "0x45d22c" [color=green];
 "0x45d2e0" -> "0x45d2e8" [color=red];
-"0x45d2e8" -> "0x45d308" [color=gray, style=dashed];
 "0x45d308" -> "0x45d2cc" [color=blue];
 }

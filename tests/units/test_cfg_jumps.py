@@ -12,7 +12,6 @@ import pytest
 import pyvex
 
 from bingraph.cfg.jumps import (
-    arithmetic_pc_dispatch_targets,
     is_memory_dependent_indirect_jump,
     _jump_table_target_addr,
     plan_static_jump_table,
@@ -26,7 +25,7 @@ from bingraph.cfg.jumps import (
 )
 from bingraph.cfg import jumps as jumps_module
 from bingraph.cfg.models import BlockSpec, FunctionBounds, StaticJumpTable
-from bingraph.cfg_extract.builder import _ExtractionSession
+from bingraph.cfg.builder import _BuildSession
 from bingraph.core.project import load_project
 
 
@@ -160,7 +159,7 @@ def test_mips_pic_entry_call_does_not_reject_valid_gp(
     """An entry-ending call clobbers GP without invalidating its prologue."""
 
     project = load_project(Path("angr-binaries/tests") / binary)
-    session = _ExtractionSession(project, KnowledgeBase(project), entry)
+    session = _BuildSession(project, KnowledgeBase(project), entry)
     session._decode_all_blocks()
     assert session.blocks[entry].jumpkind == "Ijk_Call"
 
@@ -176,7 +175,7 @@ def test_mips_pic_budget_discards_partial_target_sets() -> None:
     """An exhausted analysis must not turn any partial path into an edge."""
 
     project = load_project(Path("angr-binaries/tests/mipsel/busybox"))
-    session = _ExtractionSession(project, KnowledgeBase(project), 0x473DCC)
+    session = _BuildSession(project, KnowledgeBase(project), 0x473DCC)
     session._decode_all_blocks()
 
     with patch.object(jumps_module, "MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES", 0):
@@ -192,7 +191,7 @@ def test_mips_pic_masked_table_exceeding_value_cap_stays_unresolved() -> None:
     """Do not treat a truncated mask domain as a complete jump table."""
 
     project = load_project(Path("angr-binaries/tests/mipsel/mips_syscall_demo"))
-    session = _ExtractionSession(project, KnowledgeBase(project), 0x417E1C)
+    session = _BuildSession(project, KnowledgeBase(project), 0x417E1C)
     session._decode_all_blocks()
 
     with patch.object(jumps_module, "MAX_ABI_STATIC_TARGET_VALUES", 4):
@@ -416,7 +415,7 @@ def test_direct_jump_table_keeps_sparse_mask_domains_exact() -> None:
 
 
 def test_shared_static_table_plan_is_graph_strategy_neutral(monkeypatch) -> None:
-    """Keep table recognition reusable by fixup and independent extraction."""
+    """Keep table recognition reusable by bounded CFG construction."""
 
     table = StaticJumpTable(
         base_register_offset=None,
@@ -723,44 +722,6 @@ def test_unreadable_static_jump_table_returns_none() -> None:
     )
 
     assert _read_static_jump_table_targets(project, _table(), 0x1000, (0, 1)) is None
-
-
-def test_arithmetic_pc_dispatch_keeps_only_conditionally_scaled_targets() -> None:
-    """Prune CFGFast's byte-stride over-approximation using local VEX proof."""
-
-    scale = _Node(
-        0x1000,
-        4,
-        pyvex.lift(bytes.fromhex("82208210"), 0x1000, archinfo.ArchARMEL()),
-    )
-    neutral = _Node(
-        0x1004,
-        4,
-        pyvex.lift(bytes.fromhex("0000a0e3"), 0x1004, archinfo.ArchARMEL()),
-    )
-    dispatch = _Node(
-        0x1008,
-        4,
-        pyvex.lift(bytes.fromhex("02f18f10"), 0x1008, archinfo.ArchARMEL()),
-    )
-    fallthrough = _Node(0x100C, 4, SimpleNamespace())
-    candidates = tuple(
-        _Node(addr, 4, SimpleNamespace()) for addr in range(0x1010, 0x1040, 4)
-    )
-    graph = nx.DiGraph(
-        [
-            (scale, neutral),
-            (neutral, dispatch),
-            (dispatch, fallthrough),
-            *((dispatch, candidate) for candidate in candidates),
-        ]
-    )
-    bounds = FunctionBounds(0x1000, 0x1100, 0x100, SimpleNamespace(name="f"))
-
-    project = SimpleNamespace()
-    assert arithmetic_pc_dispatch_targets(project, graph, bounds, dispatch) == tuple(
-        range(0x1010, 0x1040, 12)
-    )
 
 
 @dataclass(frozen=True)

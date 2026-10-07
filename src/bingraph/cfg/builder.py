@@ -1,15 +1,15 @@
-"""Bounded CFG extraction without CFGFast.
+"""Bounded CFG construction without CFGFast.
 
-The extractor starts at one function symbol and grows only through addresses
+The builder starts at one function symbol and grows only through addresses
 proven by decoded direct transfers. A shared leader set keeps recovered blocks
 non-overlapping: whenever a newly discovered target falls inside an existing
 block, that block is re-decoded with the target as a stop address.
 
-Extraction has four deliberate stages: decode direct flow, resolve exact
+Construction has four deliberate stages: decode direct flow, resolve exact
 indirect transfers, conservatively reconnect only shape-free gaps, then
 materialize the final graph. VEX-proven static jump tables contribute leaders
 during the exact-resolution stage; remaining indirect transfers stay explicit
-synthetic leaves. The extractor never reads CFGFast's discovered regions.
+synthetic leaves. The builder never reads CFGFast's discovered regions.
 """
 
 from __future__ import annotations
@@ -69,14 +69,14 @@ from bingraph.cfg.decode import (
 from bingraph.helpers.capstone import arch_has_delay_slot
 from bingraph.helpers.symbols import plt_symbol_name
 
-from .anomalies import find_extracted_cfg_anomalies
+from .anomalies import find_custom_cfg_anomalies
 from .data import StaticDataRegions
 from .exceptions import ExceptionalCallSite, exceptional_call_sites_for_function
 from .models import (
-    ExtractedCFG,
-    ExtractedCFGNode,
-    ExtractedCFGStats,
-    ExtractedCFGSummary,
+    CustomCFG,
+    CustomCFGNode,
+    CustomCFGStats,
+    CustomCFGSummary,
 )
 from .shared_table_proof import (
     shadow_relative_table_targets,
@@ -128,7 +128,7 @@ def _make_block_node(
 ) -> CFGNode:
     """Materialize one recovered normal CFG node."""
 
-    return ExtractedCFGNode(
+    return CustomCFGNode(
         block.addr,
         block.size,
         cfg=model,
@@ -174,7 +174,7 @@ def _make_leaf_node(
     )
 
 
-class _ExtractionSession:
+class _BuildSession:
     """Own the leader worklist and graph materialization for one function."""
 
     def __init__(
@@ -188,10 +188,10 @@ class _ExtractionSession:
         self.func_addr = func_addr
         self.bounds = _lookup_function_bounds(project, func_addr)
         manager = SimpleNamespace(_kb=kb)
-        self.model = CFGModel("CFGExtract", cfg_manager=manager)
+        self.model = CFGModel("CFGCustom", cfg_manager=manager)
         self.graph = cast(CFGGraph, self.model.graph)
-        self.stats = ExtractedCFGStats()
-        self.summary = ExtractedCFGSummary()
+        self.stats = CustomCFGStats()
+        self.summary = CustomCFGSummary()
         self.leaders = {func_addr}
         self.rejected_leaders: set[int] = set()
         self.pending = deque([func_addr])
@@ -360,7 +360,7 @@ class _ExtractionSession:
                 continue
             if self._is_data_leader(addr):
                 logger.info(
-                    f"Extract CFG rejected literal-pool leader {addr:#x} for "
+                    f"Custom CFG rejected literal-pool leader {addr:#x} for "
                     f"function {self.func_addr:#x}"
                 )
                 self._reject_data_leader(addr)
@@ -385,7 +385,7 @@ class _ExtractionSession:
             if block is None:
                 self.stats.decode_failures += 1
                 logger.warning(
-                    f"Extract CFG could not decode block at {addr:#x} for "
+                    f"Custom CFG could not decode block at {addr:#x} for "
                     f"function {self.func_addr:#x}"
                 )
                 continue
@@ -1099,7 +1099,7 @@ class _ExtractionSession:
                         discovered |= added and not before
                 plans[addr] = tuple(accepted_targets)
                 # These bytes are evidence of data, not additional bounds
-                # or targets. Keep them out of normal extraction decisions.
+                # or targets. Keep them out of normal construction decisions.
                 if plan is not None:
                     table_addr = _jump_table_addr(plan.base_addr, plan.table)
                     for index in plan.entry_indices:
@@ -1497,7 +1497,7 @@ class _ExtractionSession:
         ):
             return
         displayed = self._output_blocks()
-        late = _ExtractionSession(self.project, self.kb, self.func_addr)
+        late = _BuildSession(self.project, self.kb, self.func_addr)
         late.blocks = dict(displayed)
         late.leaders = set(displayed)
         late.pending.clear()
@@ -1627,7 +1627,7 @@ class _ExtractionSession:
         self.stats.sweep_reconnecting_components += selected.component_count
         self.stats.sweep_reconnecting_blocks += selected.reconnecting_block_count
         logger.info(
-            f"Extract CFG recovery for {self.func_addr:#x}: selected "
+            f"Custom CFG recovery for {self.func_addr:#x}: selected "
             f"{selected.reconnecting_block_count} block(s) from "
             f"{selected.component_count} "
             f"reconnecting component(s) behind {dispatchers[0]:#x}"
@@ -1676,7 +1676,7 @@ class _ExtractionSession:
                     self.stats.static_jump_candidate_edges_added += 1
 
     def _summarize_output(self) -> None:
-        """Record the final graph shape separately from extraction decisions."""
+        """Record the final graph shape separately from construction decisions."""
 
         blocks = self._output_blocks()
         self.summary.normal_blocks = len(blocks)
@@ -1721,15 +1721,15 @@ class _ExtractionSession:
         self.summary.entry_connected_instructions = len(connected_insns & all_insns)
         self.summary.disconnected_instructions = len(all_insns - connected_insns)
 
-    def build(self, *, recover_disconnected: bool = True) -> ExtractedCFG:
-        """Run bounded extraction in decode, proof, recovery, render order.
+    def build(self, *, recover_disconnected: bool = True) -> CustomCFG:
+        """Run bounded construction in decode, proof, recovery, render order.
 
         Exact target discovery precedes any sweep so that a static table never
         depends on speculative recovered code. Rendering is deliberately last:
         it consumes the stabilized block set and records unresolved targets
         that the proof stages intentionally declined to resolve.
         The private ``recover_disconnected=False`` audit hook exposes the
-        pre-recovery baseline; public extraction always enables this phase.
+        pre-recovery baseline; public construction always enables this phase.
         """
 
         # Stage 1: direct decoding establishes the initial bounded CFG.
@@ -1762,7 +1762,7 @@ class _ExtractionSession:
             function.name = self.bounds.name
         self._summarize_output()
 
-        anomalies = find_extracted_cfg_anomalies(
+        anomalies = find_custom_cfg_anomalies(
             self.graph,
             self.bounds,
             self.func_addr,
@@ -1779,30 +1779,30 @@ class _ExtractionSession:
                 logger.warning(anomaly.message)
         else:
             logger.info(
-                f"Extracted CFG for {self.func_addr:#x} passed structural validation"
+                f"Custom CFG for {self.func_addr:#x} passed structural validation"
             )
-        return ExtractedCFG(
+        return CustomCFG(
             graph=self.graph,
             model=self.model,
             functions=self.kb.functions,
             kb=self.kb,
-            extract_stats=self.stats,
-            extract_summary=self.summary,
+            custom_stats=self.stats,
+            custom_summary=self.summary,
         )
 
 
-def build_extracted_cfg(
+def build_custom_cfg(
     project: Project,
     kb: KnowledgeBase,
     func_addr: int,
-) -> ExtractedCFG:
+) -> CustomCFG:
     """Build one bounded function CFG with recovery, without invoking CFGFast."""
 
-    logger.info(f"Extracting CFG for function {func_addr:#x} without CFGFast")
-    cfg = _ExtractionSession(project, kb, func_addr).build()
+    logger.info(f"Building custom CFG for function {func_addr:#x} without CFGFast")
+    cfg = _BuildSession(project, kb, func_addr).build()
     logger.info(
-        f"Extracted CFG for {func_addr:#x}: "
-        f"stats={cfg.extract_stats.as_dict()}, "
-        f"summary={cfg.extract_summary.as_dict()}"
+        f"Custom CFG for {func_addr:#x}: "
+        f"stats={cfg.custom_stats.as_dict()}, "
+        f"summary={cfg.custom_summary.as_dict()}"
     )
     return cfg

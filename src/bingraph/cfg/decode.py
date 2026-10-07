@@ -99,7 +99,7 @@ def decode_linear_vex_span(
     """Return one VEX-proven linear instruction Capstone cannot decode.
 
     This deliberately accepts only an unambiguous one-instruction lift with no
-    side exits. It gives the independent extractor a narrow fallback for valid
+    side exits. It gives the custom builder a narrow fallback for valid
     ISA instructions missing from Capstone without using VEX to infer ordinary
     branch semantics.
     """
@@ -921,9 +921,7 @@ def _instruction_has_unclassified_vex_transfer(
     """Return whether VEX proves control flow absent from Capstone's groups.
 
     ``include_indirect`` recognizes VEX's guarded ``LoadG``-to-PC shape. It
-    is opt-in because CFG extraction can recover a bounded table from that
-    shape, whereas CFGFast repair deliberately keeps its existing conservative
-    decoding behavior.
+    is opt-in for callers that can recover a bounded table from that shape.
     """
 
     semantic = InsnSemantics(insn)
@@ -1155,7 +1153,7 @@ def lift_block_terminator(
             project, default_target
         ):
             # A constant VEX call target is precise even when it has no loader
-            # symbol. The extractor materializes an ExternalTarget leaf for
+            # symbol. The builder materializes an ExternalTarget leaf for
             # such unnamed callees, allowing later render policy to decide
             # whether it should be visible.
             direct_targets = (default_target,)
@@ -1509,8 +1507,8 @@ class DecodedNode:
     def from_node(cls, node) -> DecodedNode:
         """Read and cache Capstone instructions for one live CFG node.
 
-        Anomaly checks inspect the same CFGFast nodes repeatedly while the
-        worklist repairs nearby blocks. ``node.block.capstone`` constructs a
+        Target queries inspect the same CFG nodes repeatedly while the
+        worklist discovers nearby blocks. ``node.block.capstone`` constructs a
         fresh angr Block each time, so retaining this immutable view avoids
         repeatedly disassembling unchanged node bytes. The cache is scoped to
         object identity because angr CFG nodes compare by block identity; a

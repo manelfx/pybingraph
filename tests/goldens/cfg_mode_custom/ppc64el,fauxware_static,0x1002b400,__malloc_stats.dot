@@ -33,7 +33,6 @@ edge [fontname=monospace, fontsize=8];
 "0x1002b6f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1002b6f0)</TD><TD ><B>__malloc_stats+0x2f0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1002b6f0&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x1001eab8</TD></TR></TABLE> }>];
 "0x1002b6f4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1002b6f4)</TD><TD ><B>__malloc_stats+0x2f4</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1002b6f4&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1002b484</TD></TR></TABLE> }>];
 "0x1002b6f8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1002b6f8)</TD><TD ><B>__malloc_stats+0x2f8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1002b6f8&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x1002b6fc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1002b6fc)</TD><TD ><B>__malloc_stats+0x2fc</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1002b6fc&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x1002b400" -> "0x1002b484" [color=red];
 "0x1002b400" -> "0x1002b6f0" [color=green];
 "0x1002b484" -> "0x1002b4f8" [color=blue];
@@ -72,5 +71,4 @@ edge [fontname=monospace, fontsize=8];
 "0x1002b6e8" -> "0x1002b530" [color=blue];
 "0x1002b6f0" -> "0x1002b6f4" [color=gray, style=dashed];
 "0x1002b6f4" -> "0x1002b484" [color=blue];
-"0x1002b6f8" -> "0x1002b6fc" [color=gray, style=dashed];
 }

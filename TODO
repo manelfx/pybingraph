@@ -87,16 +87,16 @@ show something like:
 
 (0x4ad824) _ZN13fluent_bundle5types...+0xc4
 
-=== Preserve meaningful local labels in CFG extract mode
+=== Preserve meaningful local labels in custom CFG mode
 
-`cfg_mode=extract` currently gives every non-entry block a canonical
+`cfg_mode=custom` currently gives every non-entry block a canonical
 `function_name+offset` title. That is deterministic, but it loses useful
 ELF-local labels inside a function. For example, in
 `armel/p2im_drone.elf:Reset_Handler` at `0x80052b5`, the labels
 `CopyDataInit`, `LoopCopyDataInit`, `FillZerobss`, and `LoopFillZerobss`
 describe the startup routine more clearly than offsets alone.
 
-Add a deterministic node-title resolver for extract mode:
+Add a deterministic node-title resolver for custom mode:
 
 - Keep the selected function name for the entry block.
 - For another block, look up symbols at its normalized execution address
@@ -114,21 +114,21 @@ do not hard-code that policy before auditing representative artifacts.
 
 - Bring back comments by default in tests.
 - Analyze which comments are shown, which ones could be shown.
-- Refine extract's use-aware string classification. Its current conservative
+- Refine custom's use-aware string classification. Its current conservative
   guard keeps typed accesses numeric unless a separate address-taking hint
   supports a string interpretation. This avoids rendering integer 50 as "2",
   or GOT and vector values as accidental strings, but can hide genuine text
   loaded directly without such a hint.
   Regression probe: in the x86_64 `1cbbf108...` binary, `gimli::resolve` at
-  0x438e10 loads the path fragment at 0x45ef39 in instruction 0x43d067. Extract
+  0x438e10 loads the path fragment at 0x45ef39 in instruction 0x43d067. Custom
   currently shows `int @ 0x45ef39` rather than its readable path content.
   Reuse bounded VEX reference/use information where practical to distinguish
   text, character/vector comparisons, scalar constants, and pointer slots.
   An address hint or printable bytes alone are not proof of textual use.
   Success means retaining useful text without reintroducing false strings,
   with no CFGFast, CFG changes, or significant annotation cost. Compare equal
-  instruction sites with comments enabled; custom is supporting evidence,
-  not an accuracy oracle. Keep broader semantic analysis deferred if complex.
+  instruction sites with comments enabled and validate against binary data,
+  not a previous CFG implementation. Keep broader analysis deferred if complex.
 - Does building other CFGs beforehand mutate knowledge-base state in a way that
   changes later comments?
 - Are these differences specific to comments, or do they come from another kind
@@ -136,16 +136,15 @@ do not hard-code that policy before auditing representative artifacts.
 - See comments at http://127.0.0.1:8000/cfg?filepath=x86_64/switch&function=0x400544
   (try w/ and w/o `comments=true`).
 
-=== Audit extract CFG transformation usage
+=== Audit custom CFG transformation usage
 
-`ExtractedCFGStats` records per-function decoding, target recovery, exception,
-and sweep counters, but the golden-test summary currently aggregates only
-`CustomCFGStats`. Aggregate extract counters across full corpus runs and report
-both the number of functions affected and the total actions for each counter.
+`CustomCFGStats` records per-function decoding, target recovery, exception,
+and sweep counters. Golden-test summaries aggregate total actions, affected
+functions, and exact-proof usage by architecture. Use these measurements to
+identify unnecessary or disproportionately expensive transformations.
 
 - Separate attempts and rejection reasons from successful changes to the CFG.
-  In particular, add success counters for each exact indirect-jump proof flavor
-  instead of grouping them all under `static_jump_plans_resolved`.
+  Inspect the per-flavor success counters alongside `static_jump_plans_resolved`.
 - Identify resolver and recovery paths with zero successful actions across the
   corpus. Check their unit tests, supported architectures, and cases outside
   the corpus before deciding whether to simplify or remove them.

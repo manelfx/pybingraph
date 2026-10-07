@@ -25,10 +25,6 @@ edge [fontname=monospace, fontsize=8];
 "0x40aa68" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40aa68)</TD><TD ><B>_IO_file_xsgetn_mmap+0x174</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040aa68&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x40a998</TD></TR><TR><TD ALIGN="LEFT">0x0040aa6c&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$v0, $s3, $v0</TD></TR></TABLE> }>];
 "0x40aa70" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40aa70)</TD><TD ><B>_IO_file_xsgetn_mmap+0x17c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040aa70&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t9, -0x7dc8($gp)</TD></TR><TR><TD ALIGN="LEFT">0x0040aa74&#58;&nbsp;</TD><TD ALIGN="LEFT">bal</TD><TD ALIGN="LEFT">0x407a50</TD></TR><TR><TD ALIGN="LEFT">0x0040aa78&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x40aa7c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40aa7c)</TD><TD ><B>_IO_file_xsgetn_mmap+0x188</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040aa7c&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x40aa58</TD></TR><TR><TD ALIGN="LEFT">0x0040aa80&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t9, 0x20($s1)</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x40a8f4";
-}
 "0x40a8f4" -> "0x40a944" [color=red];
 "0x40a8f4" -> "0x40a9bc" [color=green];
 "0x40a944" -> "0x40a954" [color=red];
@@ -55,7 +51,6 @@ rank=source;
 "0x40aa3c" -> "0x40aa54" [color=red];
 "0x40aa3c" -> "0x40aa70" [color=green];
 "0x40aa54" -> "0x40aa58" [color=blue, style=dashed];
-"0x40aa58" -> "0x40a8f4" [color=gray];
 "0x40aa58" -> "0x40aa68" [color=gray, style=dashed];
 "0x40aa68" -> "0x40a998" [color=blue];
 "0x40aa70" -> "0x40aa7c" [color=gray, style=dashed];

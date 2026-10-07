@@ -5,16 +5,12 @@ import traceback
 from typing import Any, cast
 
 from angr import Project, KnowledgeBase
-from angr.analyses import CFGFast, CFGEmulated
+from angr.analyses import CFGFast
 from angr.analyses.cfg import CFGBase
 from loguru import logger
 
 from bingraph.helpers import time_it, get_settings, CfgMode
-from bingraph.cfg import (
-    build_custom_cfg,
-    log_cfg_status,
-)
-from bingraph.cfg_extract import build_extracted_cfg
+from bingraph.cfg import build_custom_cfg
 from bingraph.cfg.decode import decode_raw_capstone_insns
 from bingraph.helpers.capstone import InsnSemantics
 from bingraph.helpers.symbols import list_function_symbols
@@ -212,27 +208,6 @@ def _get_fast_cfg(project: Project, kb: KnowledgeBase, func_addr: int) -> CFGFas
     return cfg
 
 
-def _get_emu_cfg(
-    project: Project, kb: KnowledgeBase, func_addr: int, keep_state: bool
-) -> CFGEmulated:
-    """
-    Build or retrieve the emulated control flow graph (CFGEmulated) for a given function.
-
-    Args:
-        project (Project): The angr project for which to build the emulated CFG.
-        kb (KnowledgeBase): Shared knowledge base reused across CFG strategies.
-        func_addr (int): Address of the target function.
-        keep_state (bool): Whether to retain full symbolic state during emulation.
-
-    Returns:
-        CFGEmulated: The emulated control flow graph of the project.
-    """
-    cfg_emulated = cast(Any, project.analyses.CFGEmulated)
-    return cfg_emulated(
-        kb=kb, starts=[func_addr], call_depth=0, keep_state=keep_state, normalize=True
-    )
-
-
 def get_cfg(
     project: Project,
     func_addr: int,
@@ -251,30 +226,15 @@ def _get_cfg(project: Project, func_addr: int, resolved_cfg_mode: CfgMode) -> CF
     logger.info(
         f"Getting CFG for function {func_addr:#x} with mode '{resolved_cfg_mode}'"
     )
-    # Keep one KB per high-level CFG request so a fallback CFGEmulated run can
-    # reuse the metadata already discovered by CFGFast, especially comments and
-    # related knowledge attached during the fast analysis.
+    # Isolate analysis metadata between CFG requests and strategies.
     kb = KnowledgeBase(project)
-
-    if resolved_cfg_mode == "extract":
-        # This experimental path deliberately starts from bounded decoding,
-        # rather than using CFGFast as a seed graph to repair.
-        cfg = cast(CFGBase, build_extracted_cfg(project, kb, func_addr))
-    else:
-        fast_cfg = _get_fast_cfg(project, kb, func_addr)
-
     if resolved_cfg_mode == "none":
-        cfg = fast_cfg
-    elif resolved_cfg_mode == "custom":
+        return _get_fast_cfg(project, kb, func_addr)
+    if resolved_cfg_mode == "custom":
         # CustomCFG intentionally exposes the CFGBase subset consumed by the
         # rest of bingraph, but angr's nominal type hierarchy cannot express it.
-        cfg = cast(CFGBase, build_custom_cfg(project, kb, func_addr, fast_cfg))
-    elif resolved_cfg_mode != "extract":
-        raise ValueError(f"Unsupported cfg mode: {resolved_cfg_mode}")
-
-    if resolved_cfg_mode != "extract":
-        log_cfg_status(cfg, func_addr, f"Selected CFG ({resolved_cfg_mode})")
-    return cfg
+        return cast(CFGBase, build_custom_cfg(project, kb, func_addr))
+    raise ValueError(f"Unsupported cfg mode: {resolved_cfg_mode}")
 
 
 # Preserve the cache-control interface used by corpus runners and callers.

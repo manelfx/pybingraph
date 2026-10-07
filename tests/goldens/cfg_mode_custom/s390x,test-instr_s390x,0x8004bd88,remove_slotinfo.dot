@@ -54,7 +54,6 @@ rank=source;
 "0x8004bea6" -> "0x8004be7c" [color=blue];
 "0x8004beb0" -> "0x8004bdda" [color=green];
 "0x8004beb0" -> "0x8004beba" [color=red];
-"0x8004beba" -> "0x8004bed6" [color=gray, style=dashed];
 "0x8004bed6" -> "0x8004be94" [color=green];
 "0x8004bed6" -> "0x8004bede" [color=red];
 "0x8004bede" -> "0x8004be1a" [color=blue];

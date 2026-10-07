@@ -12,7 +12,6 @@ edge [fontname=monospace, fontsize=8];
 "0x1009bbf0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1009bbf0)</TD><TD ><B>base_from_cb_data.isra.6.part.7+0x50</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1009bbf0&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r3, 0(r4)</TD></TR><TR><TD ALIGN="LEFT">0x1009bbf4&#58;&nbsp;</TD><TD ALIGN="LEFT">blr</TD><TD></TD></TR></TABLE> }>];
 "0x1009bc00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1009bc00)</TD><TD ><B>base_from_cb_data.isra.6.part.7+0x60</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1009bc00&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpwi</TD><TD ALIGN="LEFT">cr7, r3, 0x50</TD></TR><TR><TD ALIGN="LEFT">0x1009bc04&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">cr7, 0x1009bbe0</TD></TR></TABLE> }>];
 "0x1009bc08" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1009bc08)</TD><TD ><B>base_from_cb_data.isra.6.part.7+0x68</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1009bc08&#58;&nbsp;</TD><TD ALIGN="LEFT">mflr</TD><TD ALIGN="LEFT">r0</TD></TR><TR><TD ALIGN="LEFT">0x1009bc0c&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r0, 0x10(r1)</TD></TR><TR><TD ALIGN="LEFT">0x1009bc10&#58;&nbsp;</TD><TD ALIGN="LEFT">stdu</TD><TD ALIGN="LEFT">r1, -0x20(r1)</TD></TR><TR><TD ALIGN="LEFT">0x1009bc14&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x1000ed78</TD></TR></TABLE> }>];
-"0x1009bc18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1009bc18)</TD><TD ><B>base_from_cb_data.isra.6.part.7+0x78</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1009bc18&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x1009bba0" -> "0x1009bbb4" [color=red];
 "0x1009bba0" -> "0x1009bbf0" [color=green];
 "0x1009bbb4" -> "0x1009bbbc" [color=red];
@@ -25,5 +24,4 @@ edge [fontname=monospace, fontsize=8];
 "0x1009bbd8" -> "0x1009bc08" [color=green];
 "0x1009bc00" -> "0x1009bbe0" [color=green];
 "0x1009bc00" -> "0x1009bc08" [color=red];
-"0x1009bc08" -> "0x1009bc18" [color=gray, style=dashed];
 }

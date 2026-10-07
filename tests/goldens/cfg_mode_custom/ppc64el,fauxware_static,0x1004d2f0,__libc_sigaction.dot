@@ -20,7 +20,6 @@ edge [fontname=monospace, fontsize=8];
 "0x1004d440" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1004d440)</TD><TD ><B>__libc_sigaction+0x150</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1004d440&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r5, r1, 0xc0</TD></TR><TR><TD ALIGN="LEFT">0x1004d444&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r4, 0</TD></TR><TR><TD ALIGN="LEFT">0x1004d448&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1004d378</TD></TR></TABLE> }>];
 "0x1004d450" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1004d450)</TD><TD ><B>__libc_sigaction+0x160</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1004d450&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x1004d454&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r30, -1</TD></TR><TR><TD ALIGN="LEFT">0x1004d458&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x1004d45c&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r9, r13, -0x6fe0</TD></TR><TR><TD ALIGN="LEFT">0x1004d460&#58;&nbsp;</TD><TD ALIGN="LEFT">stw</TD><TD ALIGN="LEFT">r3, 0(r9)</TD></TR><TR><TD ALIGN="LEFT">0x1004d464&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1004d3f4</TD></TR></TABLE> }>];
 "0x1004d468" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1004d468)</TD><TD ><B>__libc_sigaction+0x178</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1004d468&#58;&nbsp;</TD><TD ALIGN="LEFT">mflr</TD><TD ALIGN="LEFT">r0</TD></TR><TR><TD ALIGN="LEFT">0x1004d46c&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r0, 0x190(r1)</TD></TR><TR><TD ALIGN="LEFT">0x1004d470&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x1004d474" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1004d474)</TD><TD ><B>__libc_sigaction+0x184</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1004d474&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x1004d2f0" -> "0x1004d324" [color=red];
 "0x1004d2f0" -> "0x1004d420" [color=green];
 "0x1004d324" -> "0x1004d344" [color=gray, style=dashed];
@@ -44,5 +43,4 @@ edge [fontname=monospace, fontsize=8];
 "0x1004d428" -> "0x1004d378" [color=blue];
 "0x1004d440" -> "0x1004d378" [color=blue];
 "0x1004d450" -> "0x1004d3f4" [color=blue];
-"0x1004d468" -> "0x1004d474" [color=gray, style=dashed];
 }

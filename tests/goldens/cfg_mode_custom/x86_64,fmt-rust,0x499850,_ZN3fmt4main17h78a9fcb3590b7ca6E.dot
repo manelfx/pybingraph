@@ -35,8 +35,9 @@ edge [fontname=monospace, fontsize=8];
 "0x4998ba" -> "0x4998c2" [color=gray, style=dashed];
 "0x4998c2" -> "0x4998cc" [color=gray, style=dashed];
 "0x4998cc" -> "0x499920" [color=gray, style=dashed];
+"0x4998cc" -> "0x499931" [color=gray, style=dotted];
 "0x499920" -> "0x499929" [color=gray, style=dashed];
 "0x499929" -> "0x499931" [color=gray, style=dashed];
 "0x499931" -> "0x49993d" [color=gray, style=dashed];
-"0x49993d" -> "0x499945" [color=gray, style=dashed];
+"0x499931" -> "0x499945" [color=gray, style=dotted];
 }

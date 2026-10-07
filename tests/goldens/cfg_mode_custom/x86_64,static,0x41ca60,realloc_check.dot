@@ -114,7 +114,6 @@ edge [fontname=monospace, fontsize=8];
 "0x41d071" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41d071)</TD><TD ><B>realloc_check+0x611</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041d071&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">r12b, 1</TD></TR><TR><TD ALIGN="LEFT">0x0041d075&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x41cf4e</TD></TR></TABLE> }>];
 "0x41d07b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41d07b)</TD><TD ><B>realloc_check+0x61b</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041d07b&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">r12d, 2</TD></TR><TR><TD ALIGN="LEFT">0x0041d07f&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x41cfd0</TD></TR></TABLE> }>];
 "0x41d085" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41d085)</TD><TD ><B>realloc_check+0x625</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041d085&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x40dc00</TD></TR></TABLE> }>];
-"0x41d08a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41d08a)</TD><TD ><B>realloc_check+0x62a</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041d08a&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD ALIGN="LEFT">word ptr [rax + rax]</TD></TR></TABLE> }>];
 "0x41d090" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41d090)</TD><TD ><B>realloc_check+0x630</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041d090&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edi, r12d</TD></TR><TR><TD ALIGN="LEFT">0x0041d093&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, 0x4a1bf2</TD></TR><TR><TD ALIGN="LEFT">0x0041d098&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, 0x4bc43c</TD></TR><TR><TD ALIGN="LEFT">0x0041d09d&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">edi, 2</TD></TR><TR><TD ALIGN="LEFT">0x0041d0a0&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">eax, eax</TD></TR><TR><TD ALIGN="LEFT">0x0041d0a2&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x411790</TD></TR></TABLE> }>];
 "0x41d0a7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41d0a7)</TD><TD ><B>realloc_check+0x647</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041d0a7&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x41cfd0</TD></TR></TABLE> }>];
 "0x41ca60" -> "0x41ca78" [color=red];
@@ -290,8 +289,6 @@ edge [fontname=monospace, fontsize=8];
 "0x41d071" -> "0x41d07b" [color=red];
 "0x41d07b" -> "0x41cfd0" [color=green];
 "0x41d07b" -> "0x41d085" [color=red];
-"0x41d085" -> "0x41d08a" [color=gray, style=dashed];
-"0x41d08a" -> "0x41d090" [color=blue, style=dashed];
 "0x41d090" -> "0x41d0a7" [color=gray, style=dashed];
 "0x41d0a7" -> "0x41cfd0" [color=blue];
 }

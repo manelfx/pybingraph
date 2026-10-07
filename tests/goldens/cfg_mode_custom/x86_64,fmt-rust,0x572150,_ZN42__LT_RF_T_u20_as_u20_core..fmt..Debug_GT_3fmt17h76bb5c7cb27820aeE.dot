@@ -2,6 +2,7 @@ digraph G {
 rankdir=TB;
 node [shape=Mrecord, fontname=monospace, fontsize=8];
 edge [fontname=monospace, fontsize=8];
+"0x571e10" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x571e10)</TD><TD ><B>_ZN4core3fmt3num3imp52_$LT$impl$u20$core..fmt..Display$u20$for$u20$u64$GT$3fmt17h3bef13756113ac7bE</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x572150" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x572150)</TD><TD ><B>_ZN42_$LT$$RF$T$u20$as$u20$core..fmt..Debug$GT$3fmt17h76bb5c7cb27820aeE</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00572150&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x00572151&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbp, rsp</TD></TR><TR><TD ALIGN="LEFT">0x00572154&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">rsp, 0x80</TD></TR><TR><TD ALIGN="LEFT">0x0057215b&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, qword ptr [rdi]</TD></TR><TR><TD ALIGN="LEFT">0x0057215e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [rsi + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x00572161&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">eax, 0x2000000</TD></TR><TR><TD ALIGN="LEFT">0x00572166&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x57217d</TD></TR></TABLE> }>];
 "0x572168" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x572168)</TD><TD ><B>_ZN42_$LT$$RF$T$u20$as$u20$core..fmt..Debug$GT$3fmt17h76bb5c7cb27820aeE+0x18</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00572168&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">eax, 0x4000000</TD></TR><TR><TD ALIGN="LEFT">0x0057216d&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x5721c1</TD></TR></TABLE> }>];
 "0x57216f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x57216f)</TD><TD ><B>_ZN42_$LT$$RF$T$u20$as$u20$core..fmt..Debug$GT$3fmt17h76bb5c7cb27820aeE+0x1f</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0057216f&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x80</TD></TR><TR><TD ALIGN="LEFT">0x00572176&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x00572177&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">qword ptr [rip + 0x1254b]</TD></TR></TABLE> }>];
@@ -16,6 +17,7 @@ edge [fontname=monospace, fontsize=8];
 "0x572150" -> "0x57217d" [color=green];
 "0x572168" -> "0x57216f" [color=red];
 "0x572168" -> "0x5721c1" [color=green];
+"0x57216f" -> "0x571e10" [color=orange];
 "0x57217d" -> "0x572190" [color=blue, style=dashed];
 "0x572190" -> "0x572190" [color=green];
 "0x572190" -> "0x5721bf" [color=red];

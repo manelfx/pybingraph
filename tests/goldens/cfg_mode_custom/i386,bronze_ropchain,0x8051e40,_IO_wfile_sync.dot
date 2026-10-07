@@ -26,10 +26,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8051f90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8051f90)</TD><TD ><B>_IO_wfile_sync+0x150</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08051f90&#58;&nbsp;</TD><TD ALIGN="LEFT">imul</TD><TD ALIGN="LEFT">edi, eax</TD></TR><TR><TD ALIGN="LEFT">0x08051f93&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8051eec</TD></TR></TABLE> }>];
 "0x8051fa0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8051fa0)</TD><TD ><B>_IO_wfile_sync+0x160</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08051fa0&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x8052740</TD></TR></TABLE> }>];
 "0x8051fa5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8051fa5)</TD><TD ><B>_IO_wfile_sync+0x165</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08051fa5&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8051f0c</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x8051e40";
-}
 "0x8051e40" -> "0x8051e49" [color=gray, style=dashed];
 "0x8051e49" -> "0x8051e63" [color=red];
 "0x8051e49" -> "0x8051e91" [color=green];
@@ -49,7 +45,6 @@ rank=source;
 "0x8051eda" -> "0x8051eec" [color=blue, style=dashed];
 "0x8051eec" -> "0x8051f0c" [color=red];
 "0x8051eec" -> "0x8051fa0" [color=green];
-"0x8051f0c" -> "0x8051e40" [color=gray];
 "0x8051f0c" -> "0x8051f17" [color=gray, style=dashed];
 "0x8051f17" -> "0x8051f24" [color=red];
 "0x8051f17" -> "0x8051f50" [color=green];

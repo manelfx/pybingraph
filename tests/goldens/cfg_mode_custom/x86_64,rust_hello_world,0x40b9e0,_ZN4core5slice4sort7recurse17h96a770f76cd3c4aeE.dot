@@ -143,6 +143,8 @@ edge [fontname=monospace, fontsize=8];
 "0x40c733" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40c733)</TD><TD ><B>_ZN4core5slice4sort7recurse17h96a770f76cd3c4aeE+0xd53</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040c733&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x40c745</TD></TR></TABLE> }>];
 "0x40c735" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40c735)</TD><TD ><B>_ZN4core5slice4sort7recurse17h96a770f76cd3c4aeE+0xd55</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040c735&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdx, [rip + 0x4dd44]</TD></TR><TR><TD ALIGN="LEFT">0x0040c73c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, r10</TD></TR><TR><TD ALIGN="LEFT">0x0040c73f&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">qword ptr [rip + 0x5071b]</TD></TR></TABLE> }>];
 "0x40c745" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40c745)</TD><TD ><B>_ZN4core5slice4sort7recurse17h96a770f76cd3c4aeE+0xd65</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040c745&#58;&nbsp;</TD><TD ALIGN="LEFT">ud2</TD><TD></TD></TR></TABLE> }>];
+"0x40c747" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40c747)</TD><TD ><B>_ZN4core5slice4sort7recurse17h96a770f76cd3c4aeE+0xd67</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040c747&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, rax</TD></TR><TR><TD ALIGN="LEFT">0x0040c74a&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rsp + 0x60]</TD></TR><TR><TD ALIGN="LEFT">0x0040c74f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, qword ptr [rsp + 0x28]</TD></TR><TR><TD ALIGN="LEFT">0x0040c754&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x409230</TD></TR></TABLE> }>];
+"0x40c759" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40c759)</TD><TD ><B>_ZN4core5slice4sort7recurse17h96a770f76cd3c4aeE+0xd79</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040c759&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, rbx</TD></TR><TR><TD ALIGN="LEFT">0x0040c75c&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x406040</TD></TR></TABLE> }>];
 subgraph entry_rank {
 rank=source;
 "0x40b9e0";
@@ -346,6 +348,9 @@ rank=source;
 "0x40c6fd" -> "0x40c70d" [color=gray, style=dashed];
 "0x40c70f" -> "0x40c71f" [color=gray, style=dashed];
 "0x40c721" -> "0x40c733" [color=gray, style=dashed];
+"0x40c721" -> "0x40c747" [color=gray, style=dotted];
 "0x40c733" -> "0x40c745" [color=blue];
 "0x40c735" -> "0x40c745" [color=gray, style=dashed];
+"0x40c735" -> "0x40c747" [color=gray, style=dotted];
+"0x40c747" -> "0x40c759" [color=gray, style=dashed];
 }

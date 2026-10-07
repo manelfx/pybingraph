@@ -17,7 +17,6 @@ edge [fontname=monospace, fontsize=8];
 "0x10099c00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10099c00)</TD><TD ><B>uw_update_context+0xd0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10099c00&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r9, r8</TD></TR><TR><TD ALIGN="LEFT">0x10099c04&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x10099bbc</TD></TR></TABLE> }>];
 "0x10099c10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10099c10)</TD><TD ><B>uw_update_context+0xe0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10099c10&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r1, r1, 0x30</TD></TR><TR><TD ALIGN="LEFT">0x10099c14&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r9, 0</TD></TR><TR><TD ALIGN="LEFT">0x10099c18&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r0, 0x10(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10099c1c&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r9, 0x498(r30)</TD></TR><TR><TD ALIGN="LEFT">0x10099c20&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r31, -8(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10099c24&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r30, -0x10(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10099c28&#58;&nbsp;</TD><TD ALIGN="LEFT">mtlr</TD><TD ALIGN="LEFT">r0</TD></TR><TR><TD ALIGN="LEFT">0x10099c2c&#58;&nbsp;</TD><TD ALIGN="LEFT">blr</TD><TD></TD></TR></TABLE> }>];
 "0x10099c30" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10099c30)</TD><TD ><B>uw_update_context+0x100</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10099c30&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x1000ed78</TD></TR></TABLE> }>];
-"0x10099c34" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10099c34)</TD><TD ><B>uw_update_context+0x104</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10099c34&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x10099b30" -> "0x10099b58" [color=gray, style=dashed];
 "0x10099b58" -> "0x10099b68" [color=red];
 "0x10099b58" -> "0x10099b6c" [color=green];
@@ -37,5 +36,4 @@ edge [fontname=monospace, fontsize=8];
 "0x10099bf0" -> "0x10099ba8" [color=green];
 "0x10099bf0" -> "0x10099c00" [color=red];
 "0x10099c00" -> "0x10099bbc" [color=blue];
-"0x10099c30" -> "0x10099c34" [color=gray, style=dashed];
 }

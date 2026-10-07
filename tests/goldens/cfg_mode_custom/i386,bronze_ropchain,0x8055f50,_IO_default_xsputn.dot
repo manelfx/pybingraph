@@ -24,10 +24,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8056058" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8056058)</TD><TD ><B>_IO_default_xsputn+0x108</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08056058&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0x1c</TD></TR><TR><TD ALIGN="LEFT">0x0805605b&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">eax, eax</TD></TR><TR><TD ALIGN="LEFT">0x0805605d&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">ebx</TD></TR><TR><TD ALIGN="LEFT">0x0805605e&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">esi</TD></TR><TR><TD ALIGN="LEFT">0x0805605f&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">edi</TD></TR><TR><TD ALIGN="LEFT">0x08056060&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">ebp</TD></TR><TR><TD ALIGN="LEFT">0x08056061&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
 "0x8056068" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8056068)</TD><TD ><B>_IO_default_xsputn+0x118</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08056068&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0xc], ecx</TD></TR><TR><TD ALIGN="LEFT">0x0805606c&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x8052740</TD></TR></TABLE> }>];
 "0x8056071" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8056071)</TD><TD ><B>_IO_default_xsputn+0x121</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08056071&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [esp + 0xc]</TD></TR><TR><TD ALIGN="LEFT">0x08056075&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8055fcd</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x8055f50";
-}
 "0x8055f50" -> "0x8055f59" [color=gray, style=dashed];
 "0x8055f59" -> "0x8055f7a" [color=red];
 "0x8055f59" -> "0x8056058" [color=green];
@@ -43,7 +39,6 @@ rank=source;
 "0x8055fb4" -> "0x805601c" [color=green];
 "0x8055fb8" -> "0x8055fcd" [color=red];
 "0x8055fb8" -> "0x8056068" [color=green];
-"0x8055fcd" -> "0x8055f50" [color=gray];
 "0x8055fcd" -> "0x8055fdb" [color=gray, style=dashed];
 "0x8055fdb" -> "0x8055fe3" [color=red];
 "0x8055fdb" -> "0x8056018" [color=green];

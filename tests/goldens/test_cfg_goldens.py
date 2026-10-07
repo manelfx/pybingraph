@@ -9,7 +9,7 @@ How this module works:
 
 2. Fresh render output
    Each test patches `get_settings()` so the app uses the requested test
-   configuration, then extracts the real nested `_render_cfg()` function from
+   configuration, then retrieves the real nested `_render_cfg()` function from
    `create_app()` and renders one CFG as raw DOT text.
 
 3. Compare mode
@@ -30,8 +30,8 @@ How this module works:
 5. Summary files
    A run that selects the per-config summary test writes one `summary.json`
    file per config under `tests/_actual/<config-name>/...` and compares it
-   with the committed summary. Custom-mode summaries aggregate repair counters;
-   extract-mode summaries aggregate extraction counters and exact-proof usage.
+   with the committed summary. Custom-mode summaries aggregate construction
+   counters and exact-proof usage.
    Checkpoint and other partial runs deliberately leave that full-corpus
    summary and the other `_actual` artifacts untouched.
    In promote mode, the full summary is also copied into the golden directory.
@@ -53,7 +53,7 @@ How this module works:
 Useful environment variables:
    - `BINGRAPH_GOLDEN_MODE=compare|promote`
    - `BINGRAPH_GOLDEN_CONFIGS=name1,name2,...` to run only selected configs
-     Use `cfg_comments_on` for an isolated extract comments audit; its
+     Use `cfg_comments_on` for an isolated custom comments audit; its
      artifacts do not replace comments-disabled outputs.
    - `BINGRAPH_GOLDEN_MIN_BBS=<N>` to test only rows with at least `N` BBs
      (defaults to `10`)
@@ -119,22 +119,19 @@ CONFIGS = [
     # application defaults from the real Settings model.
     GoldenConfig(name="cfg_mode_none", cfg_mode="none"),
     GoldenConfig(name="cfg_mode_custom", cfg_mode="custom"),
-    # The independent extractor is experimental. Its baseline starts as a
-    # copy of custom artifacts so checkpoint tests show extractor differences.
-    GoldenConfig(name="cfg_mode_extract", cfg_mode="extract"),
-    # Extract mode with info about external calls
-    GoldenConfig(name="cfg_exits_always", cfg_mode="extract", cfg_exits="always"),
+    # Include external calls in this separate presentation audit.
+    GoldenConfig(name="cfg_exits_always", cfg_mode="custom", cfg_exits="always"),
     # Annotation audits have separate artifact trees, preserving CFG baselines.
-    GoldenConfig(name="cfg_comments_on", cfg_mode="extract", comments=True),
+    GoldenConfig(name="cfg_comments_on", cfg_mode="custom", comments=True),
 ]
 
-# Custom repair is the production CFG path and therefore the default golden
+# Custom construction is the production CFG path and therefore the default golden
 # suite. Keep the other configuration available for explicit comparisons.
 DEFAULT_CONFIGS = [
     next(config for config in CONFIGS if config.name == "cfg_mode_custom")
 ]
 
-# Curated regression cases that exercise repair behavior we want to protect
+# Curated regression cases that exercise CFG behavior we want to protect
 # while keeping a quick developer-facing golden suite. Configuration selection
 # remains the responsibility of BINGRAPH_GOLDEN_CONFIGS.
 CHECKPOINT_ARTIFACTS = frozenset(
@@ -218,10 +215,8 @@ class ConfigRunState:
     render_recoveries: int = 0
     custom_cfg_runs: int = 0
     custom_cfg_stats: dict[str, int] = field(default_factory=dict)
-    extract_cfg_runs: int = 0
-    extract_cfg_stats: dict[str, int] = field(default_factory=dict)
-    extract_cfg_affected_functions: dict[str, int] = field(default_factory=dict)
-    extract_proofs_by_architecture: dict[str, dict[str, int]] = field(
+    custom_cfg_affected_functions: dict[str, int] = field(default_factory=dict)
+    custom_proofs_by_architecture: dict[str, dict[str, int]] = field(
         default_factory=dict
     )
 
@@ -353,9 +348,7 @@ def _summary_payload(
         "missing_goldens": state.missing_goldens,
         "render_crashes": state.render_crashes,
         "render_recoveries": state.render_recoveries,
-        # These counters are aggregated from completed custom-repair sessions,
-        # not inferred from DOT differences, so they distinguish repair work
-        # from rendering-only layout or label changes.
+        # The unmodified CFGFast mode has no custom construction counters.
         "custom_cfg_stats": {
             "runs": state.custom_cfg_runs,
             "totals": dict(sorted(state.custom_cfg_stats.items())),
@@ -368,18 +361,16 @@ def _summary_payload(
     # Keep the existing comments-disabled summary format unchanged.
     if not config.comments:
         payload["config"].pop("comments")
-    if config.cfg_mode == "extract":
-        payload["extract_cfg_stats"] = {
-            "runs": state.extract_cfg_runs,
-            "totals": dict(sorted(state.extract_cfg_stats.items())),
+    if config.cfg_mode == "custom":
+        payload["custom_cfg_stats"] = {
+            "runs": state.custom_cfg_runs,
+            "totals": dict(sorted(state.custom_cfg_stats.items())),
             "affected_functions": dict(
-                sorted(state.extract_cfg_affected_functions.items())
+                sorted(state.custom_cfg_affected_functions.items())
             ),
             "proofs_by_architecture": {
                 arch: dict(sorted(flavors.items()))
-                for arch, flavors in sorted(
-                    state.extract_proofs_by_architecture.items()
-                )
+                for arch, flavors in sorted(state.custom_proofs_by_architecture.items())
             },
         }
     return payload
@@ -419,8 +410,10 @@ def _clear_caches() -> None:
     project_module.get_cfg.cache_clear()
 
 
-def _record_custom_cfg_stats(state: ConfigRunState, cfg: object) -> None:
-    """Add one completed custom CFG wrapper's repair counters to run state."""
+def _record_custom_cfg_stats(
+    state: ConfigRunState, cfg: object, architecture: str
+) -> None:
+    """Count completed custom actions and the functions that use each one."""
 
     stats = getattr(cfg, "custom_stats", None)
     if stats is None:
@@ -428,37 +421,23 @@ def _record_custom_cfg_stats(state: ConfigRunState, cfg: object) -> None:
 
     state.custom_cfg_runs += 1
     for name, value in stats.as_dict().items():
-        state.custom_cfg_stats[name] = state.custom_cfg_stats.get(name, 0) + value
-
-
-def _record_extract_cfg_stats(
-    state: ConfigRunState, cfg: object, architecture: str
-) -> None:
-    """Count completed extract actions and the functions that use each one."""
-
-    stats = getattr(cfg, "extract_stats", None)
-    if stats is None:
-        return
-
-    state.extract_cfg_runs += 1
-    for name, value in stats.as_dict().items():
         entries = value.items() if isinstance(value, dict) else ((None, value),)
         for subname, count in entries:
             key = f"{name}.{subname}" if subname is not None else name
-            state.extract_cfg_stats[key] = state.extract_cfg_stats.get(key, 0) + count
+            state.custom_cfg_stats[key] = state.custom_cfg_stats.get(key, 0) + count
             if count:
-                state.extract_cfg_affected_functions[key] = (
-                    state.extract_cfg_affected_functions.get(key, 0) + 1
+                state.custom_cfg_affected_functions[key] = (
+                    state.custom_cfg_affected_functions.get(key, 0) + 1
                 )
                 if name == "exact_jump_proofs_by_flavor":
-                    by_arch = state.extract_proofs_by_architecture.setdefault(
+                    by_arch = state.custom_proofs_by_architecture.setdefault(
                         architecture, {}
                     )
                     by_arch[subname] = by_arch.get(subname, 0) + count
 
 
-def _extract_render_cfg() -> Callable[..., str]:
-    """Extract the nested `_render_cfg` callable from the real FastAPI app."""
+def _get_render_cfg() -> Callable[..., str]:
+    """Retrieve the nested `_render_cfg` callable from the real FastAPI app."""
 
     # `_render_cfg` is nested inside `create_app()`, so pull it out from the
     # `/api/cfg` route closure instead of duplicating application logic here.
@@ -474,7 +453,7 @@ def _extract_render_cfg() -> Callable[..., str]:
             ):
                 return candidate
 
-    raise AssertionError("Unable to extract _render_cfg from create_app()")
+    raise AssertionError("Unable to retrieve _render_cfg from create_app()")
 
 
 def _existing_files(config_dir: Path) -> set[Path]:
@@ -787,23 +766,15 @@ if CURRENT_MODE == "compare":
             patch.object(app_module, "get_settings", return_value=settings),
             patch.object(project_module, "get_settings", return_value=settings),
         ):
-            render_cfg = _extract_render_cfg()
+            render_cfg = _get_render_cfg()
             original_build_custom_cfg = project_module.build_custom_cfg
-            original_build_extracted_cfg = project_module.build_extracted_cfg
 
             def build_custom_cfg_with_stats(*args: Any, **kwargs: Any) -> Any:
-                """Preserve repair counters while delegating to real CFG building."""
+                """Preserve construction counters while delegating to real CFG building."""
 
                 cfg = original_build_custom_cfg(*args, **kwargs)
-                _record_custom_cfg_stats(state, cfg)
-                return cfg
-
-            def build_extracted_cfg_with_stats(*args: Any, **kwargs: Any) -> Any:
-                """Preserve extraction counters while delegating to real CFG building."""
-
-                cfg = original_build_extracted_cfg(*args, **kwargs)
                 architecture = row["filepath"].split("/", 1)[0]
-                _record_extract_cfg_stats(state, cfg, architecture)
+                _record_custom_cfg_stats(state, cfg, architecture)
                 return cfg
 
             try:
@@ -812,11 +783,6 @@ if CURRENT_MODE == "compare":
                         project_module,
                         "build_custom_cfg",
                         side_effect=build_custom_cfg_with_stats,
-                    ),
-                    patch.object(
-                        project_module,
-                        "build_extracted_cfg",
-                        side_effect=build_extracted_cfg_with_stats,
                     ),
                 ):
                     artifact_text = render_cfg(

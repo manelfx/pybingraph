@@ -1,4 +1,4 @@
-"""Conservative SimOS-backed syscall recovery for extracted blocks."""
+"""Conservative SimOS-backed syscall recovery for custom blocks."""
 
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ def resolve_static_syscall(
     """Resolve a syscall when its number is concrete before its terminator.
 
     SimOS owns the architecture and ABI-specific syscall-number convention. The
-    extractor executes only the linear prefix before the already-bounded
+    builder executes only the linear prefix before the already-bounded
     syscall instruction from a blank symbolic state. Any symbolic, ambiguous,
     or unsupported result remains unresolved. Ambiguous memory reads stay
     symbolic, never constraining a register by choosing an arbitrary address.

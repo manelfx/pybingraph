@@ -27,10 +27,6 @@ edge [fontname=monospace, fontsize=8];
 "0x43ff6c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43ff6c)</TD><TD ><B>_IO_wfile_sync+0x1bc</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043ff6c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a0, 0xc($s0)</TD></TR><TR><TD ALIGN="LEFT">0x0043ff70&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v1, 8($s0)</TD></TR><TR><TD ALIGN="LEFT">0x0043ff74&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$gp, 0x18($sp)</TD></TR><TR><TD ALIGN="LEFT">0x0043ff78&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$a1, $a0, $v0</TD></TR><TR><TD ALIGN="LEFT">0x0043ff7c&#58;&nbsp;</TD><TD ALIGN="LEFT">subu</TD><TD ALIGN="LEFT">$v1, $v1, $a0</TD></TR><TR><TD ALIGN="LEFT">0x0043ff80&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$a1, 4($s0)</TD></TR><TR><TD ALIGN="LEFT">0x0043ff84&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x43fe44</TD></TR><TR><TD ALIGN="LEFT">0x0043ff88&#58;&nbsp;</TD><TD ALIGN="LEFT">subu</TD><TD ALIGN="LEFT">$a2, $v0, $v1</TD></TR></TABLE> }>];
 "0x43ff8c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43ff8c)</TD><TD ><B>_IO_wfile_sync+0x1dc</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043ff8c&#58;&nbsp;</TD><TD ALIGN="LEFT">jalr</TD><TD ALIGN="LEFT">$t9</TD></TR><TR><TD ALIGN="LEFT">0x0043ff90&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$a2, 0x24($sp)</TD></TR></TABLE> }>];
 "0x43ff94" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x43ff94)</TD><TD ><B>_IO_wfile_sync+0x1e4</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0043ff94&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x43fe5c</TD></TR><TR><TD ALIGN="LEFT">0x0043ff98&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a2, 0x24($sp)</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x43fdb0";
-}
 "0x43fdb0" -> "0x43fdf0" [color=red];
 "0x43fdb0" -> "0x43fe14" [color=green];
 "0x43fdf0" -> "0x43fdfc" [color=red];
@@ -47,7 +43,6 @@ rank=source;
 "0x43fe38" -> "0x43fe44" [color=blue, style=dashed];
 "0x43fe44" -> "0x43fe5c" [color=red];
 "0x43fe44" -> "0x43ff8c" [color=green];
-"0x43fe5c" -> "0x43fdb0" [color=gray];
 "0x43fe5c" -> "0x43fe74" [color=gray, style=dashed];
 "0x43fe74" -> "0x43fe80" [color=red];
 "0x43fe74" -> "0x43ff00" [color=green];

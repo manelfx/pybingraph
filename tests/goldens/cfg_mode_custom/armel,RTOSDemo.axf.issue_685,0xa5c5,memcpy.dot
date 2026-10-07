@@ -16,7 +16,6 @@ edge [fontname=monospace, fontsize=8];
 "0xa63d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x00a63d)</TD><TD ><B>memcpy+0x78</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0000a63d&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">&#123;r4, r5, r6, r7&#125;</TD></TR><TR><TD ALIGN="LEFT">0x0000a63f&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">&#123;r1&#125;</TD></TR><TR><TD ALIGN="LEFT">0x0000a641&#58;&nbsp;</TD><TD ALIGN="LEFT">bx</TD><TD ALIGN="LEFT">r1</TD></TR></TABLE> }>];
 "0xa643" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x00a643)</TD><TD ><B>memcpy+0x7e</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0000a643&#58;&nbsp;</TD><TD ALIGN="LEFT">movs</TD><TD ALIGN="LEFT">r5, r0</TD></TR><TR><TD ALIGN="LEFT">0x0000a645&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">&#35;0xa631</TD></TR></TABLE> }>];
 "0xa647" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x00a647)</TD><TD ><B>memcpy+0x82</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0000a647&#58;&nbsp;</TD><TD ALIGN="LEFT">movs</TD><TD ALIGN="LEFT">r2, r3</TD></TR><TR><TD ALIGN="LEFT">0x0000a649&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">&#35;0xa62d</TD></TR></TABLE> }>];
-"0x2010004c" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x2010004c)</TD><TD ><B>UnresolvableJumpTarget</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0xa5c5" -> "0xa5cd" [color=red];
 "0xa5c5" -> "0xa62d" [color=green];
 "0xa5cd" -> "0xa5d5" [color=red];
@@ -35,7 +34,6 @@ edge [fontname=monospace, fontsize=8];
 "0xa631" -> "0xa633" [color=blue, style=dashed];
 "0xa633" -> "0xa633" [color=green];
 "0xa633" -> "0xa63d" [color=red];
-"0xa63d" -> "0x2010004c" [color=orange, style=dashed];
 "0xa643" -> "0xa631" [color=blue];
 "0xa647" -> "0xa62d" [color=blue];
 }

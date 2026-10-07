@@ -96,7 +96,6 @@ edge [fontname=monospace, fontsize=8];
 "0x10019a90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10019a90)</TD><TD ><B>_IO_cleanup+0x5d0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10019a90&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r26, 2</TD></TR><TR><TD ALIGN="LEFT">0x10019a94&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x100197ec</TD></TR></TABLE> }>];
 "0x10019a98" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10019a98)</TD><TD ><B>_IO_cleanup+0x5d8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10019a98&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r10, 4(r9)</TD></TR><TR><TD ALIGN="LEFT">0x10019a9c&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r10, r10, 1</TD></TR><TR><TD ALIGN="LEFT">0x10019aa0&#58;&nbsp;</TD><TD ALIGN="LEFT">stw</TD><TD ALIGN="LEFT">r10, 4(r9)</TD></TR><TR><TD ALIGN="LEFT">0x10019aa4&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x100197ec</TD></TR></TABLE> }>];
 "0x10019aa8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10019aa8)</TD><TD ><B>_IO_cleanup+0x5e8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10019aa8&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r20, 0x50(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10019aac&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r21, 0x58(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10019ab0&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r22, 0x60(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10019ab4&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r23, 0x68(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10019ab8&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x10019abc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10019abc)</TD><TD ><B>_IO_cleanup+0x5fc</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10019abc&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x10019ac0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10019ac0)</TD><TD ><B>_IO_cleanup+0x600</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10019ac0&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r26, 1</TD></TR><TR><TD ALIGN="LEFT">0x10019ac4&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1001979c</TD></TR></TABLE> }>];
 "0x100194c0" -> "0x10019518" [color=red];
 "0x100194c0" -> "0x100199d0" [color=green];
@@ -238,7 +237,5 @@ edge [fontname=monospace, fontsize=8];
 "0x10019a84" -> "0x10019ac0" [color=green];
 "0x10019a90" -> "0x100197ec" [color=blue];
 "0x10019a98" -> "0x100197ec" [color=blue];
-"0x10019aa8" -> "0x10019abc" [color=gray, style=dashed];
-"0x10019abc" -> "0x10019ac0" [color=blue, style=dashed];
 "0x10019ac0" -> "0x1001979c" [color=blue];
 }

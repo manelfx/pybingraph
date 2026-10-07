@@ -2,6 +2,7 @@ digraph G {
 rankdir=TB;
 node [shape=Mrecord, fontname=monospace, fontsize=8];
 edge [fontname=monospace, fontsize=8];
+"0x408a80" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x408a80)</TD><TD ><B>__rust_dealloc</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x40d930" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40d930)</TD><TD ><B>_ZN5alloc4sync12Arc$LT$T$GT$9drop_slow17h94184ae4a286f375E</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040d930&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r15</TD></TR><TR><TD ALIGN="LEFT">0x0040d932&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r14</TD></TR><TR><TD ALIGN="LEFT">0x0040d934&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r13</TD></TR><TR><TD ALIGN="LEFT">0x0040d936&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r12</TD></TR><TR><TD ALIGN="LEFT">0x0040d938&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbx</TD></TR><TR><TD ALIGN="LEFT">0x0040d939&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, rdi</TD></TR><TR><TD ALIGN="LEFT">0x0040d93c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r14, qword ptr [rdi + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x0040d940&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r15, qword ptr [rdi + 0x20]</TD></TR><TR><TD ALIGN="LEFT">0x0040d944&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">r15, r15</TD></TR><TR><TD ALIGN="LEFT">0x0040d947&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x40d98d</TD></TR></TABLE> }>];
 "0x40d949" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40d949)</TD><TD ><B>_ZN5alloc4sync12Arc$LT$T$GT$9drop_slow17h94184ae4a286f375E+0x19</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040d949&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">r12, [r14 + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x0040d94d&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">r13, [rip - 0x4ed4]</TD></TR><TR><TD ALIGN="LEFT">0x0040d954&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x40d969</TD></TR></TABLE> }>];
 "0x40d960" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40d960)</TD><TD ><B>_ZN5alloc4sync12Arc$LT$T$GT$9drop_slow17h94184ae4a286f375E+0x30</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040d960&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r12, 0x70</TD></TR><TR><TD ALIGN="LEFT">0x0040d964&#58;&nbsp;</TD><TD ALIGN="LEFT">dec</TD><TD ALIGN="LEFT">r15</TD></TR><TR><TD ALIGN="LEFT">0x0040d967&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x40d98d</TD></TR></TABLE> }>];
@@ -25,14 +26,17 @@ edge [fontname=monospace, fontsize=8];
 "0x40d969" -> "0x40d971" [color=red];
 "0x40d971" -> "0x40d960" [color=green];
 "0x40d971" -> "0x40d97a" [color=red];
+"0x40d97a" -> "0x408a80" [color=gray];
 "0x40d97a" -> "0x40d98b" [color=gray, style=dashed];
 "0x40d98b" -> "0x40d960" [color=blue];
 "0x40d98d" -> "0x40d996" [color=red];
 "0x40d98d" -> "0x40d9a8" [color=green];
+"0x40d996" -> "0x408a80" [color=gray];
 "0x40d996" -> "0x40d9a8" [color=gray, style=dashed];
 "0x40d9a8" -> "0x40d9b1" [color=gray, style=dashed];
 "0x40d9b1" -> "0x40d9b7" [color=red];
 "0x40d9b1" -> "0x40d9da" [color=green];
 "0x40d9b7" -> "0x40d9be" [color=red];
 "0x40d9b7" -> "0x40d9da" [color=green];
+"0x40d9be" -> "0x408a80" [color=orange];
 }

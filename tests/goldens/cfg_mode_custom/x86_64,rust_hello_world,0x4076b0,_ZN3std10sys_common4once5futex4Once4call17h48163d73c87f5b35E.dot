@@ -24,6 +24,8 @@ edge [fontname=monospace, fontsize=8];
 "0x407853" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x407853)</TD><TD ><B>_ZN3std10sys_common4once5futex4Once4call17h48163d73c87f5b35E+0x1a3</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00407853&#58;&nbsp;</TD><TD ALIGN="LEFT">ud2</TD><TD></TD></TR></TABLE> }>];
 "0x407855" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x407855)</TD><TD ><B>_ZN3std10sys_common4once5futex4Once4call17h48163d73c87f5b35E+0x1a5</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00407855&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rip + 0x42b94]</TD></TR><TR><TD ALIGN="LEFT">0x0040785c&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdx, [rip + 0x533dd]</TD></TR><TR><TD ALIGN="LEFT">0x00407863&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, 0x2b</TD></TR><TR><TD ALIGN="LEFT">0x00407868&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">qword ptr [rip + 0x5570a]</TD></TR></TABLE> }>];
 "0x40786e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40786e)</TD><TD ><B>_ZN3std10sys_common4once5futex4Once4call17h48163d73c87f5b35E+0x1be</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040786e&#58;&nbsp;</TD><TD ALIGN="LEFT">ud2</TD><TD></TD></TR></TABLE> }>];
+"0x407870" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x407870)</TD><TD ><B>_ZN3std10sys_common4once5futex4Once4call17h48163d73c87f5b35E+0x1c0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00407870&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, rax</TD></TR><TR><TD ALIGN="LEFT">0x00407873&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rip + 0x557fe]</TD></TR><TR><TD ALIGN="LEFT">0x0040787a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, 1</TD></TR><TR><TD ALIGN="LEFT">0x0040787f&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x40a4e0</TD></TR></TABLE> }>];
+"0x407884" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x407884)</TD><TD ><B>_ZN3std10sys_common4once5futex4Once4call17h48163d73c87f5b35E+0x1d4</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00407884&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, rbx</TD></TR><TR><TD ALIGN="LEFT">0x00407887&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x406040</TD></TR></TABLE> }>];
 "0x4076b0" -> "0x407706" [color=blue];
 "0x407700" -> "0x407706" [color=blue, style=dashed];
 "0x407706" -> "0x40770f" [color=red];
@@ -54,4 +56,6 @@ edge [fontname=monospace, fontsize=8];
 "0x4077ed" -> "0x40780b" [color=gray, style=dashed];
 "0x40781a" -> "0x407853" [color=gray, style=dashed];
 "0x407855" -> "0x40786e" [color=gray, style=dashed];
+"0x407855" -> "0x407870" [color=gray, style=dotted];
+"0x407870" -> "0x407884" [color=gray, style=dashed];
 }

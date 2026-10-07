@@ -59,7 +59,6 @@ edge [fontname=monospace, fontsize=8];
 "0x1003c824" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1003c824)</TD><TD ><B>add_module.isra.0+0x444</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003c824&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r3, 1</TD></TR><TR><TD ALIGN="LEFT">0x1003c828&#58;&nbsp;</TD><TD ALIGN="LEFT">extsw</TD><TD ALIGN="LEFT">r22, r3</TD></TR><TR><TD ALIGN="LEFT">0x1003c82c&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1003c810</TD></TR></TABLE> }>];
 "0x1003c830" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1003c830)</TD><TD ><B>add_module.isra.0+0x450</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003c830&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r8, r24</TD></TR><TR><TD ALIGN="LEFT">0x1003c834&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1003c638</TD></TR></TABLE> }>];
 "0x1003c838" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1003c838)</TD><TD ><B>add_module.isra.0+0x458</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003c838&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x1003c83c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1003c83c)</TD><TD ><B>add_module.isra.0+0x45c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003c83c&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x1003c3e0" -> "0x1003c460" [color=red];
 "0x1003c3e0" -> "0x1003c7c0" [color=green];
 "0x1003c460" -> "0x1003c460" [color=green];
@@ -141,5 +140,4 @@ edge [fontname=monospace, fontsize=8];
 "0x1003c818" -> "0x1003c684" [color=blue];
 "0x1003c824" -> "0x1003c810" [color=blue];
 "0x1003c830" -> "0x1003c638" [color=blue];
-"0x1003c838" -> "0x1003c83c" [color=gray, style=dashed];
 }

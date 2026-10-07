@@ -2,6 +2,7 @@ digraph G {
 rankdir=TB;
 node [shape=Mrecord, fontname=monospace, fontsize=8];
 edge [fontname=monospace, fontsize=8];
+"0x408a80" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x408a80)</TD><TD ><B>__rust_dealloc</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x409b00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x409b00)</TD><TD ><B>_ZN4core3ptr181drop_in_place$LT$core..option..Option$LT$gimli..read..line..IncompleteLineProgram$LT$gimli..read..endian_slice..EndianSlice$LT$gimli..endianity..LittleEndian$GT$$C$usize$GT$$GT$$GT$17hb816966e5976f3efE</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00409b00&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbx</TD></TR><TR><TD ALIGN="LEFT">0x00409b01&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dword ptr [rdi], 0x2f</TD></TR><TR><TD ALIGN="LEFT">0x00409b04&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x409b8e</TD></TR></TABLE> }>];
 "0x409b0a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x409b0a)</TD><TD ><B>_ZN4core3ptr181drop_in_place$LT$core..option..Option$LT$gimli..read..line..IncompleteLineProgram$LT$gimli..read..endian_slice..EndianSlice$LT$gimli..endianity..LittleEndian$GT$$C$usize$GT$$GT$$GT$17hb816966e5976f3efE+0xa</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00409b0a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, rdi</TD></TR><TR><TD ALIGN="LEFT">0x00409b0d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, qword ptr [rdi + 0x58]</TD></TR><TR><TD ALIGN="LEFT">0x00409b11&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">rsi, rsi</TD></TR><TR><TD ALIGN="LEFT">0x00409b14&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x409b29</TD></TR></TABLE> }>];
 "0x409b16" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x409b16)</TD><TD ><B>_ZN4core3ptr181drop_in_place$LT$core..option..Option$LT$gimli..read..line..IncompleteLineProgram$LT$gimli..read..endian_slice..EndianSlice$LT$gimli..endianity..LittleEndian$GT$$C$usize$GT$$GT$$GT$17hb816966e5976f3efE+0x16</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00409b16&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, qword ptr [rbx + 0x50]</TD></TR><TR><TD ALIGN="LEFT">0x00409b1a&#58;&nbsp;</TD><TD ALIGN="LEFT">shl</TD><TD ALIGN="LEFT">rsi, 2</TD></TR><TR><TD ALIGN="LEFT">0x00409b1e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, 2</TD></TR><TR><TD ALIGN="LEFT">0x00409b23&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">qword ptr [rip + 0x53077]</TD></TR></TABLE> }>];
@@ -16,13 +17,17 @@ edge [fontname=monospace, fontsize=8];
 "0x409b00" -> "0x409b8e" [color=green];
 "0x409b0a" -> "0x409b16" [color=red];
 "0x409b0a" -> "0x409b29" [color=green];
+"0x409b16" -> "0x408a80" [color=gray];
 "0x409b16" -> "0x409b29" [color=gray, style=dashed];
 "0x409b29" -> "0x409b32" [color=red];
 "0x409b29" -> "0x409b49" [color=green];
+"0x409b32" -> "0x408a80" [color=gray];
 "0x409b32" -> "0x409b49" [color=gray, style=dashed];
 "0x409b49" -> "0x409b55" [color=red];
 "0x409b49" -> "0x409b6b" [color=green];
+"0x409b55" -> "0x408a80" [color=gray];
 "0x409b55" -> "0x409b6b" [color=gray, style=dashed];
 "0x409b6b" -> "0x409b77" [color=red];
 "0x409b6b" -> "0x409b8e" [color=green];
+"0x409b77" -> "0x408a80" [color=orange];
 }

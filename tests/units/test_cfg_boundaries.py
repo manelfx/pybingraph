@@ -1,21 +1,15 @@
 """Focused tests for Capstone/VEX-assisted block recovery boundaries."""
 
 from types import SimpleNamespace
-from typing import cast
 
-from angr.knowledge_plugins.cfg import CFGNode
 
-from bingraph.cfg.models import BlockSpec
 from bingraph.cfg.models import FunctionBounds
 from bingraph.cfg import decode
-from bingraph.cfg import recovery
-from bingraph.cfg.recovery import find_shared_instruction_tail
 from bingraph.cfg.decode import (
     _native_vex_transfer_end,
     call_fallthrough_addr,
     lift_block_terminator,
 )
-from bingraph.cfg.repair import _block_has_unresolved_indirect_transfer
 
 
 def _bounds() -> FunctionBounds:
@@ -93,20 +87,6 @@ def test_call_fallthrough_rejects_unknown_external_bytes() -> None:
     assert call_fallthrough_addr(project, _bounds(), 0x1100) is None
 
 
-def test_indirect_call_preserves_its_unresolved_target() -> None:
-    """Keep CFGFast's unresolved call target when a replacement has no target."""
-
-    block = BlockSpec(
-        addr=0x1000,
-        size=4,
-        instruction_addrs=(0x1000,),
-        jumpkind="Ijk_Call",
-        fallthrough_addr=0x1004,
-    )
-
-    assert _block_has_unresolved_indirect_transfer(block)
-
-
 def test_delayed_branch_exit_uses_delay_slot_provenance(
     monkeypatch,
 ) -> None:
@@ -146,44 +126,3 @@ def test_delayed_branch_exit_uses_delay_slot_provenance(
     terminator = lift_block_terminator(project, _bounds(), [branch, delay_slot])
 
     assert terminator.direct_targets == (0x1010,)
-
-
-def test_shared_instruction_tail_requires_linear_prefixes(
-    monkeypatch,
-) -> None:
-    """Find a shared tail when both instruction streams reach it linearly."""
-
-    class _Insn:
-        """Represent one instruction with the fields used by tail detection."""
-
-        def __init__(self, addr: int) -> None:
-            """Create an instruction with stable byte identity."""
-
-            self.address = addr
-            self.bytes = addr.to_bytes(4, "little")
-
-    first = object()
-    second = object()
-    decoded = {
-        first: (_Insn(0x1000), _Insn(0x1010)),
-        second: (_Insn(0x1004), _Insn(0x1010)),
-    }
-    monkeypatch.setattr(
-        decode.DecodedNode,
-        "from_node",
-        lambda node: decode.DecodedNode(decoded[node]),
-    )
-    monkeypatch.setattr(
-        recovery,
-        "control_transfer_index",
-        lambda _arch, _insns: None,
-    )
-
-    tail = find_shared_instruction_tail(
-        "X86", [cast(CFGNode, first), cast(CFGNode, second)]
-    )
-
-    assert tail is not None
-    assert tail.nodes == (cast(CFGNode, first), cast(CFGNode, second))
-    assert tail.start_addr == 0x1010
-    assert tail.instruction_addrs == (0x1010,)

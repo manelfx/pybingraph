@@ -24,10 +24,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8053ea8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8053ea8)</TD><TD ><B>_IO_file_xsgetn_mmap+0x138</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08053ea8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 4], eax</TD></TR><TR><TD ALIGN="LEFT">0x08053eac&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x8052740</TD></TR></TABLE> }>];
 "0x8053eb1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8053eb1)</TD><TD ><B>_IO_file_xsgetn_mmap+0x141</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08053eb1&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [esp + 4]</TD></TR><TR><TD ALIGN="LEFT">0x08053eb5&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8053e92</TD></TR></TABLE> }>];
 "0x8053eb7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8053eb7)</TD><TD ><B>_IO_file_xsgetn_mmap+0x147</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08053eb7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edi, dword ptr [esp + 4]</TD></TR><TR><TD ALIGN="LEFT">0x08053ebb&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8053dd8</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x8053d70";
-}
 "0x8053d70" -> "0x8053d79" [color=gray, style=dashed];
 "0x8053d79" -> "0x8053d9a" [color=red];
 "0x8053d79" -> "0x8053dd8" [color=green];
@@ -51,7 +47,6 @@ rank=source;
 "0x8053e54" -> "0x8053ddc" [color=blue];
 "0x8053e70" -> "0x8053e92" [color=red];
 "0x8053e70" -> "0x8053ea8" [color=green];
-"0x8053e92" -> "0x8053d70" [color=gray];
 "0x8053e92" -> "0x8053e9e" [color=gray, style=dashed];
 "0x8053e9e" -> "0x8053de0" [color=blue];
 "0x8053ea8" -> "0x8053eb1" [color=gray, style=dashed];

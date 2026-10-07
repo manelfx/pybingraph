@@ -26,16 +26,11 @@ edge [fontname=monospace, fontsize=8];
 "0x808e578" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x808e578)</TD><TD ><B>_IO_file_doallocate+0x148</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0808e578&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x8052740</TD></TR></TABLE> }>];
 "0x808e57d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x808e57d)</TD><TD ><B>_IO_file_doallocate+0x14d</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0808e57d&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x808e480</TD></TR></TABLE> }>];
 "0x808e582" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x808e582)</TD><TD ><B>_IO_file_doallocate+0x152</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0808e582&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x806f0b0</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x808e430";
-}
 "0x808e430" -> "0x808e439" [color=gray, style=dashed];
 "0x808e439" -> "0x808e460" [color=red];
 "0x808e439" -> "0x808e4f8" [color=green];
 "0x808e460" -> "0x808e480" [color=red];
 "0x808e460" -> "0x808e578" [color=green];
-"0x808e480" -> "0x808e430" [color=gray];
 "0x808e480" -> "0x808e48c" [color=gray, style=dashed];
 "0x808e48c" -> "0x808e493" [color=red];
 "0x808e48c" -> "0x808e4f8" [color=green];

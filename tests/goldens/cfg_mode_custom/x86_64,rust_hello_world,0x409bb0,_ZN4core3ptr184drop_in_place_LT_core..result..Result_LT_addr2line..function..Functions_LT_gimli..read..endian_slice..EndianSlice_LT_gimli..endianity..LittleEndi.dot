@@ -2,6 +2,7 @@ digraph G {
 rankdir=TB;
 node [shape=Mrecord, fontname=monospace, fontsize=8];
 edge [fontname=monospace, fontsize=8];
+"0x408a80" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x408a80)</TD><TD ><B>__rust_dealloc</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x409bb0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x409bb0)</TD><TD ><B>_ZN4core3ptr184drop_in_place$LT$core..result..Result$LT$addr2line..function..Functions$LT$gimli..read..endian_slice..EndianSlice$LT$gimli..endianity..LittleEndian$GT$$GT$$C$gimli..read..Error$GT$$GT$17hc98dfec8348524b4E</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00409bb0&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x00409bb1&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r15</TD></TR><TR><TD ALIGN="LEFT">0x00409bb3&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r14</TD></TR><TR><TD ALIGN="LEFT">0x00409bb5&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r13</TD></TR><TR><TD ALIGN="LEFT">0x00409bb7&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">r12</TD></TR><TR><TD ALIGN="LEFT">0x00409bb9&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbx</TD></TR><TR><TD ALIGN="LEFT">0x00409bba&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rax</TD></TR><TR><TD ALIGN="LEFT">0x00409bbb&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r14, qword ptr [rdi]</TD></TR><TR><TD ALIGN="LEFT">0x00409bbe&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">r14, r14</TD></TR><TR><TD ALIGN="LEFT">0x00409bc1&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x409c85</TD></TR></TABLE> }>];
 "0x409bc7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x409bc7)</TD><TD ><B>_ZN4core3ptr184drop_in_place$LT$core..result..Result$LT$addr2line..function..Functions$LT$gimli..read..endian_slice..EndianSlice$LT$gimli..endianity..LittleEndian$GT$$GT$$C$gimli..read..Error$GT$$GT$17hc98dfec8348524b4E+0x17</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00409bc7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, rdi</TD></TR><TR><TD ALIGN="LEFT">0x00409bca&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r15, qword ptr [rdi + 8]</TD></TR><TR><TD ALIGN="LEFT">0x00409bce&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">r15, r15</TD></TR><TR><TD ALIGN="LEFT">0x00409bd1&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x409c57</TD></TR></TABLE> }>];
 "0x409bd7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x409bd7)</TD><TD ><B>_ZN4core3ptr184drop_in_place$LT$core..result..Result$LT$addr2line..function..Functions$LT$gimli..read..endian_slice..EndianSlice$LT$gimli..endianity..LittleEndian$GT$$GT$$C$gimli..read..Error$GT$$GT$17hc98dfec8348524b4E+0x27</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x00409bd7&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">r12, [r14 + 0x28]</TD></TR><TR><TD ALIGN="LEFT">0x00409bdb&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">r13, [rip - 0x1162]</TD></TR><TR><TD ALIGN="LEFT">0x00409be2&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbp, r15</TD></TR><TR><TD ALIGN="LEFT">0x00409be5&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x409bf9</TD></TR></TABLE> }>];
@@ -30,12 +31,16 @@ edge [fontname=monospace, fontsize=8];
 "0x409c01" -> "0x409c0b" [color=red];
 "0x409c0b" -> "0x409c15" [color=red];
 "0x409c0b" -> "0x409c25" [color=green];
+"0x409c15" -> "0x408a80" [color=gray];
 "0x409c15" -> "0x409c25" [color=gray, style=dashed];
 "0x409c25" -> "0x409bf0" [color=green];
 "0x409c25" -> "0x409c2e" [color=red];
+"0x409c2e" -> "0x408a80" [color=gray];
 "0x409c2e" -> "0x409c3f" [color=gray, style=dashed];
 "0x409c3f" -> "0x409bf0" [color=blue];
+"0x409c41" -> "0x408a80" [color=gray];
 "0x409c41" -> "0x409c57" [color=gray, style=dashed];
 "0x409c57" -> "0x409c60" [color=red];
 "0x409c57" -> "0x409c85" [color=green];
+"0x409c60" -> "0x408a80" [color=orange];
 }

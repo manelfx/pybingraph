@@ -26,7 +26,6 @@ edge [fontname=monospace, fontsize=8];
 "0x100610c0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x100610c0)</TD><TD ><B>_IO_file_doallocate+0x1a0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100610c0&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x10015008</TD></TR></TABLE> }>];
 "0x100610c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x100610c4)</TD><TD ><B>_IO_file_doallocate+0x1a4</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100610c4&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x100610c8&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x10060f7c</TD></TR></TABLE> }>];
 "0x100610cc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x100610cc)</TD><TD ><B>_IO_file_doallocate+0x1ac</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100610cc&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r29, 0xc8(r1)</TD></TR><TR><TD ALIGN="LEFT">0x100610d0&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x100610d4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x100610d4)</TD><TD ><B>_IO_file_doallocate+0x1b4</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100610d4&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x10060f20" -> "0x10060f58" [color=red];
 "0x10060f20" -> "0x10061020" [color=green];
 "0x10060f58" -> "0x10060f7c" [color=red];
@@ -60,5 +59,4 @@ edge [fontname=monospace, fontsize=8];
 "0x100610b0" -> "0x10060fb4" [color=blue];
 "0x100610c0" -> "0x100610c4" [color=gray, style=dashed];
 "0x100610c4" -> "0x10060f7c" [color=blue];
-"0x100610cc" -> "0x100610d4" [color=gray, style=dashed];
 }

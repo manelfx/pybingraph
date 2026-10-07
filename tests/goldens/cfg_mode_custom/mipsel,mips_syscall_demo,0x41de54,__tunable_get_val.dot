@@ -12,7 +12,7 @@ edge [fontname=monospace, fontsize=8];
 "0x41dee8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41dee8)</TD><TD ><B>__tunable_get_val+0x94</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041dee8&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">$a2, 0x41dec0</TD></TR><TR><TD ALIGN="LEFT">0x0041deec&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $v0, 0x50</TD></TR></TABLE> }>];
 "0x41def0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41def0)</TD><TD ><B>__tunable_get_val+0x9c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041def0&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$t9, $a2</TD></TR><TR><TD ALIGN="LEFT">0x0041def4&#58;&nbsp;</TD><TD ALIGN="LEFT">jr</TD><TD ALIGN="LEFT">$t9</TD></TR><TR><TD ALIGN="LEFT">0x0041def8&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$a0, $v1, $v0</TD></TR></TABLE> }>];
 "0x41defc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41defc)</TD><TD ><B>__tunable_get_val+0xa8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0041defc&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a3, $a3, 0x50</TD></TR><TR><TD ALIGN="LEFT">0x0041df00&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$a3, $v1, $a3</TD></TR><TR><TD ALIGN="LEFT">0x0041df04&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x41ded0</TD></TR><TR><TD ALIGN="LEFT">0x0041df08&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$a3, ($a1)</TD></TR></TABLE> }>];
-"0x50004c" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x50004c)</TD><TD ><B>UnresolvableJumpTarget</B></TD><TD > SIMP</TD></TR></TABLE> }>];
+"0xfffffffffffffff0" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0xfffffffffffffff0)</TD><TD ><B>UnresolvableJumpTarget</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x41de54" -> "0x41de88" [color=red];
 "0x41de54" -> "0x41dec8" [color=green];
 "0x41de88" -> "0x41de90" [color=red];
@@ -26,6 +26,6 @@ edge [fontname=monospace, fontsize=8];
 "0x41ded0" -> "0x41dee8" [color=red];
 "0x41dee8" -> "0x41dec0" [color=green];
 "0x41dee8" -> "0x41def0" [color=red];
-"0x41def0" -> "0x50004c" [color=orange, style=dashed];
+"0x41def0" -> "0xfffffffffffffff0" [color=orange, style=dashed];
 "0x41defc" -> "0x41ded0" [color=blue];
 }

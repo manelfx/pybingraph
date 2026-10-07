@@ -14,7 +14,7 @@ from pydantic_settings import (
 
 
 # CFG mode
-CfgMode = Literal["none", "custom", "extract"]
+CfgMode = Literal["none", "custom"]
 CfgExits = Literal["never", "jump", "always"]
 
 
@@ -36,7 +36,7 @@ class GlobalSettings(BaseSettings):
 
     root: Path = Field(..., description="The root directory for binaries")
     cfg_mode: CfgMode = Field(
-        "custom", description="CFG reconstruction mode and fallback strategy"
+        "custom", description="Bounded custom construction or unmodified CFGFast"
     )
     cfg_exits: CfgExits = Field(
         "jump", description="Which CFG exits to render outside the function"

@@ -19,7 +19,7 @@ edge [fontname=monospace, fontsize=8];
 "0x40a3af" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40a3af)</TD><TD ><B>buf_flush+0x8f</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040a3af&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, rbp</TD></TR><TR><TD ALIGN="LEFT">0x0040a3b2&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r12d, eax</TD></TR><TR><TD ALIGN="LEFT">0x0040a3b5&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x40a240</TD></TR></TABLE> }>];
 "0x40a3ba" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40a3ba)</TD><TD ><B>buf_flush+0x9a</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040a3ba&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">r12d, r12d</TD></TR><TR><TD ALIGN="LEFT">0x0040a3bd&#58;&nbsp;</TD><TD ALIGN="LEFT">cmove</TD><TD ALIGN="LEFT">r12d, eax</TD></TR><TR><TD ALIGN="LEFT">0x0040a3c1&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 8</TD></TR><TR><TD ALIGN="LEFT">0x0040a3c5&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x0040a3c6&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, r12d</TD></TR><TR><TD ALIGN="LEFT">0x0040a3c9&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r12</TD></TR><TR><TD ALIGN="LEFT">0x0040a3cb&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
 "0x40a3cc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40a3cc)</TD><TD ><B>buf_flush+0xac</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040a3cc&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rcx, [rip + 0x88725]</TD></TR><TR><TD ALIGN="LEFT">0x0040a3d3&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, 0x152</TD></TR><TR><TD ALIGN="LEFT">0x0040a3d8&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rsi, [rip + 0x90268]</TD></TR><TR><TD ALIGN="LEFT">0x0040a3df&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rip + 0x88594]</TD></TR><TR><TD ALIGN="LEFT">0x0040a3e6&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x4044a0</TD></TR></TABLE> }>];
-"0x601050" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x601050)</TD><TD ><B>UnresolvableJumpTarget</B></TD><TD > SIMP</TD></TR></TABLE> }>];
+"0xfffffffffffffff0" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0xfffffffffffffff0)</TD><TD ><B>UnresolvableJumpTarget</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x40a320" -> "0x40a336" [color=red];
 "0x40a320" -> "0x40a3cc" [color=green];
 "0x40a336" -> "0x40a33f" [color=red];
@@ -36,7 +36,7 @@ edge [fontname=monospace, fontsize=8];
 "0x40a378" -> "0x40a37d" [color=gray, style=dashed];
 "0x40a37d" -> "0x40a384" [color=red];
 "0x40a37d" -> "0x40a390" [color=green];
-"0x40a390" -> "0x601050" [color=orange, style=dashed];
+"0x40a390" -> "0xfffffffffffffff0" [color=orange, style=dashed];
 "0x40a3a8" -> "0x40a3af" [color=gray, style=dashed];
 "0x40a3af" -> "0x40a3ba" [color=gray, style=dashed];
 }

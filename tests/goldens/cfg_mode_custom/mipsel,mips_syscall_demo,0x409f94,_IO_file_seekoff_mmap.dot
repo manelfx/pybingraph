@@ -26,10 +26,6 @@ edge [fontname=monospace, fontsize=8];
 "0x40a128" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40a128)</TD><TD ><B>_IO_file_seekoff_mmap+0x194</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040a128&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x40a008</TD></TR><TR><TD ALIGN="LEFT">0x0040a12c&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$zero, 0x10($sp)</TD></TR></TABLE> }>];
 "0x40a130" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40a130)</TD><TD ><B>_IO_file_seekoff_mmap+0x19c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040a130&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, -0x74d0($gp)</TD></TR><TR><TD ALIGN="LEFT">0x0040a134&#58;&nbsp;</TD><TD ALIGN="LEFT">rdhwr</TD><TD ALIGN="LEFT">$v1, $29</TD></TR><TR><TD ALIGN="LEFT">0x0040a138&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$v0, $v0, $v1</TD></TR><TR><TD ALIGN="LEFT">0x0040a13c&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v1, $zero, 0x16</TD></TR><TR><TD ALIGN="LEFT">0x0040a140&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$v1, ($v0)</TD></TR></TABLE> }>];
 "0x40a144" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x40a144)</TD><TD ><B>_IO_file_seekoff_mmap+0x1b0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0040a144&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$s1, $zero, -1</TD></TR><TR><TD ALIGN="LEFT">0x0040a148&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x40a070</TD></TR><TR><TD ALIGN="LEFT">0x0040a14c&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$s2, $zero, -1</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x409f94";
-}
 "0x409f94" -> "0x409fcc" [color=red];
 "0x409f94" -> "0x40a0b8" [color=green];
 "0x409fcc" -> "0x409fd8" [color=red];
@@ -42,7 +38,6 @@ rank=source;
 "0x409ff0" -> "0x40a004" [color=red];
 "0x409ff0" -> "0x40a120" [color=green];
 "0x40a004" -> "0x40a008" [color=blue, style=dashed];
-"0x40a008" -> "0x409f94" [color=gray];
 "0x40a008" -> "0x40a01c" [color=gray, style=dashed];
 "0x40a01c" -> "0x40a024" [color=red];
 "0x40a01c" -> "0x40a144" [color=green];

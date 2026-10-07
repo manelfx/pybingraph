@@ -25,7 +25,6 @@ edge [fontname=monospace, fontsize=8];
 "0x10011530" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10011530)</TD><TD ><B>locked_vfxprintf+0x1b0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10011530&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r3, r25</TD></TR><TR><TD ALIGN="LEFT">0x10011534&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100275c8</TD></TR></TABLE> }>];
 "0x10011538" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10011538)</TD><TD ><B>locked_vfxprintf+0x1b8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10011538&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x1001153c&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x10011454</TD></TR></TABLE> }>];
 "0x10011540" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10011540)</TD><TD ><B>locked_vfxprintf+0x1c0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10011540&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x10011544" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10011544)</TD><TD ><B>locked_vfxprintf+0x1c4</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10011544&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x10011548" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10011548)</TD><TD ><B>locked_vfxprintf+0x1c8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10011548&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r5, r27</TD></TR><TR><TD ALIGN="LEFT">0x1001154c&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r3, r28</TD></TR><TR><TD ALIGN="LEFT">0x10011550&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r4, r25</TD></TR><TR><TD ALIGN="LEFT">0x10011554&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x1005c828</TD></TR></TABLE> }>];
 "0x10011558" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10011558)</TD><TD ><B>locked_vfxprintf+0x1d8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10011558&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x1001155c&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r30, r3</TD></TR><TR><TD ALIGN="LEFT">0x10011560&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x10011530</TD></TR></TABLE> }>];
 "0x10011380" -> "0x100113d0" [color=red];
@@ -57,8 +56,6 @@ edge [fontname=monospace, fontsize=8];
 "0x10011520" -> "0x10011548" [color=green];
 "0x10011530" -> "0x10011538" [color=gray, style=dashed];
 "0x10011538" -> "0x10011454" [color=blue];
-"0x10011540" -> "0x10011544" [color=gray, style=dashed];
-"0x10011544" -> "0x10011548" [color=blue, style=dashed];
 "0x10011548" -> "0x10011558" [color=gray, style=dashed];
 "0x10011558" -> "0x10011530" [color=blue];
 }

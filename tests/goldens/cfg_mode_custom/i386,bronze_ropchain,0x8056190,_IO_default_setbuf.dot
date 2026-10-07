@@ -23,14 +23,9 @@ edge [fontname=monospace, fontsize=8];
 "0x8056290" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8056290)</TD><TD ><B>_IO_default_setbuf+0x100</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08056290&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x8052740</TD></TR></TABLE> }>];
 "0x8056295" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8056295)</TD><TD ><B>_IO_default_setbuf+0x105</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08056295&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x80561ca</TD></TR></TABLE> }>];
 "0x80562a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x80562a0)</TD><TD ><B>_IO_default_setbuf+0x110</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x080562a0&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">eax, eax</TD></TR><TR><TD ALIGN="LEFT">0x080562a2&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x805623a</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x8056190";
-}
 "0x8056190" -> "0x8056199" [color=gray, style=dashed];
 "0x8056199" -> "0x80561ca" [color=red];
 "0x8056199" -> "0x8056290" [color=green];
-"0x80561ca" -> "0x8056190" [color=gray];
 "0x80561ca" -> "0x80561d1" [color=gray, style=dashed];
 "0x80561d1" -> "0x80561dd" [color=red];
 "0x80561d1" -> "0x80562a0" [color=green];

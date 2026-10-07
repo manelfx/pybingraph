@@ -18,9 +18,8 @@ class Node:
         """Wrap one CFG node with the graph selected for this render pass."""
 
         self.obj = obj
-        # CFGFast nodes keep their original angr model. Custom repair mutates a
-        # graph wrapper in place, so rendering must receive that live graph
-        # explicitly instead of consulting process-global node registration.
+        # Render against the selected live graph, which need not be the graph
+        # registered on a node's angr model.
         self._graph = graph
         # Pydot creates dynamic ``set_<attribute>`` methods at runtime that
         # are absent from its static stub surface.
@@ -55,7 +54,7 @@ class Node:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Node):
             return False
-        # CFGNode's equality does not recognize extractor-only subclasses,
+        # CFGNode's equality does not recognize custom-builder subclasses,
         # even when both wrappers hold the exact same underlying object.
         return self is other or self.obj is other.obj or self.obj == other.obj
 

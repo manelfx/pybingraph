@@ -14,10 +14,7 @@ edge [fontname=monospace, fontsize=8];
 "0x8054324" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8054324)</TD><TD ><B>_IO_file_underflow_mmap+0x64</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08054324&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0x10], ebx</TD></TR><TR><TD ALIGN="LEFT">0x08054328&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [edi + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x0805432b&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">ebx</TD></TR><TR><TD ALIGN="LEFT">0x0805432c&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">esi</TD></TR><TR><TD ALIGN="LEFT">0x0805432d&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">edi</TD></TR><TR><TD ALIGN="LEFT">0x0805432e&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">eax</TD></TR></TABLE> }>];
 "0x8054330" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8054330)</TD><TD ><B>_IO_file_underflow_mmap+0x70</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08054330&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x8052740</TD></TR></TABLE> }>];
 "0x8054335" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x8054335)</TD><TD ><B>_IO_file_underflow_mmap+0x75</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x08054335&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8054324</TD></TR></TABLE> }>];
-subgraph entry_rank {
-rank=source;
-"0x80542c0";
-}
+"0xfffffffffffffff0" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0xfffffffffffffff0)</TD><TD ><B>UnresolvableJumpTarget</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x80542c0" -> "0x80542cc" [color=gray, style=dashed];
 "0x80542cc" -> "0x80542da" [color=red];
 "0x80542cc" -> "0x80542e8" [color=green];
@@ -30,7 +27,7 @@ rank=source;
 "0x80542fb" -> "0x80542dd" [color=blue];
 "0x8054308" -> "0x8054324" [color=red];
 "0x8054308" -> "0x8054330" [color=green];
-"0x8054324" -> "0x80542c0" [color=orange];
+"0x8054324" -> "0xfffffffffffffff0" [color=orange, style=dashed];
 "0x8054330" -> "0x8054335" [color=gray, style=dashed];
 "0x8054335" -> "0x8054324" [color=blue];
 }

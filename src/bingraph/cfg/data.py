@@ -1,4 +1,4 @@
-"""VEX-proven static data ranges used to bound extraction."""
+"""VEX-proven static data ranges used to bound construction."""
 
 from __future__ import annotations
 

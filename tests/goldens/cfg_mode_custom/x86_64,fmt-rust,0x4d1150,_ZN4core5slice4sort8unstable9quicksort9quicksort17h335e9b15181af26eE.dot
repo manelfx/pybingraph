@@ -24,6 +24,7 @@ edge [fontname=monospace, fontsize=8];
 "0x4d12b5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4d12b5)</TD><TD ><B>_ZN4core5slice4sort8unstable9quicksort9quicksort17h335e9b15181af26eE+0x165</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004d12b5&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rip + 0xabbb4]</TD></TR><TR><TD ALIGN="LEFT">0x004d12bc&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 0x48], rax</TD></TR><TR><TD ALIGN="LEFT">0x004d12c1&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 0x50], 1</TD></TR><TR><TD ALIGN="LEFT">0x004d12ca&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 0x58], 8</TD></TR><TR><TD ALIGN="LEFT">0x004d12d3&#58;&nbsp;</TD><TD ALIGN="LEFT">xorps</TD><TD ALIGN="LEFT">xmm0, xmm0</TD></TR><TR><TD ALIGN="LEFT">0x004d12d6&#58;&nbsp;</TD><TD ALIGN="LEFT">movups</TD><TD ALIGN="LEFT">xmmword ptr [rsp + 0x60], xmm0</TD></TR><TR><TD ALIGN="LEFT">0x004d12db&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rsi, [rip + 0xabbce]</TD></TR><TR><TD ALIGN="LEFT">0x004d12e2&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rsp + 0x48]</TD></TR><TR><TD ALIGN="LEFT">0x004d12e7&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">qword ptr [rip + 0xb2f13]</TD></TR></TABLE> }>];
 "0x4d12ed" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4d12ed)</TD><TD ><B>_ZN4core5slice4sort8unstable9quicksort9quicksort17h335e9b15181af26eE+0x19d</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x004d12ed&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdx, [rip + 0xabbd4]</TD></TR><TR><TD ALIGN="LEFT">0x004d12f4&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">edi, edi</TD></TR><TR><TD ALIGN="LEFT">0x004d12f6&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">esi, esi</TD></TR><TR><TD ALIGN="LEFT">0x004d12f8&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">qword ptr [rip + 0xb30c2]</TD></TR></TABLE> }>];
 "0x4d1420" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4d1420)</TD><TD ><B>_ZN85_$LT$T$u20$as$u20$core..slice..sort..shared..smallsort..UnstableSmallSortTypeImpl$GT$10small_sort17h3de808ed60017cbfE</B></TD><TD > SIMP</TD></TR></TABLE> }>];
+"0x4d2c70" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4d2c70)</TD><TD ><B>_ZN4core5slice4sort8unstable8heapsort8heapsort17h1664d42b2c714fbeE</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 subgraph entry_rank {
 rank=source;
 "0x4d1150";
@@ -55,5 +56,6 @@ rank=source;
 "0x4d1269" -> "0x4d11b2" [color=green];
 "0x4d1269" -> "0x4d127c" [color=red];
 "0x4d127c" -> "0x4d1420" [color=blue];
+"0x4d1298" -> "0x4d2c70" [color=orange];
 "0x4d12b5" -> "0x4d12ed" [color=gray, style=dashed];
 }

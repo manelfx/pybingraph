@@ -16,7 +16,6 @@ edge [fontname=monospace, fontsize=8];
 "0x10034cc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10034cc8)</TD><TD ><B>__get_phys_pages+0xb8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10034cc8&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r1, r1, 0xb0</TD></TR><TR><TD ALIGN="LEFT">0x10034ccc&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r0, 0x10(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10034cd0&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r30, -0x10(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10034cd4&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r31, -8(r1)</TD></TR><TR><TD ALIGN="LEFT">0x10034cd8&#58;&nbsp;</TD><TD ALIGN="LEFT">mtlr</TD><TD ALIGN="LEFT">r0</TD></TR><TR><TD ALIGN="LEFT">0x10034cdc&#58;&nbsp;</TD><TD ALIGN="LEFT">blr</TD><TD></TD></TR></TABLE> }>];
 "0x10034ce0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10034ce0)</TD><TD ><B>__get_phys_pages+0xd0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10034ce0&#58;&nbsp;</TD><TD ALIGN="LEFT">mulld</TD><TD ALIGN="LEFT">r31, r31, r30</TD></TR><TR><TD ALIGN="LEFT">0x10034ce4&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x10034cb0</TD></TR></TABLE> }>];
 "0x10034ce8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10034ce8)</TD><TD ><B>__get_phys_pages+0xd8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10034ce8&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x10034cec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x10034cec)</TD><TD ><B>__get_phys_pages+0xdc</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10034cec&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x10034c10" -> "0x10034c40" [color=gray, style=dashed];
 "0x10034c40" -> "0x10034c50" [color=gray, style=dashed];
 "0x10034c50" -> "0x10034c5c" [color=red];
@@ -36,5 +35,4 @@ edge [fontname=monospace, fontsize=8];
 "0x10034cb0" -> "0x10034cc8" [color=red];
 "0x10034cb0" -> "0x10034ce8" [color=green];
 "0x10034ce0" -> "0x10034cb0" [color=blue];
-"0x10034ce8" -> "0x10034cec" [color=gray, style=dashed];
 }

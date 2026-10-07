@@ -54,6 +54,7 @@ edge [fontname=monospace, fontsize=8];
 "0x4d66e0" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4d66e0)</TD><TD ><B>_ZN10os_display4unix12write_simple17hbc7f458125358b75E</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x4d6740" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4d6740)</TD><TD ><B>_ZN10os_display4unix20write_single_escaped17h95c17d0381a26c2aE</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x4d6870" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4d6870)</TD><TD ><B>_ZN10os_display4unix13write_escaped17hf5541f7d888ce8c0E</B></TD><TD > SIMP</TD></TR></TABLE> }>];
+"0x56d800" [style=filled, fillcolor="#dddddd", label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x56d800)</TD><TD ><B>_ZN57_$LT$core..fmt..Formatter$u20$as$u20$core..fmt..Write$GT$9write_str17h7dbec3f69c4ad810E</B></TD><TD > SIMP</TD></TR></TABLE> }>];
 "0x4d6410" -> "0x4d6430" [color=red];
 "0x4d6410" -> "0x4d6482" [color=green];
 "0x4d6430" -> "0x4d6448" [color=gray, style=dashed];
@@ -125,5 +126,6 @@ edge [fontname=monospace, fontsize=8];
 "0x4d6692" -> "0x4d6698" [color=red];
 "0x4d6692" -> "0x4d66bd" [color=green];
 "0x4d6698" -> "0x4d6650" [color=blue];
+"0x4d66a4" -> "0x56d800" [color=orange];
 "0x4d66bd" -> "0x4d6740" [color=blue];
 }

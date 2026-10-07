@@ -14,11 +14,11 @@ from bingraph.core.project import load_project
 from bingraph.core.render import render_cfg
 
 
-def test_extract_styles_branch_after_vex_only_mips_instruction() -> None:
+def test_custom_styles_branch_after_vex_only_mips_instruction() -> None:
     """A VEX-only span must not hide a later conditional branch from styling."""
 
     project = load_project(Path("angr-binaries/tests/mipsel/mips_syscall_demo"))
-    dot = render_cfg(project, 0x435C80, False, False, "extract", "jump", "dot")
+    dot = render_cfg(project, 0x435C80, False, False, "custom", "jump", "dot")
 
     assert re.search(r'"0x435d18" -> "0x435d38"\s+\[color=red,', dot)
     assert re.search(r'"0x435d18" -> "0x435de4"\s+\[color=green,', dot)
@@ -126,7 +126,7 @@ def test_direct_vex_jumpkinds_use_expected_style(jumpkind: str, expected: str) -
 
 
 def test_explicit_unresolved_indirect_metadata_has_highest_precedence() -> None:
-    """Keep repaired unresolved-indirect edges visible despite their jump kind."""
+    """Keep candidate indirect edges visibly unresolved despite their jump kind."""
 
     edge = _edge(
         _node(0x1000),
@@ -375,7 +375,7 @@ def test_capstone_riscv_relative_conditional_branch_overrides_truncated_vex(
 def test_capstone_linear_tail_overrides_truncated_vex_default(
     arch_name: str,
 ) -> None:
-    """Keep the decoded fall-through when VEX stops inside a long repaired block."""
+    """Keep the decoded fall-through when VEX stops inside a long custom block."""
 
     fallthrough = _node(0x403C)
     graph = SimpleNamespace(successors=lambda _node: (fallthrough.obj,))

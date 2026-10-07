@@ -327,7 +327,6 @@ edge [fontname=monospace, fontsize=8];
 "0x1003ab64" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1003ab64)</TD><TD ><B>find_derivation+0x1594</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003ab64&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x1003ab68&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpdi</TD><TD ALIGN="LEFT">cr7, r18, 0</TD></TR><TR><TD ALIGN="LEFT">0x1003ab6c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r10, 0x58(r31)</TD></TR><TR><TD ALIGN="LEFT">0x1003ab70&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r9, 0</TD></TR><TR><TD ALIGN="LEFT">0x1003ab74&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r9, 0(r19)</TD></TR><TR><TD ALIGN="LEFT">0x1003ab78&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r9, 0(r10)</TD></TR><TR><TD ALIGN="LEFT">0x1003ab7c&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">cr7, 0x1003a36c</TD></TR></TABLE> }>];
 "0x1003ab80" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1003ab80)</TD><TD ><B>find_derivation+0x15b0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003ab80&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r18, 1</TD></TR><TR><TD ALIGN="LEFT">0x1003ab84&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1003a36c</TD></TR></TABLE> }>];
 "0x1003ab88" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1003ab88)</TD><TD ><B>find_derivation+0x15b8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003ab88&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x1003ab8c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1003ab8c)</TD><TD ><B>find_derivation+0x15bc</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003ab8c&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x100395d0" -> "0x10039668" [color=red];
 "0x100395d0" -> "0x1003966c" [color=green];
 "0x10039668" -> "0x1003966c" [color=blue, style=dashed];
@@ -846,5 +845,4 @@ edge [fontname=monospace, fontsize=8];
 "0x1003ab64" -> "0x1003a36c" [color=green];
 "0x1003ab64" -> "0x1003ab80" [color=red];
 "0x1003ab80" -> "0x1003a36c" [color=blue];
-"0x1003ab88" -> "0x1003ab8c" [color=gray, style=dashed];
 }

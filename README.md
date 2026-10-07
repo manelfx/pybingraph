@@ -4,10 +4,10 @@
 [angr](https://angr.io/). It reads function symbols from a binary and renders
 per-function control-flow graphs (CFGs) as SVG, DOT, or other Graphviz output.
 
-The default CFG strategy starts with angr's bounded `CFGFast` analysis. Custom
-mode retains that graph when it is well-formed and applies localized repairs
-when it detects decoding gaps, missing direct successors, stale split blocks,
-or selected indirect-jump targets.
+The default `custom` strategy constructs a function-bounded CFG directly from
+Capstone decoding and VEX control-flow proofs, without a `CFGFast` seed graph.
+It resolves proven indirect transfers, recovers ELF exception paths, and keeps
+unresolved targets and additionally discovered code explicit.
 
 ## Requirements
 
@@ -94,7 +94,7 @@ JSON.
 | `GET /api/cfg?filepath=<path>&function=<addr>&format=dot` | `{"graph": "..."}` CFG response |
 
 `function` accepts either decimal or `0x`-prefixed hexadecimal addresses. CFG
-routes also accept optional `mode=none|custom|extract`, `comments=true|false`,
+routes also accept optional `mode=none|custom`, `comments=true|false`,
 `dfs=true|false`, and `exits=never|jump|always` query
 parameters. A request value overrides the corresponding
 application setting for that render only.
@@ -115,19 +115,18 @@ uv run bingraph server
 
 CFG modes:
 
-- `custom` (default): build a bounded `CFGFast` graph and repair known local
-  structural anomalies when present.
-- `none`: return the bounded `CFGFast` graph without custom repair; useful for
-  comparison and diagnostics.
-- `extract`: independently decode and prove bounded control flow, then recover
-  eligible disconnected code without treating it as proven entry-reachable code.
+- `custom` (default): independently decode and prove bounded control flow, then
+  recover eligible disconnected code without treating it as proven
+  entry-reachable code.
+- `none`: return the bounded `CFGFast` graph without custom construction; useful
+  for comparison and diagnostics.
 
-Disconnected-code recovery is part of extract mode, including API requests and
+Disconnected-code recovery is part of custom mode, including API requests and
 golden corpus runs. It scans only eligible explicitly sized functions with
 unresolved jumps, rejects padding and known data, and shows selected rejoining
 or validated return/trap/non-returning-exit regions behind dashed-orange
 `UnresolvableEntrySource` edges. These are discovery hints, not proven jump targets.
-Extract summaries separate discovered, entry-connected, and disconnected
+Custom summaries separate discovered, entry-connected, and disconnected
 instruction counts.
 Recovery may split established blocks at existing instruction boundaries while
 preserving their instructions and terminal transfers. Exact proof sources stay

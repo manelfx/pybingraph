@@ -31,5 +31,4 @@ edge [fontname=monospace, fontsize=8];
 "0x8006732a" -> "0x80067330" [color=red];
 "0x80067330" -> "0x80067318" [color=green];
 "0x80067330" -> "0x80067336" [color=red];
-"0x80067336" -> "0x8006733c" [color=gray, style=dashed];
 }

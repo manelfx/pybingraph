@@ -21,7 +21,7 @@ import pyvex
 from bingraph.cfg.jumps import MAX_STATIC_JUMPTABLE_ENTRIES
 
 if TYPE_CHECKING:
-    from bingraph.cfg_extract.shared_facts import PredecessorFacts
+    from bingraph.cfg.shared_facts import PredecessorFacts
 
 
 class RelationalValues(ClaripyDataMixin):

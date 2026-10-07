@@ -70,7 +70,6 @@ edge [fontname=monospace, fontsize=8];
 "0x1001bcec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1001bcec)</TD><TD ><B>_IO_default_finish+0x3bc</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1001bcec&#58;&nbsp;</TD><TD ALIGN="LEFT">sc</TD><TD></TD></TR></TABLE> }>];
 "0x1001bcf0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1001bcf0)</TD><TD ><B>_IO_default_finish+0x3c0</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1001bcf0&#58;&nbsp;</TD><TD ALIGN="LEFT">mfcr</TD><TD ALIGN="LEFT">r0</TD></TR><TR><TD ALIGN="LEFT">0x1001bcf4&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1001bb88</TD></TR></TABLE> }>];
 "0x1001bcf8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1001bcf8)</TD><TD ><B>_IO_default_finish+0x3c8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1001bcf8&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r28, 0x50(r1)</TD></TR><TR><TD ALIGN="LEFT">0x1001bcfc&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r29, 0x58(r1)</TD></TR><TR><TD ALIGN="LEFT">0x1001bd00&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r30, 0x60(r1)</TD></TR><TR><TD ALIGN="LEFT">0x1001bd04&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">0x100353f8</TD></TR></TABLE> }>];
-"0x1001bd08" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x1001bd08)</TD><TD ><B>_IO_default_finish+0x3d8</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1001bd08&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
 "0x1001b930" -> "0x1001b964" [color=red];
 "0x1001b930" -> "0x1001b970" [color=green];
 "0x1001b964" -> "0x1001b970" [color=red];
@@ -171,5 +170,4 @@ edge [fontname=monospace, fontsize=8];
 "0x1001bce4" -> "0x1001bcec" [color=blue, style=dashed];
 "0x1001bcec" -> "0x1001bcf0" [color=gray, style=dashed];
 "0x1001bcf0" -> "0x1001bb88" [color=blue];
-"0x1001bcf8" -> "0x1001bd08" [color=gray, style=dashed];
 }
