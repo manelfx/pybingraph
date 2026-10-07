@@ -147,3 +147,4 @@ class ExtractedCFG(SimpleNamespace):
     kb: KnowledgeBase
     extract_stats: ExtractedCFGStats
     extract_summary: ExtractedCFGSummary
+    _comments_collected: bool = False

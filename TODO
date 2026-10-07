@@ -50,105 +50,31 @@ execution or `CFGEmulated` merely to inspect one block.
 
 === Consolidate exact indirect-jump proofs
 
-Extract mode has accumulated specialized resolvers for static targets and
-jump tables. They share one requirement: prove a complete, finite set of
-executable targets before adding solid edges. Consolidate duplicated proofs
-to improve CFG accuracy and maintainability, not merely to match custom
-goldens. Keep candidate edges and the UJT fallback for inconclusive cases.
+Deferred. The shared proof engine, usage audits, and low-impact resolver
+retirements are already in place. Keep the remaining architecture-specific
+paths unless there is a measured reason to change them; no blanket migration
+or new symbolic fallback is currently planned.
 
-First: inventory and shared static proof
+If indirect-jump resolution is revisited:
 
-- Use extract transformation statistics to count attempts and successful
-  recoveries by resolver flavor, architecture, and artifact. Identify code
-  that is unexercised or disproportionately complex before replacing it.
-- Start with MIPS/MIPS64 `$gp`-relative offset tables, including `$t9`/GOT
-  bases, split additions, delay slots, and guarded or frame-reloaded indices.
-  Compare `ld.so.1:dl_main`, `ld.so.1:_dl_sysdep_start`, and
-  `true:version_etc_arn`.
-- Include i386 PC-thunk-relative tables with register copies, preserved
-  registers, private stack spills, guards, scaled indices, and two-level
-  dispatch. Compare `bronze_ropchain:_nl_intern_locale_data`,
-  `execute_cfa_program`, `execute_stack_op`, and `uw_update_context_1`.
-- Inventory x86/x86-64 direct and relative tables and PPC64LE TOC-relative
-  CTR tables before migrating them. Audit unlike transfers, such as s390x,
-  separately rather than forcing them into the same table model.
-
-Define a shared dispatch proof: table address, entry width and signedness,
-finite index set, target-base expression, and evidence for each fact. Feed it
-from conservative VEX and architecture adapters. A bounded must-analysis may
-track constants, affine addresses, and private stack slots; joins retain a
-fact only when all feasible paths agree. Unknown aliases or call clobbers
-invalidate facts. Reuse table-row validation, and never infer bounds by
-scanning for plausible code or treating dashed candidates as exact targets.
-
-Compare the shared proof with existing resolvers in shadow mode, starting
-with MIPS64 and i386. Migrate one family only after it reproduces or improves
-the exact target sets and instruction coverage without a meaningful runtime
-regression. Retain cheap architecture-specific recognizers when they remain
-clearer or faster; remove a bespoke resolver only when its proven cases are
-covered. Test positive and negative cases, aliases, calls, budgets, and
-cross-architecture behavior before claiming a corpus-wide benefit.
-
-Follow-up: remove superseded resolvers without changing CFG behavior
-
-Keep this cleanup separate from new accuracy improvements. The shared engine
-now runs before legacy table fallbacks, so winning-proof counters identify the
-remaining fallback-owned sites, not every older path it already subsumes.
-Independent coverage audits are still needed before deleting a family. Zero
-corpus usage alone does not prove that a reachable safety branch or
-architecture-specific helper is dead code.
-
-- Freeze the current code and corpus results as a checkpoint before cleanup.
-- At each successful legacy dispatch, independently evaluate the shared
-  engine on the same graph snapshot, without borrowing legacy selector bounds.
-  Record matching target sets, incomplete proofs, disagreements, and cost.
-- Separate shared fact propagation, dispatch/table evaluation, architecture
-  inputs, and pipeline orchestration. Move extract-only logic out of
-  `cfg/jumps.py` where useful, while preserving interfaces used by custom
-  mode, diagnostics, and call resolution. Avoid merely spreading complexity
-  across more files.
-- Disable one redundant resolver family at a time and verify that the shared
-  replacement still discovers the same blocks and edges. Then delete its
-  exclusive helpers, options, and obsolete tests; retain positive and negative
-  regression coverage by exercising the shared engine instead.
-- Preserve failure classification and candidate-recovery eligibility. An
-  unbounded recognized table must not become an unknown jump that enables
-  speculative component recovery merely because its old resolver was removed.
-- Run focused tests and `make check`, then compare the full extract corpus for
-  identical DOT output and comparable runtime. Verify custom mode when shared
-  code is touched. Statistics may change intentionally; do not promote CFG
-  goldens to hide behavioral differences introduced by cleanup.
-
-Retain any resolver the shared engine cannot already replace, including cheap
-recognizers that remain clearer or faster. Do not add stack-spill or new guard
-analysis solely to enable deletion in this cleanup. Success means less
-resolver code and a clearer pipeline, with unchanged CFGs and no meaningful
-slowdown; report limited redundancy rather than forcing a broad rewrite.
-
-Optional: bounded symbolic fallback
-
-Only pursue this experiment if the inventory shows several valuable UJ
-patterns that the shared static proof cannot express. Put an opt-in local
-fallback after cheap exact resolvers, before UJT materialization; do not run
-whole-function `CFGEmulated` or `CFGFast`. For a recognized static-memory or
-table transfer, symbolically evaluate only a bounded predecessor slice and
-the expressions needed to derive the target and selector bounds.
-
-- Slice over direct and already-proven exact edges only. Reject unknown calls,
-  unsupported effects, symbolic table bases, or uncertain memory aliases.
-- Prove a finite selector domain and validate every target as executable.
-  An incomplete proof produces no exact edges and leaves candidate recovery
-  and UJT behavior unchanged.
-- Cap slice blocks, states, forks, solver queries, table entries, and elapsed
-  work. Record attempts, resolutions, rejection reasons, and budget use.
-
-Run the fallback in diagnostic/shadow mode first. Keep it only if it resolves
-a diverse set of currently missed transfers with independently checkable
-proofs, no invalid edges, disconnected blocks, or lost coverage, and no
-meaningful corpus-runtime regression. Compare extract artifacts with the
-prior extract run and custom only as supporting evidence of accuracy. Migrate
-resolver families one at a time; a symbolic engine need not replace every
-static or architecture-specific proof.
+- Prioritize a demonstrated family affecting at least ten artifacts, unless
+  the fix is a very small extension of an existing solver. Prefer reusing
+  angr/VEX infrastructure over adding another bespoke recognizer or engine.
+- Balance CFG precision, instruction coverage, maintenance cost, code size,
+  and runtime. Migration parity is not the goal, and coverage loss alone need
+  not prevent retiring disproportionately complex, low-impact code. Audit and
+  document the effects rather than silently asserting old targets.
+- Exact edges still require a complete finite target set with independently
+  proven bounds and validated executable destinations. Do not promote table
+  boundary guesses or dashed candidates into proofs; unknown aliases and call
+  clobbers must invalidate unsupported facts.
+- Keep disconnected-code recovery separate from exact proofs. Its
+  `UnresolvableEntrySource` hints and recovered instructions must not become
+  resolver facts or be counted as proven entry-connected coverage.
+- Before further retirement, audit independent shared-engine coverage and
+  exclusive helper/test usage. Compare corpus accuracy and runtime, including
+  negative cases and budgets, without requiring a larger replacement solely
+  to reproduce every legacy result.
 
 === Avoid very large function names in nodes ===
 
@@ -186,10 +112,23 @@ do not hard-code that policy before auditing representative artifacts.
 
 === Address comments
 
-- First, try to make extract mode to work with existing comments in custome
-  mode.
 - Bring back comments by default in tests.
 - Analyze which comments are shown, which ones could be shown.
+- Refine extract's use-aware string classification. Its current conservative
+  guard keeps typed accesses numeric unless a separate address-taking hint
+  supports a string interpretation. This avoids rendering integer 50 as "2",
+  or GOT and vector values as accidental strings, but can hide genuine text
+  loaded directly without such a hint.
+  Regression probe: in the x86_64 `1cbbf108...` binary, `gimli::resolve` at
+  0x438e10 loads the path fragment at 0x45ef39 in instruction 0x43d067. Extract
+  currently shows `int @ 0x45ef39` rather than its readable path content.
+  Reuse bounded VEX reference/use information where practical to distinguish
+  text, character/vector comparisons, scalar constants, and pointer slots.
+  An address hint or printable bytes alone are not proof of textual use.
+  Success means retaining useful text without reintroducing false strings,
+  with no CFGFast, CFG changes, or significant annotation cost. Compare equal
+  instruction sites with comments enabled; custom is supporting evidence,
+  not an accuracy oracle. Keep broader semantic analysis deferred if complex.
 - Does building other CFGs beforehand mutate knowledge-base state in a way that
   changes later comments?
 - Are these differences specific to comments, or do they come from another kind

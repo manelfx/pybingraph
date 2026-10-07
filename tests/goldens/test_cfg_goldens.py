@@ -53,6 +53,8 @@ How this module works:
 Useful environment variables:
    - `BINGRAPH_GOLDEN_MODE=compare|promote`
    - `BINGRAPH_GOLDEN_CONFIGS=name1,name2,...` to run only selected configs
+     Use `cfg_comments_on` for an isolated extract comments audit; its
+     artifacts do not replace comments-disabled outputs.
    - `BINGRAPH_GOLDEN_MIN_BBS=<N>` to test only rows with at least `N` BBs
      (defaults to `10`)
    - `BINGRAPH_GOLDEN_LIMIT=<N>` to limit the filtered rows during local smoke tests
@@ -109,6 +111,7 @@ class GoldenConfig:
     name: str
     cfg_mode: str
     cfg_exits: str = "jump"
+    comments: bool = False
 
 
 CONFIGS = [
@@ -120,7 +123,9 @@ CONFIGS = [
     # copy of custom artifacts so checkpoint tests show extractor differences.
     GoldenConfig(name="cfg_mode_extract", cfg_mode="extract"),
     # Extract mode with info about external calls
-    GoldenConfig(name="cfg_mode_always", cfg_mode="extract", cfg_exits="always"),
+    GoldenConfig(name="cfg_exits_always", cfg_mode="extract", cfg_exits="always"),
+    # Annotation audits have separate artifact trees, preserving CFG baselines.
+    GoldenConfig(name="cfg_comments_on", cfg_mode="extract", comments=True),
 ]
 
 # Custom repair is the production CFG path and therefore the default golden
@@ -360,6 +365,9 @@ def _summary_payload(
         "limit": limit,
         "min_bbs": _env_min_bbs(),
     }
+    # Keep the existing comments-disabled summary format unchanged.
+    if not config.comments:
+        payload["config"].pop("comments")
     if config.cfg_mode == "extract":
         payload["extract_cfg_stats"] = {
             "runs": state.extract_cfg_runs,
@@ -615,12 +623,13 @@ def _build_test_settings(config: GoldenConfig) -> settings_module.Settings:
     # defaults automatically. We only override the fields that must differ for
     # the golden-suite environment. Golden CFG comparisons currently run with
     # comments disabled so comment-label churn does not hide structural CFG
-    # differences between modes.
+    # differences between modes. Opt-in comments configurations use separate
+    # artifact directories for annotation comparisons.
     return settings_module.Settings.model_construct(
         root=PLAYGROUND_ROOT,
         cfg_mode=config.cfg_mode,
         cfg_exits=config.cfg_exits,
-        comments=False,
+        comments=config.comments,
         server=None,
         client=None,
     )

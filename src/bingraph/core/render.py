@@ -9,7 +9,9 @@ from angr.analyses.cfg import CFGBase
 from loguru import logger
 
 from bingraph.helpers import CfgExits, CfgMode
+from bingraph.cfg_extract.models import ExtractedCFG
 from . import get_cfg
+from .comments import collect_extract_comments
 from .annotators import ColorSimprocedures, CommentsDataRef, ColorEdgesVex
 from .contents import NodeHead, NodeAsm
 from .vis import Annotator, Vis
@@ -32,6 +34,8 @@ def plot_cfg(
     annotators: list[Annotator] = []
     annotators.append(ColorSimprocedures())
     if comments:
+        if isinstance(cfg, ExtractedCFG):
+            collect_extract_comments(cfg)
         annotators.append(CommentsDataRef())
     annotators.append(ColorEdgesVex())
 

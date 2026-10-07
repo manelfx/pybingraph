@@ -1,6 +1,7 @@
 {
   "artifact_extension": ".dot",
   "config": {
+    "cfg_exits": "jump",
     "cfg_mode": "custom",
     "name": "cfg_mode_custom"
   },
