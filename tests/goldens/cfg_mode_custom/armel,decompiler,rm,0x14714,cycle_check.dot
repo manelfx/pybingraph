@@ -17,7 +17,6 @@ edge [fontname=monospace, fontsize=8];
 "0x1481c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x01481c)</TD><TD ><B>cycle_check+0x108</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x0001481c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r3</TD></TR><TR><TD ALIGN="LEFT">0x00014820&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">sp, fp, &#35;4</TD></TR><TR><TD ALIGN="LEFT">0x00014824&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">&#123;fp, pc&#125;</TD></TR></TABLE> }>];
 "0x14714" -> "0x1473c" [color=red];
 "0x14714" -> "0x14750" [color=green];
-"0x1473c" -> "0x14750" [color=gray, style=dashed];
 "0x14750" -> "0x14760" [color=red];
 "0x14750" -> "0x147a0" [color=green];
 "0x14760" -> "0x1477c" [color=red];

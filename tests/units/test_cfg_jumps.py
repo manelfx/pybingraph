@@ -451,6 +451,52 @@ def test_shared_static_table_plan_is_graph_strategy_neutral(monkeypatch) -> None
     assert plan.entry_count == 3
 
 
+@pytest.mark.parametrize("unknown_incoming_base", [False, True])
+def test_table_base_requires_known_reaching_definitions(
+    monkeypatch, unknown_incoming_base
+) -> None:
+    """One global constant must not override an unknown incoming definition."""
+
+    known = _Node(
+        0x1000,
+        4,
+        SimpleNamespace(
+            statements=[pyvex.stmt.Put(pyvex.expr.Const(pyvex.const.U32(0x2000)), 20)]
+        ),
+    )
+    dispatcher = _Node(0x1020, 4, SimpleNamespace(statements=[]))
+    graph = nx.DiGraph([(known, dispatcher)])
+    if unknown_incoming_base:
+        unknown = _Node(
+            0x1010,
+            4,
+            SimpleNamespace(
+                statements=[pyvex.stmt.Put(pyvex.expr.Get(8, "Ity_I32"), 20)]
+            ),
+        )
+        graph.add_edge(known, unknown)
+        graph.add_edge(unknown, dispatcher)
+    bounds = FunctionBounds(0x1000, 0x1100, 0x100, SimpleNamespace(name="f"))
+    project = SimpleNamespace(arch=SimpleNamespace(name="ARMEL", bits=32))
+    monkeypatch.setattr(
+        jumps_module, "_vex_relative_jump_table", lambda *_args, **_kwargs: _table()
+    )
+    monkeypatch.setattr(
+        jumps_module, "_guarded_jump_table_entry_count", lambda *_args: 3
+    )
+
+    plan, reason = plan_static_jump_table(project, graph, bounds, dispatcher)
+
+    if unknown_incoming_base:
+        assert plan is None
+        assert reason == "unknown_base"
+    else:
+        assert reason is None
+        assert plan is not None
+        assert plan.base_addr == 0x2000
+        assert plan.entry_count == 3
+
+
 def test_relative_jump_table_accepts_a_guarded_full_width_index() -> None:
     """Recognize the common AMD64 signed-relative table dispatch form."""
 

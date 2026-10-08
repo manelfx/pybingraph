@@ -10,6 +10,7 @@ searches conservatively stop at recursive definitions instead of unrolling.
 
 from __future__ import annotations
 
+from collections import Counter
 from copy import deepcopy
 from typing import Any
 
@@ -82,6 +83,8 @@ class PredecessorFacts:
         self.linkage_slots = linkage_slots
         self.steps = 0
         self.exhausted = False
+        # Query rejection attempts, not unique targets; repeated queries count.
+        self.target_rejections: Counter[str] = Counter()
         self._blocks: dict[Any, tuple[Any, dict[int, tuple[int, Any]]]] = {}
         self._cache: dict[tuple[Any, int, int, int], int | None] = {}
         self._write_cache: dict[tuple[Any, int, int, int], int] = {}

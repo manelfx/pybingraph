@@ -1,27 +1,16 @@
 === Check assembly code why doesn’t show “nice” (func names, etc.) ===
 
 
-=== Render CGs (based on CFGFast) ===
+=== Render call graphs (based on CFGFast) ===
 
-What Does the Call Graph Look Like Natively?
-Because it's a NetworkX graph, you can interact with it using all standard NetworkX syntax.
-Nodes: The nodes are integers representing the starting memory addresses of functions.
-Edges: An edge from Addr_A to Addr_B means that Function A contains a call to Function B.
+Evaluate exposing angr's existing CFGFast/knowledge-base call graph as a
+separate view with function-symbol labels, rather than duplicating its analysis.
+Define whether to show the whole binary or a selected caller/callee neighborhood.
+Handle imported functions and unresolved calls explicitly; do not imply that
+known call edges describe every possible callee. Validate representative call
+sites before adding the API/UI and renderer.
 
-Here is how you can inspect it in your code:
-
-cfg = project.analyses.CFGFast()
-# 1. Access it directly from the CFG wrapper shortcut:
-callgraph = cfg.callgraph
-# 2. Access it from the central Knowledge Base:
-callgraph = project.kb.functions.callgraph
-# Print all function calls in the binary
-for caller_addr, callee_addr in callgraph.edges():
-    caller_name = project.kb.functions[caller_addr].name
-    callee_name = project.kb.functions[callee_addr].name
-    print(f"Function {caller_name} calls {callee_name}")
-
-=== Render a block-level data-dependency graph
+=== Render a block-level data-dependency graph ===
 
 Given a function and one of its CFG basic blocks, show which assembly
 instructions produce values consumed by later instructions in that block.
@@ -48,46 +37,39 @@ execution or `CFGEmulated` merely to inspect one block.
   reaching-definitions/DDG analyses on small examples before considering
   inter-block provenance or control dependencies.
 
-=== Consolidate exact indirect-jump proofs
+=== Consolidate exact indirect-jump proofs ===
 
-Deferred. The shared proof engine, usage audits, and low-impact resolver
-retirements are already in place. Keep the remaining architecture-specific
-paths unless there is a measured reason to change them; no blanket migration
-or new symbolic fallback is currently planned.
+Deferred. Revisit further consolidation only if it materially simplifies the
+code or improves a demonstrated family of CFGs, not merely to eliminate every
+architecture-specific path.
 
-If indirect-jump resolution is revisited:
+- Evaluate remaining generic VEX, MIPS, and PPC table paths against independent
+  shared-engine proofs without borrowing legacy bounds. Migrate only where the
+  precision, code-size, maintenance, and runtime tradeoff is worthwhile; remove
+  exclusive obsolete helpers and tests with the replaced path.
+- Consider reusable private-frame save/restore facts if a broader inventory
+  justifies their cost. These could recover table bases and transfer targets
+  saved across calls; do not add a dedicated solver for one artifact.
+- For new resolution capabilities, prioritize families affecting at least ten
+  artifacts unless the change is a very small extension. Reuse angr/VEX and
+  existing analysis infrastructure rather than adding bespoke engines.
+- Validate new exact proofs with independent bounds and executable targets,
+  including alias, call-clobber, negative-case, and budget tests. Compare resolved
+  connectivity separately from disconnected-code coverage; recovery hints must
+  not become proof facts. Explicitly agree any precision loss before promotion.
 
-- Prioritize a demonstrated family affecting at least ten artifacts, unless
-  the fix is a very small extension of an existing solver. Prefer reusing
-  angr/VEX infrastructure over adding another bespoke recognizer or engine.
-- Balance CFG precision, instruction coverage, maintenance cost, code size,
-  and runtime. Migration parity is not the goal, and coverage loss alone need
-  not prevent retiring disproportionately complex, low-impact code. Audit and
-  document the effects rather than silently asserting old targets.
-- Exact edges still require a complete finite target set with independently
-  proven bounds and validated executable destinations. Do not promote table
-  boundary guesses or dashed candidates into proofs; unknown aliases and call
-  clobbers must invalidate unsupported facts.
-- Keep disconnected-code recovery separate from exact proofs. Its
-  `UnresolvableEntrySource` hints and recovered instructions must not become
-  resolver facts or be counted as proven entry-connected coverage.
-- Before further retirement, audit independent shared-engine coverage and
-  exclusive helper/test usage. Compare corpus accuracy and runtime, including
-  negative cases and budgets, without requiring a larger replacement solely
-  to reproduce every legacy result.
+=== Address comments ===
 
-=== Address comments
-
-- Bring back comments by default in tests.
-- Analyze which comments are shown, which ones could be shown.
-- Refine custom's use-aware string classification. Its current conservative
-  guard keeps typed accesses numeric unless a separate address-taking hint
-  supports a string interpretation. This avoids rendering integer 50 as "2",
-  or GOT and vector values as accidental strings, but can hide genuine text
-  loaded directly without such a hint.
-  Regression probe: in the x86_64 `1cbbf108...` binary, `gimli::resolve` at
-  0x438e10 loads the path fragment at 0x45ef39 in instruction 0x43d067. Custom
-  currently shows `int @ 0x45ef39` rather than its readable path content.
+- Include comments-enabled golden checks in routine test runs, using separate
+  `cfg_comments_on` artifacts so annotation changes do not obscure structural
+  CFG differences.
+- Review which annotations are meaningful and which should be suppressed.
+- Refine use-aware string classification to recognize genuine text loaded
+  directly without interpreting printable integers, GOT slots, or vectors as
+  strings. Use `gimli::resolve` at 0x438e10 in the x86_64 `1cbbf108...` binary
+  as a regression probe: instruction 0x43d067 loads a path fragment at 0x45ef39
+  that should receive a readable text annotation rather than just an integer
+  reference.
   Reuse bounded VEX reference/use information where practical to distinguish
   text, character/vector comparisons, scalar constants, and pointer slots.
   An address hint or printable bytes alone are not proof of textual use.
@@ -95,29 +77,8 @@ If indirect-jump resolution is revisited:
   with no CFGFast, CFG changes, or significant annotation cost. Compare equal
   instruction sites with comments enabled and validate against binary data,
   not a previous CFG implementation. Keep broader analysis deferred if complex.
-- Does building other CFGs beforehand mutate knowledge-base state in a way that
-  changes later comments?
-- Are these differences specific to comments, or do they come from another kind
-  of label annotation?
-- See comments at http://127.0.0.1:8000/cfg?filepath=x86_64/switch&function=0x400544
-  (try w/ and w/o `comments=true`).
 
-=== Audit custom CFG transformation usage
-
-`CustomCFGStats` records per-function decoding, target recovery, exception,
-and sweep counters. Golden-test summaries aggregate total actions, affected
-functions, and exact-proof usage by architecture. Use these measurements to
-identify unnecessary or disproportionately expensive transformations.
-
-- Separate attempts and rejection reasons from successful changes to the CFG.
-  Inspect the per-flavor success counters alongside `static_jump_plans_resolved`.
-- Identify resolver and recovery paths with zero successful actions across the
-  corpus. Check their unit tests, supported architectures, and cases outside
-  the corpus before deciding whether to simplify or remove them.
-- Inspect low-frequency paths and large per-function outliers for complexity
-  or runtime cost disproportionate to their demonstrated CFG benefit.
-
-=== Investigate dominator-aware CFG layout
+=== Investigate dominator-aware CFG layout ===
 
 The current optional DFS layout pass marks every depth-first back-edge with
 Graphviz `constraint=false`. This can help when DOT places a loop header above

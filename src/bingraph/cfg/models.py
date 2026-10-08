@@ -23,6 +23,9 @@ TerminatorKind = Literal[
     "Ijk_Terminal",
 ]
 EdgeJumpKind = Literal["Ijk_Boring", "Ijk_Call", "Ijk_FakeRet"]
+DecodedCallTargetKind = Literal[
+    "vex_constant", "static_memory", "mips_gp", "nonreturning_memory"
+]
 
 
 @dataclass(frozen=True)
@@ -37,6 +40,11 @@ class BlockSpec:
     fallthrough_addr: int | None = None
     syscall_jumpkind: str | None = None
     vex_linear_instruction_sizes: tuple[tuple[int, int], ...] = ()
+    # Audit provenance must not affect source equality or proof revalidation.
+    decoded_call_target_kind: DecodedCallTargetKind | None = field(
+        default=None, compare=False
+    )
+    decoded_nonreturning_call: bool = field(default=False, compare=False)
 
 
 @dataclass(frozen=True)
@@ -47,6 +55,10 @@ class TerminatorInfo:
     direct_targets: tuple[int, ...] = ()
     fallthrough_addr: int | None = None
     syscall_jumpkind: str | None = None
+    decoded_call_target_kind: DecodedCallTargetKind | None = field(
+        default=None, compare=False
+    )
+    decoded_nonreturning_call: bool = field(default=False, compare=False)
 
 
 @dataclass(frozen=True)
@@ -106,7 +118,13 @@ class StaticJumpTablePlan:
 
 @dataclass
 class CustomCFGStats:
-    """Audit the decisions and transformations of one CFG construction."""
+    """Audit construction work separately from final-site contributions.
+
+    Attempt/work counters can revisit a site after graph changes; they are
+    neither unique instructions nor evidence of incorrect proofs. Decoder
+    counters count final displayed call blocks, including recovered code.
+    Zero rejections in a corpus do not establish that validation is redundant.
+    """
 
     additional_leaders_discovered: int = 0
     leaders_rejected_invalid_entry: int = 0
@@ -120,7 +138,11 @@ class CustomCFGStats:
     data_leaders_rejected: int = 0
     data_region_observations: int = 0
     data_bytes_discovered: int = 0
-    call_fallthroughs_suppressed: int = 0
+    # Post-decoder actions (data rejection or ABI proofs), net of withdrawals.
+    post_decode_call_fallthroughs_suppressed: int = 0
+    decoder_call_targets_by_kind: dict[str, int] = field(default_factory=dict)
+    # Known no-return calls, not necessarily removed in-function continuations.
+    decoder_nonreturning_calls: int = 0
     static_syscall_resolution_attempts: int = 0
     static_syscalls_resolved: int = 0
     static_syscall_fallthroughs_suppressed: int = 0
@@ -138,24 +160,16 @@ class CustomCFGStats:
     static_jump_plan_attempts: int = 0
     static_jump_plans_resolved: int = 0
     exact_jump_proofs_by_flavor: dict[str, int] = field(default_factory=dict)
-    shadow_table_attempts: int = 0
-    shadow_table_matches: int = 0
-    shadow_table_inconclusive: int = 0
-    shadow_table_disagreements: int = 0
-    shadow_fact_steps: int = 0
-    shadow_fact_budget_exhausted: int = 0
     shared_table_attempts: int = 0
     legacy_table_fallback_attempts: int = 0
     shared_fact_steps: int = 0
     shared_fact_budget_exhausted: int = 0
-    static_jump_plans_invalidated: int = 0
-    static_jump_table_entries_read: int = 0
+    # All plans in rounds that discover leaders, even if their sources survive.
+    static_jump_plans_in_discovery_rounds: int = 0
+    # Deduplicated destinations per successful query, not physical table rows.
+    static_jump_target_candidate_attempts: int = 0
     static_jump_targets_accepted: int = 0
     static_jump_target_edges_added: int = 0
-    static_jump_candidate_plans: int = 0
-    static_jump_candidate_entries_read: int = 0
-    static_jump_candidate_targets_accepted: int = 0
-    static_jump_candidate_edges_added: int = 0
     exception_metadata_functions_scanned: int = 0
     exception_call_sites_discovered: int = 0
     exceptional_transfers_discovered: int = 0
@@ -167,19 +181,14 @@ class CustomCFGStats:
     static_jump_unknown_base: int = 0
     static_jump_unbounded_index: int = 0
     static_jump_table_unreadable: int = 0
-    static_jump_targets_rejected: int = 0
+    # Builder validation covers external candidates only. Shared queries can
+    # reject earlier; their first failing target is counted per proof attempt.
+    static_jump_external_target_rejection_attempts: int = 0
+    shared_target_rejection_attempts_by_reason: dict[str, int] = field(
+        default_factory=dict
+    )
     conditional_pc_dispatches_resolved: int = 0
     conditional_pc_targets_recovered: int = 0
-    sweep_runs: int = 0
-    sweep_candidate_blocks: int = 0
-    sweep_candidate_instructions: int = 0
-    sweep_candidate_components: int = 0
-    sweep_decode_failures: int = 0
-    sweep_non_executable_bytes: int = 0
-    sweep_dispatchers_ineligible: int = 0
-    sweep_reconnecting_components: int = 0
-    sweep_reconnecting_blocks: int = 0
-    sweep_component_roots_attached: int = 0
     disconnected_recovery_runs: int = 0
     disconnected_recovery_budget_exhausted: int = 0
     disconnected_recovery_rejected_changes: int = 0

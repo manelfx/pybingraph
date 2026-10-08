@@ -1,4 +1,4 @@
-"""Read-only executable-range discovery used to audit unresolved dispatches."""
+"""Bounded executable-range discovery for unknown-entry code recovery."""
 
 from __future__ import annotations
 
@@ -29,34 +29,21 @@ class SweepBudgetExceeded(Exception):
 
 
 @dataclass(frozen=True)
-class ExecutableSweepAudit:
-    """Candidate blocks found without changing the custom CFG."""
-
-    candidate_blocks: int
-    candidate_instructions: int
-    candidate_components: int
-    decode_failures: int
-    non_executable_bytes: int
-
-
-@dataclass(frozen=True)
 class ExecutableSweep:
     """Closed direct-flow components discovered outside custom entry reachability."""
 
     blocks: Mapping[int, BlockSpec]
     reachable_addrs: frozenset[int]
     disconnected_addrs: frozenset[int]
-    audit: ExecutableSweepAudit
 
 
 @dataclass(frozen=True)
-class ReconnectingComponents:
-    """Disconnected components safe to expose behind one unknown dispatcher."""
+class DisconnectedComponents:
+    """Meaningful code regions exposed without claiming a known entry."""
 
     blocks: Mapping[int, BlockSpec]
     roots: frozenset[int]
     component_count: int
-    reconnecting_block_count: int = 0
 
 
 def _covering_end(blocks: Mapping[int, BlockSpec], addr: int) -> int | None:
@@ -92,39 +79,6 @@ def _reachable_addrs(
     return nx.descendants(graph, bounds.addr) | {bounds.addr}
 
 
-def _reachable_with_static_targets(
-    blocks: Mapping[int, BlockSpec],
-    directly_reachable: frozenset[int],
-    static_targets: Mapping[int, tuple[int, ...]],
-) -> set[int]:
-    """Return blocks reached by direct flow or already-proven table edges."""
-
-    graph = _direct_flow_graph(blocks)
-    reachable = set(directly_reachable)
-    pending = deque(reachable)
-    while pending:
-        source = pending.popleft()
-        targets = (*graph.successors(source), *static_targets.get(source, ()))
-        for target in targets:
-            if target not in graph or target in reachable:
-                continue
-            reachable.add(target)
-            pending.append(target)
-    return reachable
-
-
-def _disconnected_component_count(
-    blocks: Mapping[int, BlockSpec], disconnected_addrs: set[int]
-) -> int:
-    """Count direct-flow components outside the function entry's reachability."""
-
-    if not disconnected_addrs:
-        return 0
-    return nx.number_weakly_connected_components(
-        _direct_flow_graph(blocks).subgraph(disconnected_addrs)
-    )
-
-
 def _is_transparent_fallthrough_padding(
     project: Project | None, block: BlockSpec
 ) -> bool:
@@ -152,13 +106,12 @@ def _recover_direct_closure(
     stop_at_data: Callable[[int], bool] | None,
     *,
     resolve_static_memory_calls: bool = False,
-) -> int:
+) -> None:
     """Close sweep targets using the builder's safe leader invariant."""
 
     pending: deque[int] = deque()
     pending_addrs: set[int] = set()
     rejected_leaders: set[int] = set()
-    decode_failures = 0
 
     def queue(addr: int) -> None:
         if addr not in pending_addrs:
@@ -240,7 +193,6 @@ def _recover_direct_closure(
             stop_at_data=stop_at_data,
         )
         if block is None or block.size <= 0:
-            decode_failures += 1
             continue
 
         normalize_inner_leaders(block)
@@ -269,8 +221,6 @@ def _recover_direct_closure(
             if target is not None:
                 add_leader(target)
 
-    return decode_failures
-
 
 def recover_executable_components(
     project: Project,
@@ -287,8 +237,8 @@ def recover_executable_components(
     direct flow around each recovered target. It deliberately returns data only:
     callers decide whether unresolved indirect dispatches justify materializing
     these speculative components.
-    Static-memory call decoding is opt-in so presentation-only recovery can
-    match normal construction without changing other sweep consumers.
+    Static-memory call decoding follows the caller's decoder settings so this
+    presentation-only recovery can match normal construction.
     """
 
     if max_steps is not None:
@@ -307,8 +257,6 @@ def recover_executable_components(
     blocks = dict(recovered_blocks)
     leaders = set(blocks)
     cursor = bounds.addr
-    decode_failures = 0
-    non_executable_bytes = 0
 
     while cursor < bounds.end_addr:
         if stop_at_data is not None and stop_at_data(cursor):
@@ -320,7 +268,6 @@ def recover_executable_components(
             continue
 
         if static_jump_target_rejection_reason(project, cursor) is not None:
-            non_executable_bytes += 1
             cursor += 1
             continue
 
@@ -337,7 +284,6 @@ def recover_executable_components(
             stop_at_data=stop_at_data,
         )
         if block is None or block.size <= 0:
-            decode_failures += 1
             cursor += 1
             continue
 
@@ -345,7 +291,7 @@ def recover_executable_components(
         leaders.add(block.addr)
         cursor = block.addr + block.size
 
-    decode_failures += _recover_direct_closure(
+    _recover_direct_closure(
         project,
         bounds,
         blocks,
@@ -356,107 +302,10 @@ def recover_executable_components(
     reachable_addrs = _reachable_addrs(blocks, bounds)
     disconnected_addrs = set(blocks) - reachable_addrs
 
-    audit = ExecutableSweepAudit(
-        candidate_blocks=len(disconnected_addrs),
-        candidate_instructions=sum(
-            len(blocks[addr].instruction_addrs) for addr in disconnected_addrs
-        ),
-        candidate_components=_disconnected_component_count(blocks, disconnected_addrs),
-        decode_failures=decode_failures,
-        non_executable_bytes=non_executable_bytes,
-    )
     return ExecutableSweep(
         blocks,
         frozenset(reachable_addrs),
         frozenset(disconnected_addrs),
-        audit,
-    )
-
-
-def select_reconnecting_components(
-    project: Project | None,
-    sweep: ExecutableSweep,
-    recovered_blocks: Mapping[int, BlockSpec],
-    *,
-    static_targets: Mapping[int, tuple[int, ...]] | None = None,
-) -> ReconnectingComponents:
-    """Select direct-flow components that rejoin known function code.
-
-    Executable bytes alone do not prove an indirect-jump target. A component
-    becomes a candidate only when its decoded direct flow reaches a block from
-    the original construction, it contains no additional unresolved indirect
-    branch, and it does not target the middle of original code. The latter two
-    cases need their own target evidence, not inherited trust from the outer
-    dispatcher.
-    """
-
-    graph = _direct_flow_graph(sweep.blocks)
-    known_reachable = _reachable_with_static_targets(
-        sweep.blocks, sweep.reachable_addrs, static_targets or {}
-    )
-    disconnected_graph = graph.subgraph(set(sweep.blocks) - known_reachable)
-    recovered_addrs = set(recovered_blocks)
-    # Preserve leader-closed revisions of known blocks, including static-table
-    # closure. A selected component can branch into the middle of an original
-    # block, so retaining the pre-sweep block would undo an exact-target split.
-    selected_blocks = {addr: sweep.blocks[addr] for addr in known_reachable}
-    roots: set[int] = set()
-    component_count = 0
-    reconnecting_block_count = 0
-
-    for component in nx.weakly_connected_components(disconnected_graph):
-        has_rejoin = any(
-            target in recovered_addrs
-            for addr in component
-            for target in graph.successors(addr)
-        )
-        has_nested_unresolved = any(
-            sweep.blocks[addr].jumpkind == "Ijk_Boring"
-            and not sweep.blocks[addr].direct_targets
-            and sweep.blocks[addr].fallthrough_addr is None
-            for addr in component
-        )
-        has_mid_block_target = any(
-            block.jumpkind == "Ijk_Boring"
-            and any(
-                start < target < start + recovered_block.size
-                for target in (*block.direct_targets, block.fallthrough_addr)
-                if target is not None
-                for start, recovered_block in recovered_blocks.items()
-            )
-            for block in (sweep.blocks[addr] for addr in component)
-        )
-        if not has_rejoin or has_nested_unresolved or has_mid_block_target:
-            continue
-
-        component_graph = disconnected_graph.subgraph(component)
-        condensation = nx.condensation(component_graph)
-        component_roots: set[int] = set()
-        for source in condensation.nodes:
-            if condensation.in_degree(source) != 0:
-                continue
-            members = condensation.nodes[source]["members"]
-            component_roots.add(min(members))
-        # A component whose only roots are swept alignment NOPs merely falls
-        # through into recovered code; it supplies no indirect-target evidence.
-        # Keep mixed-root components intact so no retained block becomes
-        # unreachable through a suppressed entry root.
-        if component_roots and all(
-            _is_transparent_fallthrough_padding(project, sweep.blocks[root])
-            for root in component_roots
-        ):
-            continue
-
-        component_count += 1
-        reconnecting_block_count += len(component)
-        selected_blocks.update((addr, sweep.blocks[addr]) for addr in component)
-        roots.update(component_roots)
-
-    return ReconnectingComponents(
-        selected_blocks,
-        frozenset(roots),
-        component_count,
-        reconnecting_block_count,
     )
 
 
@@ -532,7 +381,7 @@ def select_disconnected_components(
     baseline: Mapping[int, BlockSpec],
     *,
     bounds: FunctionBounds | None = None,
-) -> ReconnectingComponents:
+) -> DisconnectedComponents:
     """Select meaningful code for unknown-entry presentation, never exact proofs.
 
     The baseline includes any instruction-boundary partitions accepted by
@@ -547,7 +396,7 @@ def select_disconnected_components(
     """
 
     if any(sweep.blocks.get(addr) != block for addr, block in baseline.items()):
-        return ReconnectingComponents({}, frozenset(), 0)
+        return DisconnectedComponents({}, frozenset(), 0)
     padding: dict[int, bool] = {}
 
     def is_padding(insn) -> bool:
@@ -692,18 +541,4 @@ def select_disconnected_components(
                     roots.update(condensation.nodes[source]["members"])
             selected.update((addr, blocks[addr]) for addr in component)
             count += 1
-    return ReconnectingComponents(selected, frozenset(roots), count, len(selected))
-
-
-def audit_executable_range(
-    project: Project,
-    bounds: FunctionBounds,
-    recovered_blocks: Mapping[int, BlockSpec],
-    *,
-    stop_at_data: Callable[[int], bool] | None = None,
-) -> ExecutableSweepAudit:
-    """Return read-only statistics for disconnected executable components."""
-
-    return recover_executable_components(
-        project, bounds, recovered_blocks, stop_at_data=stop_at_data
-    ).audit
+    return DisconnectedComponents(selected, frozenset(roots), count)

@@ -24,7 +24,7 @@ from bingraph.helpers.capstone import (
 )
 from bingraph.helpers.symbols import plt_symbol_name
 
-from .models import BlockSpec, FunctionBounds, TerminatorInfo
+from .models import BlockSpec, DecodedCallTargetKind, FunctionBounds, TerminatorInfo
 
 
 # CFGNode equality is address/block-ID based, so a recovered replacement can
@@ -392,12 +392,12 @@ def target_is_hooked_nonreturning(project: Project, addr: int) -> bool:
 
 
 def target_is_known_nonreturning(project: Project, addr: int) -> bool:
-    """Return whether static information declares a target non-returning."""
+    """Recognize no-return hooks, declarations, and exact runtime PLT entries."""
 
     return (
         target_is_hooked_nonreturning(project, addr)
         or _symbol_is_declared_nonreturning(project, addr)
-        or plt_symbol_name(project, addr) == "_Unwind_Resume"
+        or plt_symbol_name(project, addr) in _LINKED_NONRETURNING_RUNTIME_SYMBOLS
     )
 
 
@@ -1149,6 +1149,7 @@ def lift_block_terminator(
 
     if semantic.is_call() or vex.jumpkind == "Ijk_Call":
         direct_targets: tuple[int, ...] = ()
+        target_kind: DecodedCallTargetKind | None = None
         if isinstance(default_target, int) and _is_trusted_direct_call_target(
             project, default_target
         ):
@@ -1157,6 +1158,7 @@ def lift_block_terminator(
             # such unnamed callees, allowing later render policy to decide
             # whether it should be visible.
             direct_targets = (default_target,)
+            target_kind = "vex_constant"
         call_vex = vex
         if project.arch.name.startswith("MIPS") and tail_addr != block_addr:
             # The tail lift intentionally excludes preceding instructions, but
@@ -1170,6 +1172,7 @@ def lift_block_terminator(
             if resolve_static_memory_calls
             else None
         )
+        memory_kind: DecodedCallTargetKind = "static_memory"
         if (
             static_memory_target is None
             and resolve_static_memory_calls
@@ -1182,10 +1185,12 @@ def lift_block_terminator(
                 project, candidate
             ):
                 static_memory_target = candidate
+                memory_kind = "mips_gp"
         if static_memory_target is not None and not direct_targets:
             # A constant-address pointer load proves the same exact callee as
             # a direct VEX call while preserving the ordinary FakeRet edge.
             direct_targets = (static_memory_target,)
+            target_kind = memory_kind
         nonreturning_vex = call_vex
         nonreturning_target = known_nonreturning_call_target(
             project,
@@ -1197,6 +1202,7 @@ def lift_block_terminator(
             # This static GOT-like call target is precise enough to retain as
             # a normal call edge, while suppressing its impossible FakeRet.
             direct_targets = (nonreturning_target,)
+            target_kind = "nonreturning_memory"
         fallthrough_addr = (
             None
             if nonreturning_target is not None
@@ -1206,6 +1212,8 @@ def lift_block_terminator(
             jumpkind="Ijk_Call",
             direct_targets=direct_targets,
             fallthrough_addr=fallthrough_addr,
+            decoded_call_target_kind=target_kind,
+            decoded_nonreturning_call=nonreturning_target is not None,
         )
 
     unconditional_target = proven_unconditional_direct_target(
@@ -1466,6 +1474,8 @@ def decode_bounded_block(
         direct_targets=terminator.direct_targets,
         fallthrough_addr=terminator.fallthrough_addr,
         syscall_jumpkind=terminator.syscall_jumpkind,
+        decoded_call_target_kind=terminator.decoded_call_target_kind,
+        decoded_nonreturning_call=terminator.decoded_nonreturning_call,
     )
 
     block_end = block.addr + block.size

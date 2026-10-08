@@ -6,7 +6,7 @@ non-overlapping: whenever a newly discovered target falls inside an existing
 block, that block is re-decoded with the target as a stop address.
 
 Construction has four deliberate stages: decode direct flow, resolve exact
-indirect transfers, conservatively reconnect only shape-free gaps, then
+indirect transfers, discover disconnected code with an unknown entry, then
 materialize the final graph. VEX-proven static jump tables contribute leaders
 during the exact-resolution stage; remaining indirect transfers stay explicit
 synthetic leaves. The builder never reads CFGFast's discovered regions.
@@ -17,7 +17,6 @@ from __future__ import annotations
 from collections import Counter, deque
 from copy import deepcopy
 from dataclasses import replace
-import os
 import re
 from types import SimpleNamespace
 from typing import Iterable, Mapping, cast
@@ -47,7 +46,6 @@ from bingraph.cfg.jumps import (
     abi_static_register_transfer_targets,
     conditional_pc_dispatch_targets,
     is_memory_dependent_indirect_jump,
-    plan_dynamic_selector_table_candidates,
     plan_mips_pic_relative_jump_table,
     plan_static_jump_table,
     s390_table_loaded_branch,
@@ -59,7 +57,6 @@ from bingraph.cfg.models import (
     BlockSpec,
     EdgeJumpKind,
     FunctionBounds,
-    StaticJumpTablePlan,
 )
 from bingraph.cfg.decode import (
     alternate_block_entry_rejoin_addr,
@@ -81,7 +78,6 @@ from .models import (
     CustomCFGSummary,
 )
 from .shared_table_proof import (
-    shadow_relative_table_targets,
     shared_register_targets,
     shared_table_targets,
     table_predecessor_facts,
@@ -91,17 +87,12 @@ from .sweep import (
     recover_executable_components,
     select_disconnected_components,
     validate_disconnected_baseline,
-    select_reconnecting_components,
 )
 from .syscalls import ResolvedSyscall, resolve_static_syscall, unknown_syscall_target
 
 
 _UNRESOLVABLE_CALL_ADDR = 0xFFFFFFFFFFFFFFD0
 _UNRESOLVABLE_ENTRY_ADDR = 0xFFFFFFFFFFFFFFC0
-_RECONNECTING_SWEEP_REASONS = frozenset({"no_vex", "no_table_shape"})
-# Candidate rows are decoded transitively, so keep their unproven frontier
-# small. Exact static table plans are not subject to this limit.
-_MAX_DYNAMIC_SELECTOR_CANDIDATE_TARGETS = 10
 
 
 def _thumb_mode(project: Project, addr: int) -> bool:
@@ -242,11 +233,7 @@ class _BuildSession:
         self.data_regions.claim_code(project, func_addr)
         self.leaf_nodes: dict[tuple[int, str], CFGNode] = {}
         self.static_targets: dict[int, tuple[int, ...]] = {}
-        self.static_target_candidates: dict[int, tuple[int, ...]] = {}
         self.exceptional_targets: dict[int, tuple[int, ...]] = {}
-        self.unresolved_dispatcher_reasons: dict[int, str | None] = {}
-        self.sweep_dispatcher_addr: int | None = None
-        self.sweep_component_roots: frozenset[int] = frozenset()
         self.continued_linear_direct_transfers: set[int] = set()
         self.resolved_syscalls: dict[int, ResolvedSyscall] = {}
         self._abi_analysis_blocks: dict[int, BlockSpec] | None = None
@@ -278,7 +265,7 @@ class _BuildSession:
             if block.jumpkind != "Ijk_Call" or block.fallthrough_addr != addr:
                 continue
             self.blocks[start] = replace(block, fallthrough_addr=None)
-            self.stats.call_fallthroughs_suppressed += 1
+            self.stats.post_decode_call_fallthroughs_suppressed += 1
 
     def _queue(self, addr: int) -> None:
         """Schedule one in-bounds block leader only once per pending round."""
@@ -500,7 +487,7 @@ class _BuildSession:
 
         The snapshot includes decoded direct/fallthrough edges and indirect
         edges proven by an earlier discovery round. It intentionally excludes
-        unresolved and candidate edges: they cannot establish a must-reaching
+        unresolved and recovery edges: they cannot establish a must-reaching
         dataflow fact for a later resolver.
         """
 
@@ -535,7 +522,7 @@ class _BuildSession:
                 if target in static_targets.get(addr, ()):
                     # Exact indirect edges constrain the jump-carrying register
                     # to this destination. Keep that provenance local to the
-                    # immutable analysis snapshot, never on candidate edges.
+                    # immutable analysis snapshot, never on recovery edges.
                     edge = graph.get_edge_data(source, nodes[target])
                     if edge is not None:
                         edge["proven_dispatch"] = True
@@ -614,7 +601,7 @@ class _BuildSession:
                 continue
             if original.jumpkind == "Ijk_Call":
                 self.stats.abi_static_call_targets_resolved -= 1
-                self.stats.call_fallthroughs_suppressed -= (
+                self.stats.post_decode_call_fallthroughs_suppressed -= (
                     original.fallthrough_addr is not None
                     and proved.fallthrough_addr is None
                 )
@@ -629,7 +616,7 @@ class _BuildSession:
 
         Table recovery can expose predecessors carrying different static
         callees into a common epilogue. Give the ABI solvers those exact edges,
-        but never candidate or sweep edges. Cache the immutable input snapshot
+        but never speculative recovery edges. Cache the immutable input snapshot
         so an unchanged discovery round does not repeat the bounded analysis.
         Shared facts resolve calls on any architecture and jumps on AMD64.
         Only known ABIs preserve register facts across calls; local proofs
@@ -703,6 +690,10 @@ class _BuildSession:
                         targets[addr] = exact
                 self.stats.shared_fact_steps += facts.steps
                 self.stats.shared_fact_budget_exhausted += facts.exhausted
+                self.stats.shared_target_rejection_attempts_by_reason = dict(
+                    Counter(self.stats.shared_target_rejection_attempts_by_reason)
+                    + facts.target_rejections
+                )
                 # Newly proved jumps also change incoming flow. Recheck earlier
                 # answers, and do not oscillate by reinstating a withdrawn proof
                 # after its supporting edge disappears in this same snapshot.
@@ -758,7 +749,7 @@ class _BuildSession:
                 ):
                     fallthrough = None
                     if block.fallthrough_addr is not None:
-                        self.stats.call_fallthroughs_suppressed += 1
+                        self.stats.post_decode_call_fallthroughs_suppressed += 1
                 self.blocks[addr] = replace(
                     block, direct_targets=exact_targets, fallthrough_addr=fallthrough
                 )
@@ -903,22 +894,20 @@ class _BuildSession:
                     return
         for addr in returns:
             self.blocks[addr] = replace(self.blocks[addr], jumpkind="Ijk_Ret")
-            self.unresolved_dispatcher_reasons.pop(addr, None)
 
     def _discover_static_jump_targets(self) -> None:
-        """Iteratively discover exact and candidate indirect jump targets.
+        """Iteratively discover exact indirect jump targets.
 
-        Each changed exact-flow snapshot first feeds shared AMD64 register
-        facts and the remaining ABI fallback. Conditional-PC and arithmetic-PC
-        forms remain specialized.
+        Each changed exact-flow snapshot first feeds shared register facts
+        and the remaining ABI fallback. Conditional-PC forms remain specialized.
         Shared finite table facts then get first refusal, before generic VEX
-        tables, architecture adapters and guarded two-level fallbacks. Shared
-        register facts handle remaining non-table transfers. The shared table
-        proof receives only the exact-flow snapshot, never a legacy table plan
-        or selector domain; successful proofs bypass legacy planning entirely.
-        Only a fully bounded target set becomes ``static_targets``. A weaker,
-        unbounded memory-selector table may contribute dashed candidates, but
-        never replaces the unresolved target.
+        tables and architecture adapters. Shared register facts handle remaining
+        non-table transfers. The shared table proof receives only the exact-flow
+        snapshot, never a legacy table plan or selector domain; successful
+        proofs bypass legacy planning entirely.
+        Only a fully bounded target set becomes ``static_targets``. Unbounded
+        selectors retain their unresolved target; executable regions discovered
+        later are presented with unknown entry, not guessed dispatcher edges.
 
         Each exact target is added as a leader. Because a new leader can split
         a block, plans are re-evaluated until the decode stabilizes. Plans from
@@ -926,9 +915,7 @@ class _BuildSession:
         unchanged, preserving their proof while avoiding stale source edges.
         """
 
-        shadow_enabled = os.getenv("BINGRAPH_SHADOW_TABLE_PROOFS") == "1"
         retained_plans: dict[int, tuple[BlockSpec, tuple[int, ...], str]] = {}
-        retained_table_plans: dict[int, tuple[BlockSpec, StaticJumpTablePlan]] = {}
         while True:
             retained_targets = {
                 addr: targets
@@ -953,27 +940,7 @@ class _BuildSession:
             discovered = False
             plans: dict[int, tuple[int, ...]] = {}
             plan_flavors: dict[int, str] = {}
-            table_plans: dict[int, StaticJumpTablePlan] = {}
-            candidate_plans: dict[int, tuple[int, ...]] = {}
-            candidate_entry_counts: dict[int, int] = {}
-            unresolved_reasons: dict[int, str | None] = {}
             conditional_sources: set[int] = set()
-            # Candidate plans are collected first so accepting them is safe
-            # only when exactly one unresolved table has this weak shape.
-            candidate_table_plans = {
-                addr: plan
-                for addr, node in nodes.items()
-                if (block := self.blocks.get(addr)) is not None
-                and block.jumpkind == "Ijk_Boring"
-                and not block.direct_targets
-                and (
-                    plan := plan_dynamic_selector_table_candidates(
-                        self.project, graph, self.bounds, node
-                    )
-                )
-                is not None
-            }
-            candidate_recovery_allowed = len(candidate_table_plans) == 1
             for addr, node in nodes.items():
                 # Adding a target can split a later block from this snapshot.
                 # Skip its now-stale node; the next round analyzes its decode.
@@ -1059,71 +1026,27 @@ class _BuildSession:
                     if targets is not None:
                         reason = None
                         proof_flavor = "shared_finite_register"
-                if targets is None and reason == "no_table_shape":
-                    candidate_plan = candidate_table_plans.get(addr)
-                    if candidate_plan is not None:
-                        candidate_targets = _read_static_jump_table_targets(
-                            self.project,
-                            candidate_plan.table,
-                            candidate_plan.base_addr,
-                            candidate_plan.entry_indices,
-                        )
-                        if (
-                            candidate_recovery_allowed
-                            and candidate_targets is not None
-                            and len(candidate_targets)
-                            <= _MAX_DYNAMIC_SELECTOR_CANDIDATE_TARGETS
-                            and all(
-                                self.bounds.addr <= target < self.bounds.end_addr
-                                and static_jump_target_rejection_reason(
-                                    self.project, target
-                                )
-                                is None
-                                for target in candidate_targets
-                            )
-                        ):
-                            accepted_candidates: list[int] = []
-                            for target in dict.fromkeys(candidate_targets):
-                                self._claim_code_target(target)
-                                before = (
-                                    target in self.blocks
-                                    or target in self.pending_addrs
-                                )
-                                added = self._add_leader(target)
-                                if (
-                                    added
-                                    or target in self.blocks
-                                    or target in self.pending_addrs
-                                ):
-                                    accepted_candidates.append(target)
-                                    discovered |= added and not before
-                            if accepted_candidates:
-                                candidate_plans[addr] = tuple(accepted_candidates)
-                                candidate_entry_counts[addr] = len(candidate_targets)
                 if targets is None:
                     if reason == "no_table_shape" and is_memory_dependent_indirect_jump(
                         node
                     ):
-                        # Preserve the historical diagnostic name. This also
-                        # excludes unproved static/relative memory tables from
-                        # sweep recovery; exact proofs and table-backed dashed
-                        # candidates above are unaffected.
+                        # Preserve the historical diagnostic name for targets
+                        # whose memory dependency prevents an exact proof.
                         reason = "dynamic_memory_target"
-                    unresolved_reasons[addr] = reason
                     self.stats.static_jump_unresolved_dispatcher_attempts += 1
                     if reason is not None:
                         field = f"static_jump_{reason}"
                         if hasattr(self.stats, field):
                             setattr(self.stats, field, getattr(self.stats, field) + 1)
                     continue
-                self.stats.static_jump_table_entries_read += len(targets)
+                self.stats.static_jump_target_candidate_attempts += len(targets)
                 rejected = [
                     static_jump_target_rejection_reason(self.project, target)
                     for target in targets
                     if not self.bounds.addr <= target < self.bounds.end_addr
                 ]
                 if any(rejected):
-                    self.stats.static_jump_targets_rejected += sum(
+                    self.stats.static_jump_external_target_rejection_attempts += sum(
                         reason is not None for reason in rejected
                     )
                     continue
@@ -1153,17 +1076,15 @@ class _BuildSession:
                         self.recovery_table_bytes.update(range(address, address + size))
                 assert proof_flavor is not None
                 plan_flavors[addr] = proof_flavor
-                if (
-                    shadow_enabled
-                    and plan is not None
-                    and proof_flavor == plan.proof_flavor
-                ):
-                    table_plans[addr] = plan
                 self.stats.static_jump_targets_accepted += len(accepted_targets)
 
             if shared_facts is not None:
                 self.stats.shared_fact_steps += shared_facts.steps
                 self.stats.shared_fact_budget_exhausted += shared_facts.exhausted
+                self.stats.shared_target_rejection_attempts_by_reason = dict(
+                    Counter(self.stats.shared_target_rejection_attempts_by_reason)
+                    + shared_facts.target_rejections
+                )
             exact_edges_changed = any(
                 targets and retained_targets.get(addr) != targets
                 for addr, targets in plans.items()
@@ -1185,13 +1106,11 @@ class _BuildSession:
                             targets,
                             plan_flavors[addr],
                         )
-                        if shadow_enabled and addr in table_plans:
-                            retained_table_plans[addr] = (source, table_plans[addr])
                 # Block splits invalidate plans built from this graph snapshot.
                 # Retain a proof only if its source block is unchanged after
                 # rebuilding. A split can otherwise orphan its target leaders.
                 if discovered:
-                    self.stats.static_jump_plans_invalidated += len(plans)
+                    self.stats.static_jump_plans_in_discovery_rounds += len(plans)
                     self._decode_all_blocks()
                 # Even when all table destinations already exist as blocks,
                 # new exact edges can enable a carried-register ABI proof.
@@ -1204,50 +1123,6 @@ class _BuildSession:
                     Counter(final_flavors[addr] for addr in retained_targets).items()
                 )
             )
-            if shadow_enabled:
-                # One demand-driven fact cache serves every table in this stable
-                # graph. It is discarded before any later decode or edge change.
-                facts = table_predecessor_facts(self.project, graph, self.bounds)
-                final_table_plans = {
-                    addr: plan
-                    for addr, (source, plan) in retained_table_plans.items()
-                    if self.blocks.get(addr) == source
-                }
-                final_table_plans.update(table_plans)
-                for addr, plan in final_table_plans.items():
-                    source = nodes.get(addr)
-                    if (
-                        source is None
-                        or addr not in retained_targets
-                        or final_flavors[addr] != plan.proof_flavor
-                    ):
-                        continue
-                    self.stats.shadow_table_attempts += 1
-                    try:
-                        shadow_targets = shadow_relative_table_targets(
-                            self.project, graph, self.bounds, source, plan, facts
-                        )
-                    except Exception as exc:
-                        logger.debug(f"Shadow table proof failed at {addr:#x}: {exc}")
-                        shadow_targets = None
-                    if shadow_targets is None:
-                        self.stats.shadow_table_inconclusive += 1
-                    elif shadow_targets == retained_targets[addr]:
-                        self.stats.shadow_table_matches += 1
-                    else:
-                        self.stats.shadow_table_disagreements += 1
-                        logger.warning(
-                            f"Shadow table proof differs at {addr:#x}: "
-                            f"shared={shadow_targets}, existing={retained_targets[addr]}"
-                        )
-                self.stats.shadow_fact_steps += facts.steps
-                self.stats.shadow_fact_budget_exhausted += facts.exhausted
-            self.static_target_candidates.update(candidate_plans)
-            self.unresolved_dispatcher_reasons = {
-                addr: reason
-                for addr, reason in unresolved_reasons.items()
-                if addr not in retained_targets
-            }
             self.stats.conditional_pc_dispatches_resolved += len(conditional_sources)
             self.stats.conditional_pc_targets_recovered += sum(
                 len(retained_targets[addr])
@@ -1255,13 +1130,6 @@ class _BuildSession:
                 if addr in retained_targets
             )
             self.stats.static_jump_plans_resolved += len(retained_targets)
-            self.stats.static_jump_candidate_plans += len(candidate_plans)
-            self.stats.static_jump_candidate_entries_read += sum(
-                candidate_entry_counts.values()
-            )
-            self.stats.static_jump_candidate_targets_accepted += sum(
-                len(targets) for targets in candidate_plans.values()
-            )
             return
 
     def _leaf(self, addr: int, name: str, *, is_syscall: bool = False) -> CFGNode:
@@ -1315,8 +1183,8 @@ class _BuildSession:
 
         ``static_targets`` are exact edges produced by the resolver pipeline.
         Any remaining non-call indirect transfer receives one UJT leaf here;
-        candidate and sweep phases may later add dashed edges, but do not
-        remove that explicit unknown-target fallback.
+        unknown-entry recovery may later add dashed edges from its own source,
+        without guessing dispatcher targets or removing the UJT fallback.
         """
 
         # Labels affect final titles only, not proof snapshots or block discovery.
@@ -1431,7 +1299,7 @@ class _BuildSession:
                     self.stats.unresolved_indirect_targets += 1
 
     def _recover_disconnected_components(self) -> None:
-        """Opt-in discovery with unknown entry, not an indirect-target proof.
+        """Discover code with unknown entry, not an indirect-target proof.
 
         Only explicitly sized symbols are scanned. Alignment, execution mode,
         and known data restrict decoding; a 20K callback budget bounds work.
@@ -1495,7 +1363,6 @@ class _BuildSession:
             self.blocks,
             protected_sources=(
                 self.static_targets.keys()
-                | self.static_target_candidates.keys()
                 | self.resolved_syscalls.keys()
                 | self._shared_register_blocks.keys()
             ),
@@ -1560,7 +1427,6 @@ class _BuildSession:
             displayed,
             protected_sources=(
                 self.static_targets.keys()
-                | self.static_target_candidates.keys()
                 | self.resolved_syscalls.keys()
                 | self._shared_register_blocks.keys()
             ),
@@ -1595,141 +1461,24 @@ class _BuildSession:
             assert edge is not None
             edge["recovered_entry"] = True
 
-    def _recover_reconnecting_components(self) -> None:
-        """Attach leader-closed components behind one shape-free dispatcher.
-
-        A failed static-table plan can still prove that an indirect branch has
-        a table-like shape, for example an address with an unbounded index.
-        Reconnecting arbitrary executable components behind that source would
-        turn an incomplete proof into speculative targets. Sweep recovery is
-        therefore reserved for dispatchers where VEX exposed neither a table
-        shape nor a memory-derived target. A mapped table base alone does not
-        establish its selector domain or justify a sweep; unresolved memory
-        dispatch keeps its leaf and any independently table-backed candidates.
-        """
-
-        dispatchers = [
-            addr
-            for addr, block in self.blocks.items()
-            if (
-                block.jumpkind == "Ijk_Boring"
-                and not block.direct_targets
-                and block.fallthrough_addr is None
-                and not self.static_targets.get(addr)
-            )
-        ]
-        if len(dispatchers) != 1:
-            return
-
-        dispatcher_addr = dispatchers[0]
-        if (
-            self.unresolved_dispatcher_reasons.get(dispatcher_addr)
-            not in _RECONNECTING_SWEEP_REASONS
-        ):
-            self.stats.sweep_dispatchers_ineligible += 1
-            return
-
-        recovered_blocks = dict(self.blocks)
-        sweep = recover_executable_components(
-            self.project,
-            self.bounds,
-            recovered_blocks,
-            stop_at_data=lambda target: self.data_regions.contains(
-                self.project, target
-            ),
-        )
-        audit = sweep.audit
-        self.stats.sweep_runs += 1
-        self.stats.sweep_candidate_blocks += audit.candidate_blocks
-        self.stats.sweep_candidate_instructions += audit.candidate_instructions
-        self.stats.sweep_candidate_components += audit.candidate_components
-        self.stats.sweep_decode_failures += audit.decode_failures
-        self.stats.sweep_non_executable_bytes += audit.non_executable_bytes
-        selected = select_reconnecting_components(
-            self.project,
-            sweep,
-            recovered_blocks,
-            static_targets={
-                addr: tuple(
-                    dict.fromkeys((*self.static_targets.get(addr, ()), *candidates))
-                )
-                for addr in self.static_targets.keys()
-                | self.static_target_candidates.keys()
-                for candidates in (self.static_target_candidates.get(addr, ()),)
-            },
-        )
-        if dispatcher_addr not in selected.blocks:
-            # The sweep changed the source whose unknown targets would be
-            # attached. Keep the original graph rather than mix a stale
-            # dispatcher with speculative sweep components.
-            return
-        if not selected.blocks:
-            return
-
-        self.blocks = dict(selected.blocks)
-        self.leaders = set(self.blocks)
-        for block in tuple(self.blocks.values()):
-            for target in block.direct_targets:
-                self._claim_code_target(target)
-                self._add_leader(target)
-        self._decode_all_blocks()
-        self.sweep_dispatcher_addr = dispatcher_addr
-        self.sweep_component_roots = selected.roots
-        self.stats.sweep_reconnecting_components += selected.component_count
-        self.stats.sweep_reconnecting_blocks += selected.reconnecting_block_count
-        logger.info(
-            f"Custom CFG recovery for {self.func_addr:#x}: selected "
-            f"{selected.reconnecting_block_count} block(s) from "
-            f"{selected.component_count} "
-            f"reconnecting component(s) behind {dispatchers[0]:#x}"
-        )
-
-    def _attach_reconnecting_components(self) -> None:
-        """Connect selected roots directly while retaining the unknown leaf.
-
-        One dispatcher makes the source of every selected component
-        unambiguous, so draw the candidate edges directly from it. The
-        ``UnresolvableJumpTarget`` edge remains as an explicit catch-all:
-        executable-range recovery cannot prove that these are every possible
-        target, including targets outside the bounded function region.
-        """
-
-        if self.sweep_dispatcher_addr is None:
-            return
-        dispatcher = self.nodes[
-            self.recovery_source_addrs.get(
-                self.sweep_dispatcher_addr, self.sweep_dispatcher_addr
-            )
-        ]
-        for addr in self.sweep_component_roots:
-            if add_successor_edge(
-                self.graph,
-                dispatcher,
-                self.nodes[addr],
-                "Ijk_Boring",
-                unresolved_indirect=True,
-            ):
-                self.stats.sweep_component_roots_attached += 1
-
-    def _attach_static_jump_table_candidates(self) -> None:
-        """Attach heuristic table rows while preserving their unknown target."""
-
-        for dispatcher_addr, targets in self.static_target_candidates.items():
-            dispatcher = self.nodes[dispatcher_addr]
-            for target in targets:
-                if add_successor_edge(
-                    self.graph,
-                    dispatcher,
-                    self.nodes[target],
-                    "Ijk_Boring",
-                    unresolved_indirect=True,
-                ):
-                    self.stats.static_jump_candidate_edges_added += 1
-
     def _summarize_output(self) -> None:
         """Record the final graph shape separately from construction decisions."""
 
         blocks = self._output_blocks()
+        # Count stabilized call sites once, not every decode of their block.
+        calls = [block for block in blocks.values() if block.jumpkind == "Ijk_Call"]
+        self.stats.decoder_call_targets_by_kind = dict(
+            sorted(
+                Counter(
+                    block.decoded_call_target_kind
+                    for block in calls
+                    if block.decoded_call_target_kind is not None
+                ).items()
+            )
+        )
+        self.stats.decoder_nonreturning_calls = sum(
+            block.decoded_nonreturning_call for block in calls
+        )
         self.summary.normal_blocks = len(blocks)
         self.summary.synthetic_leaves = len(self.leaf_nodes)
         self.summary.nodes = len(tuple(self.graph.nodes()))
@@ -1747,7 +1496,7 @@ class _BuildSession:
                 self.summary.direct_branches += 1
                 self.summary.conditional_branches += block.fallthrough_addr is not None
 
-        # A dashed candidate/recovery edge is not a proven entry path. Count
+        # A dashed recovery edge is not a proven entry path. Count
         # its instructions as discovered, but not entry-connected coverage.
         connected: set[CFGNode] = set()
         pending = (
@@ -1788,12 +1537,8 @@ class _BuildSession:
         # Stage 2: exact transfer proofs may add leaders and re-decode blocks.
         self._discover_static_jump_targets()
         self._recognize_saved_link_returns()
-        # Stage 3: only shape-free unresolved flow may gain dashed recovery.
-        # Run this before LSDA discovery: cleanup pads can contain additional
-        # unresolved jumps, but must not hide a pre-existing sweep dispatcher.
-        self._recover_reconnecting_components()
-        # LSDA records attach to the stabilized call blocks, including those
-        # reached through a recovered component or another landing pad.
+        # Stage 3: LSDA records establish known exceptional flow before any
+        # unknown-entry discovery, including calls in other landing pads.
         self._discover_elf_exceptional_edges()
         # No proof query runs after this presentation-only discovery stage.
         if recover_disconnected:
@@ -1803,8 +1548,6 @@ class _BuildSession:
             self._discover_recovered_elf_exceptional_edges()
         # Stage 4: materialize the stabilized graph and its conservative edges.
         self._materialize_edges()
-        self._attach_static_jump_table_candidates()
-        self._attach_reconnecting_components()
         self._attach_disconnected_components()
         function = self.kb.functions.function(self.func_addr, create=True)
         if function is not None:

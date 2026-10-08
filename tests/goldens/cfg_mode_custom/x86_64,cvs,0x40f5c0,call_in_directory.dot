@@ -348,7 +348,4 @@ edge [fontname=monospace, fontsize=8];
 "0x40fde9" -> "0x40fdf4" [color=red];
 "0x40fdf4" -> "0x40fdfc" [color=gray, style=dashed];
 "0x40fdfc" -> "0x40fcdc" [color=blue];
-"0x40fe01" -> "0x40fe20" [color=gray, style=dashed];
-"0x40fe20" -> "0x40fe3f" [color=gray, style=dashed];
-"0x40fe3f" -> "0x40fe44" [color=gray, style=dashed];
 }

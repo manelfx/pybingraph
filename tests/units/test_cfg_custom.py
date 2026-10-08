@@ -23,13 +23,10 @@ from bingraph.cfg.exceptions import (
 )
 from bingraph.cfg.sweep import (
     ExecutableSweep,
-    ExecutableSweepAudit,
-    ReconnectingComponents,
     SweepBudgetExceeded,
     recover_executable_components,
     select_disconnected_components,
     validate_disconnected_baseline,
-    select_reconnecting_components,
 )
 from bingraph.cfg.jumps import (
     abi_static_register_transfer_targets,
@@ -194,7 +191,6 @@ def test_disconnected_lsda_closes_recovered_calls(
     )
     assert session.blocks == before.blocks
     assert session.static_targets == before.static_targets
-    assert session.static_target_candidates == before.static_target_candidates
     assert session.recovered_roots == before.recovered_roots
     assert (
         validate_disconnected_baseline(displayed, before._output_blocks()) is not None
@@ -268,6 +264,40 @@ def test_custom_names_nonreturning_unwind_plt_call() -> None:
         == "Ijk_Call"
     )
     assert 0x4B10BC in nodes
+
+
+def test_custom_proves_table_after_nonreturning_stack_check_plt_call() -> None:
+    """A stack-check failure cannot carry an unrelated RBP back to dispatch."""
+
+    project = project_module.load_project(Path("angr-binaries/tests/x86_64/cvs"))
+    assert project.loader.find_symbol(0x404350) is None
+    assert target_is_known_nonreturning(project, 0x404350)
+    with patch.object(project.analyses, "CFGFast", side_effect=AssertionError):
+        cfg = build_custom_cfg(project, KnowledgeBase(project), 0x458830)
+    nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
+
+    call_targets = tuple(cfg.graph.successors(nodes[0x4599B1]))
+    assert len(call_targets) == 1
+    assert call_targets[0].addr == 0x404350
+    assert (
+        cfg.graph.get_edge_data(nodes[0x4599B1], call_targets[0])["jumpkind"]
+        == "Ijk_Call"
+    )
+    # The continuation is still legitimate via the varargs path, not this call.
+    assert 0x4599B6 in nodes
+    assert not cfg.graph.has_edge(nodes[0x4599B1], nodes[0x4599B6])
+
+    targets = {
+        target.addr: data
+        for _, target, data in cfg.graph.out_edges(nodes[0x4589C8], data=True)
+    }
+    assert set(targets) == {0x4589D6, 0x458A57, 0x458A83, 0x458AA1, 0x458AC7}
+    assert all(
+        data["jumpkind"] == "Ijk_Boring" and not data["unresolved_indirect"]
+        for data in targets.values()
+    )
+    assert cfg.custom_summary.discovered_instructions == 996
+    assert cfg.custom_summary.entry_connected_instructions == 996
 
 
 def test_custom_omits_static_unwind_resume_fakerets() -> None:
@@ -1172,6 +1202,8 @@ def test_custom_suppresses_fakeret_for_a_static_nonreturning_call() -> None:
     assert block.jumpkind == "Ijk_Call"
     assert block.direct_targets == (0x500020,)
     assert block.fallthrough_addr is None
+    assert block.decoded_call_target_kind == "nonreturning_memory"
+    assert block.decoded_nonreturning_call
 
 
 def test_custom_suppresses_fakeret_after_malloc_assert() -> None:
@@ -1183,6 +1215,8 @@ def test_custom_suppresses_fakeret_after_malloc_assert() -> None:
     successors = tuple(cfg.graph.successors(nodes[0x41EAB7]))
 
     assert target_is_known_nonreturning(project, 0x4171E0)
+    assert cfg.custom_stats.decoder_nonreturning_calls > 0
+    assert cfg.custom_stats.decoder_call_targets_by_kind["vex_constant"] > 0
     assert len(successors) == 1
     assert successors[0].addr == 0x4171E0
     assert (
@@ -1239,6 +1273,8 @@ def test_custom_resolves_returning_static_memory_call_targets() -> None:
         assert block.jumpkind == "Ijk_Call"
         assert block.direct_targets == (target,)
         assert block.fallthrough_addr is not None
+        assert block.decoded_call_target_kind in {"static_memory", "mips_gp"}
+        assert not block.decoded_nonreturning_call
 
         cfg = session.build()
         source = next(node for node in cfg.graph.nodes() if node.addr == call_addr)
@@ -1442,7 +1478,6 @@ def test_custom_recovers_mips_pic_relative_jump_table() -> None:
     assert len(targets) == 27
     assert targets[0] == 0x40FFF0
     assert targets[-1] == 0x410518
-    assert session.unresolved_dispatcher_reasons.get(0x40FFD4) is None
     assert session.stats.exact_jump_proofs_by_flavor.get("mips_pic_table", 0) >= 1
 
 
@@ -1481,8 +1516,8 @@ def test_custom_revisits_abi_targets_after_exact_table_recovery() -> None:
     assert set(session.blocks[0x45CD28].direct_targets) == targets
 
 
-def test_custom_abi_snapshot_excludes_candidates_and_skips_unchanged_inputs() -> None:
-    """Unproven rows cannot seed ABI facts or trigger identical reruns."""
+def test_custom_abi_snapshot_skips_unchanged_inputs() -> None:
+    """Reuse identical ABI inputs and reanalyze newly proven incoming flow."""
 
     project = project_module.load_project(
         Path("angr-binaries/tests/mipsel/mips_syscall_demo")
@@ -1494,7 +1529,6 @@ def test_custom_abi_snapshot_excludes_candidates_and_skips_unchanged_inputs() ->
         for addr, block in session.blocks.items()
         if block.jumpkind == "Ijk_Boring" and not block.direct_targets
     )
-    session.static_target_candidates[source] = (0x45CD28,)
     with patch.object(
         builder_module,
         "abi_static_register_transfer_targets",
@@ -1637,7 +1671,10 @@ def test_custom_revalidates_register_proof_after_a_new_incoming_root() -> None:
     session._resolve_abi_static_register_transfers()
     assert session.stats.abi_static_target_analysis_runs == runs
 
-    session._discover_static_jump_targets()
+    # Model a new incoming root independently of any recovery policy.
+    session._add_leader(0x498E0D)
+    session._decode_all_blocks()
+    session._resolve_abi_static_register_transfers()
     assert 0x498E0D in session.blocks
     assert session.blocks[0x498DAD].direct_targets == ()
 
@@ -1762,7 +1799,6 @@ def test_custom_recovers_mips64_pic_tables_with_split_gp_additions() -> None:
         session._discover_static_jump_targets()
 
         assert len(session.static_targets[dispatcher_addr]) == 13
-        assert session.unresolved_dispatcher_reasons.get(dispatcher_addr) is None
     assert 0x41ADB8 in session.static_targets[0x41ACCC]
     assert 0x41ADB4 not in session.static_targets[0x41ACCC]
 
@@ -1778,10 +1814,9 @@ def test_custom_recovers_mips64_table_with_guarded_frame_reload() -> None:
 
     assert len(session.static_targets[0x1200055D0]) == 10
     assert 0x120005AF8 in session.static_targets[0x1200055D0]
-    assert session.unresolved_dispatcher_reasons.get(0x1200055D0) is None
 
 
-def test_custom_does_not_sweep_unproven_i386_pic_tables() -> None:
+def test_custom_keeps_unproven_i386_pic_dispatches_unresolved() -> None:
     """Unknown spilled relative tables must not grow speculative components."""
 
     project = project_module.load_project(
@@ -1800,7 +1835,6 @@ def test_custom_does_not_sweep_unproven_i386_pic_tables() -> None:
 
         assert len(targets) == 1
         assert targets[0].simprocedure_name == "UnresolvableJumpTarget"
-        assert cfg.custom_stats.sweep_runs == 0
         assert cfg.custom_stats.output_anomaly_count == 0
         assert cfg.custom_stats.static_jump_plans_resolved == 0
 
@@ -1829,7 +1863,6 @@ def test_custom_resolves_inline_masked_mips_pic_table() -> None:
         node.simprocedure_name != "UnresolvableJumpTarget" for node in nodes.values()
     )
     assert cfg.custom_stats.abi_static_jump_targets_resolved == 1
-    assert cfg.custom_stats.sweep_runs == 0
 
 
 def test_custom_recovers_mips_pic_table_with_inline_scaled_index() -> None:
@@ -1848,7 +1881,6 @@ def test_custom_recovers_mips_pic_table_with_inline_scaled_index() -> None:
         session._discover_static_jump_targets()
 
         assert len(session.static_targets[dispatcher_addr]) == expected_count
-        assert session.unresolved_dispatcher_reasons.get(dispatcher_addr) is None
 
 
 def test_custom_suppresses_fakeret_for_a_declared_nonreturning_symbol() -> None:
@@ -1890,7 +1922,7 @@ def test_custom_does_not_fall_through_to_a_verified_literal_pool() -> None:
     assert cfg.custom_stats.data_leaders_rejected == 1
     assert cfg.custom_stats.data_region_observations > 0
     assert cfg.custom_stats.data_bytes_discovered > 0
-    assert cfg.custom_stats.call_fallthroughs_suppressed == 1
+    assert cfg.custom_stats.post_decode_call_fallthroughs_suppressed == 1
 
 
 def test_custom_stops_before_a_decodable_thumb_literal_pool() -> None:
@@ -2001,7 +2033,6 @@ def test_custom_static_table_discovery_discards_stale_snapshot_plans(
         0x1100: BlockSpec(0x1100, 4, (0x1100,), "Ijk_Boring"),
     }
     session.static_targets = {}
-    session.static_target_candidates = {}
     session.stats = CustomCFGStats()
     session.recovery_table_bytes = set()
     session.project = SimpleNamespace()
@@ -2058,10 +2089,12 @@ def test_custom_static_table_discovery_discards_stale_snapshot_plans(
     assert 0x1000 not in session.blocks
     assert session.static_targets == {0x1100: (0x1008,)}
     assert session.stats.static_jump_plan_attempts == 2
-    assert session.stats.static_jump_plans_invalidated == 1
+    assert session.stats.static_jump_plans_in_discovery_rounds == 1
+    # The counted plan's source survived discovery; its proof was not wrong.
+    assert 0x1100 in session.blocks
     assert session.stats.static_jump_plans_resolved == 1
     assert session.stats.exact_jump_proofs_by_flavor == {"generic_vex_table": 1}
-    assert session.stats.static_jump_table_entries_read == 2
+    assert session.stats.static_jump_target_candidate_attempts == 2
     assert session.stats.static_jump_targets_accepted == 2
 
 
@@ -2112,7 +2145,6 @@ def test_custom_retains_static_targets_without_memory_dispatch_sweeps() -> None:
             node.is_simprocedure and node.name == "UndecodableInstructionTarget"
             for node in cfg.graph.nodes()
         )
-        assert cfg.custom_stats.sweep_runs == 0
         if binary == "x86_64/rust_hello_world":
             assert (
                 cfg.custom_stats.exact_jump_proofs_by_flavor.get(
@@ -2170,34 +2202,42 @@ def test_custom_does_not_reconnect_an_unbounded_table_dispatcher() -> None:
     successors = tuple(cfg.graph.successors(source))
     assert len(successors) == 1
     assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
-    assert cfg.custom_stats.sweep_runs == 0
-    assert cfg.custom_stats.sweep_dispatchers_ineligible == 1
 
 
-def test_custom_recovers_memory_selector_table_candidates() -> None:
-    """Recover bounded candidate rows without claiming an enum table is exact."""
+@pytest.mark.parametrize(
+    ("entry", "dispatcher", "regions", "instructions"),
+    [
+        (0x4B1040, 0x4B1040, (0x4B1057, 0x4B1067, 0x4B1075), 38),
+        (0x498D40, 0x498DCF, (0x498DDD, 0x498E04, 0x498E0D), 76),
+    ],
+)
+def test_custom_recovers_memory_dispatch_regions_without_guessed_targets(
+    entry, dispatcher, regions, instructions
+) -> None:
+    """Preserve unguarded dispatch code behind an unknown entry, not the jump."""
 
     project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
-    cfg = build_custom_cfg(project, KnowledgeBase(project), 0x4B1040)
-    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
-    source = nodes[0x4B1040]
-    successors = tuple(cfg.graph.successors(source))
+    cfg = build_custom_cfg(project, KnowledgeBase(project), entry)
+    nodes = {node.addr: node for node in cfg.graph}
+    successors = tuple(cfg.graph.successors(nodes[dispatcher]))
 
-    assert {0x4B1057, 0x4B1067, 0x4B1075} <= {
-        node.addr for node in successors if not node.is_simprocedure
-    }
-    assert any(
-        node.is_simprocedure and node.name == "UnresolvableJumpTarget"
-        for node in successors
-    )
-    assert all(
-        cfg.graph.get_edge_data(source, node)["unresolved_indirect"]
-        for node in successors
-    )
-    assert cfg.custom_stats.static_jump_candidate_plans == 1
-    assert cfg.custom_stats.static_jump_candidate_targets_accepted == 3
-    assert cfg.custom_stats.sweep_runs == 0
-    assert cfg.custom_stats.sweep_dispatchers_ineligible == 1
+    assert len(successors) == 1
+    assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
+    source = next(node for node in cfg.graph if node.name == "UnresolvableEntrySource")
+    assert set(regions) <= {node.addr for node in cfg.graph.successors(source)}
+    for target in cfg.graph.successors(source):
+        edge = cfg.graph.get_edge_data(source, target)
+        assert edge["recovered_entry"] and edge["unresolved_indirect"]
+    assert cfg.custom_summary.discovered_instructions == instructions
+    assert cfg.custom_stats.output_anomaly_count == 0
+    if entry == 0x498D40:
+        # Guessed region roots used to obscure this ABI-preserved call proof.
+        call = nodes[0x498DAD]
+        assert {
+            node.addr
+            for node in cfg.graph.successors(call)
+            if cfg.graph.get_edge_data(call, node)["jumpkind"] == "Ijk_Call"
+        } == {0x545F60}
 
 
 def test_custom_recovers_clamped_relative_jump_table() -> None:
@@ -2252,41 +2292,6 @@ def test_custom_recovers_clamped_relative_jump_table() -> None:
     assert plan.entry_indices == tuple(range(7))
 
 
-def test_custom_skips_ambiguous_memory_selector_table_candidates() -> None:
-    """Keep LSDA edges without substituting a sweep for an unproved enum."""
-
-    project = project_module.load_project(Path("angr-binaries/tests/x86_64/fmt-rust"))
-    session = builder_module._BuildSession(project, KnowledgeBase(project), 0x4F2AC0)
-    cfg = session.build()
-
-    assert cfg.custom_stats.static_jump_candidate_plans == 0
-    assert cfg.custom_stats.sweep_runs == 0
-    assert cfg.custom_stats.sweep_dispatchers_ineligible == 1
-    assert not session.sweep_component_roots
-    assert cfg.custom_stats.exception_edges_added > 0
-    source = next(node for node in cfg.graph if node.addr == 0x4F2E60)
-    successors = tuple(cfg.graph.successors(source))
-    assert len(successors) == 1
-    assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
-
-
-def test_custom_bounds_memory_selector_table_candidates() -> None:
-    """Keep large unproven table frontiers on the ordinary recovery path."""
-
-    cases = (
-        (
-            "x86_64/1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51",
-            0x431900,
-        ),
-        ("x86_64/rust_hello_world", 0x423360),
-    )
-    for binary, function_addr in cases:
-        project = project_module.load_project(Path("angr-binaries/tests") / binary)
-        cfg = build_custom_cfg(project, KnowledgeBase(project), function_addr)
-
-        assert cfg.custom_stats.static_jump_candidate_plans == 0
-
-
 def test_custom_resolves_guarded_rotated_table_without_sweep() -> None:
     """A zero-extended ``clijle`` guard proves the rotated table bound."""
 
@@ -2304,7 +2309,6 @@ def test_custom_resolves_guarded_rotated_table_without_sweep() -> None:
     assert all(not node.is_simprocedure for node in successors)
     assert cfg.custom_stats.static_jump_plans_resolved == 1
     assert cfg.custom_stats.unresolved_indirect_targets == 0
-    assert cfg.custom_stats.sweep_runs == 0
 
 
 def test_custom_does_not_reconnect_dynamic_memory_dispatch() -> None:
@@ -2322,11 +2326,9 @@ def test_custom_does_not_reconnect_dynamic_memory_dispatch() -> None:
     assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
     assert 0x8055C06 not in nodes
     assert cfg.custom_stats.static_jump_dynamic_memory_target == 1
-    assert cfg.custom_stats.sweep_runs == 0
-    assert cfg.custom_stats.sweep_dispatchers_ineligible == 1
 
 
-def test_custom_does_not_sweep_an_unproved_static_memory_dispatch() -> None:
+def test_custom_keeps_unproved_static_memory_dispatch_unresolved() -> None:
     """A mapped byte-map/table base is not evidence for padding-root edges."""
 
     project = project_module.load_project(Path("angr-binaries/tests/x86_64/static"))
@@ -2339,8 +2341,6 @@ def test_custom_does_not_sweep_an_unproved_static_memory_dispatch() -> None:
     assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
     assert 0x452FDF not in nodes
     assert cfg.custom_stats.static_jump_dynamic_memory_target == 1
-    assert cfg.custom_stats.sweep_runs == 0
-    assert cfg.custom_stats.sweep_dispatchers_ineligible == 1
 
 
 def test_custom_resolves_abi_preserved_register_tail_target() -> None:
@@ -2567,7 +2567,6 @@ def test_custom_resolves_mips_pic_table_guarded_across_delay_slot() -> None:
     assert 0x466B34 in nodes
     assert cfg.custom_stats.static_jump_plans_resolved == 1
     assert cfg.custom_stats.static_jump_target_edges_added == 27
-    assert cfg.custom_stats.sweep_runs == 0
     assert cfg.custom_stats.static_jump_unbounded_index == 0
 
 
@@ -2720,8 +2719,6 @@ def test_custom_keeps_unproved_s390_byte_map_dispatch_unresolved() -> None:
     successors = tuple(cfg.graph.successors(source))
     assert len(successors) == 1
     assert successors[0].simprocedure_name == "UnresolvableJumpTarget"
-    assert cfg.custom_stats.sweep_runs == 0
-    assert cfg.custom_stats.sweep_dispatchers_ineligible == 1
 
 
 def test_custom_continues_after_valid_mips_vex_sigill() -> None:
@@ -2772,8 +2769,8 @@ def test_custom_resolves_constant_masked_jump_table_indices() -> None:
     assert cfg.custom_stats.unresolved_indirect_targets == 0
 
 
-def test_executable_sweep_closes_direct_targets_before_reporting_components() -> None:
-    """Audit components retain the normal builder's exact-leader invariant."""
+def test_executable_sweep_closes_direct_targets_before_selection() -> None:
+    """Recovered components retain the builder's exact-leader invariant."""
 
     project = project_module.load_project(
         Path("angr-binaries/tests/i386/bronze_ropchain")
@@ -2784,8 +2781,7 @@ def test_executable_sweep_closes_direct_targets_before_reporting_components() ->
 
     sweep = recover_executable_components(project, session.bounds, session.blocks)
 
-    assert sweep.audit.candidate_blocks > 100
-    assert sweep.audit.decode_failures == 0
+    assert len(sweep.disconnected_addrs) > 100
     for block in sweep.blocks.values():
         for target in block.direct_targets:
             if session.bounds.addr <= target < session.bounds.end_addr:
@@ -2960,7 +2956,6 @@ def test_disconnected_baseline_accepts_only_lossless_unprotected_splits() -> Non
         {prefix.addr: prefix, terminal.addr: terminal},
         frozenset({0x1000, 0x1005}),
         frozenset(),
-        ExecutableSweepAudit(0, 0, 0, 0, 0),
     )
     baseline = {original.addr: original}
     assert validate_disconnected_baseline(sweep, baseline) == dict(sweep.blocks)
@@ -3138,7 +3133,6 @@ def test_disconnected_selector_preserves_cycle_and_unknown_targets() -> None:
         blocks,
         frozenset(baseline),
         frozenset({0x1002, 0x1009, 0x100B, 0x100F}),
-        ExecutableSweepAudit(4, 6, 1, 0, 0),
     )
     selected = select_disconnected_components(project, sweep, baseline)
     assert selected.roots == frozenset({0x1002, 0x1009})
@@ -3178,9 +3172,7 @@ def test_disconnected_prototype_excludes_bounded_inline_table(monkeypatch) -> No
         assert stop_at_data(0x401202)  # Not an ARM instruction boundary.
         assert stop_at_data(0x401155)  # No speculative ARM-to-Thumb switch.
         assert not stop_at_data(session.func_addr)
-        return ExecutableSweep(
-            blocks, frozenset(blocks), frozenset(), ExecutableSweepAudit(0, 0, 0, 0, 0)
-        )
+        return ExecutableSweep(blocks, frozenset(blocks), frozenset())
 
     monkeypatch.setattr(builder_module, "recover_executable_components", capture)
     session._recover_disconnected_components()
@@ -3271,76 +3263,49 @@ def test_custom_keeps_rebased_function_address_for_sub_name() -> None:
     assert function.name == "sub_119320"
 
 
-def test_reconnecting_component_cycle_gets_a_dispatcher_root() -> None:
-    """Attach source strongly connected components with no zero-indegree node."""
-
-    blocks = {
-        0x1000: BlockSpec(0x1000, 1, (0x1000,), "Ijk_Boring", (0x1010,)),
-        0x1010: BlockSpec(0x1010, 1, (0x1010,), "Ijk_Boring"),
-        0x1020: BlockSpec(0x1020, 1, (0x1020,), "Ijk_Boring", (0x1030,)),
-        0x1030: BlockSpec(
-            0x1030,
-            1,
-            (0x1030,),
-            "Ijk_Boring",
-            (0x1020, 0x1040),
+@pytest.mark.parametrize(
+    ("binary", "address", "padding_roots", "instructions", "entry_instructions"),
+    [
+        ("i386/bronze_ropchain", 0x8080550, (0x8080783, 0x8080943), 2248, 249),
+        (
+            "i386/bronze_ropchain",
+            0x808AB50,
+            (0x808AD8B, 0x808AEE8, 0x808AF33),
+            2247,
+            255,
         ),
-        0x1040: BlockSpec(0x1040, 1, (0x1040,), "Ijk_Ret"),
-    }
-    sweep = ExecutableSweep(
-        blocks,
-        frozenset({0x1000, 0x1010, 0x1040}),
-        frozenset({0x1020, 0x1030}),
-        ExecutableSweepAudit(2, 2, 1, 0, 0),
-    )
-
-    selected = select_reconnecting_components(
-        None,
-        sweep,
-        {addr: blocks[addr] for addr in (0x1000, 0x1010, 0x1040)},
-    )
-
-    assert selected.roots == frozenset({0x1020})
-    assert set(selected.blocks) == set(blocks)
-
-
-def test_custom_keeps_original_graph_when_sweep_loses_dispatcher(monkeypatch) -> None:
-    """Do not attach components from a dispatcher removed by speculative sweep."""
-
-    dispatcher = BlockSpec(0x1000, 1, (0x1000,), "Ijk_Boring")
-    selected_block = BlockSpec(0x1010, 1, (0x1010,), "Ijk_Ret")
-    audit = ExecutableSweepAudit(1, 1, 1, 0, 0)
-    sweep = ExecutableSweep(
-        {0x1010: selected_block}, frozenset({0x1010}), frozenset(), audit
-    )
-    session = object.__new__(builder_module._BuildSession)
-    session.project = SimpleNamespace()
-    session.bounds = SimpleNamespace(addr=0x1000, end_addr=0x1020)
-    session.func_addr = 0x1000
-    session.blocks = {0x1000: dispatcher}
-    session.static_targets = {}
-    session.static_target_candidates = {}
-    session.unresolved_dispatcher_reasons = {0x1000: "no_table_shape"}
-    session.leaders = {0x1000}
-    session.stats = CustomCFGStats()
-    session.data_regions = SimpleNamespace(contains=lambda *_args: False)
-    session.sweep_dispatcher_addr = None
-    session.sweep_component_roots = frozenset()
-    monkeypatch.setattr(
-        builder_module, "recover_executable_components", lambda *_args, **_kwargs: sweep
-    )
-    monkeypatch.setattr(
-        builder_module,
-        "select_reconnecting_components",
-        lambda *_, **__: ReconnectingComponents(
-            {0x1010: selected_block}, frozenset({0x1010}), 1
+        (
+            "ppc64el/fauxware_static",
+            0x100519C0,
+            (0x10051D98, 0x10051DB4, 0x10052E68, 0x10052EF8, 0x10052F58),
+            2388,
+            326,
         ),
-    )
+        (
+            "ppc64el/fauxware_static",
+            0x1005C820,
+            (0x1005CBF4, 0x1005CC18, 0x1005CC34, 0x1005CCB8, 0x1005DDC8),
+            2494,
+            331,
+        ),
+    ],
+)
+def test_custom_recovery_omits_padding_only_printf_regions(
+    binary, address, padding_roots, instructions, entry_instructions
+) -> None:
+    """Keep useful unknown-entry code without speculative edges to padding."""
 
-    session._recover_reconnecting_components()
+    project = project_module.load_project(Path("angr-binaries/tests") / binary)
+    cfg = build_custom_cfg(project, KnowledgeBase(project), address)
 
-    assert session.blocks == {0x1000: dispatcher}
-    assert session.sweep_dispatcher_addr is None
+    assert not set(padding_roots).intersection(node.addr for node in cfg.graph)
+    assert cfg.custom_summary.discovered_instructions == instructions
+    assert cfg.custom_summary.entry_connected_instructions == entry_instructions
+    assert cfg.custom_stats.disconnected_blocks > 0
+    assert cfg.custom_stats.output_anomaly_count == 0
+    names = {node.simprocedure_name for node in cfg.graph if node.is_simprocedure}
+    assert "UnresolvableEntrySource" in names
+    assert "UnresolvableJumpTarget" in names
 
 
 class _Node:

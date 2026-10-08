@@ -19,7 +19,6 @@ edge [fontname=monospace, fontsize=8];
 "0xc204" -> "0xc220" [color=red];
 "0xc204" -> "0xc240" [color=green];
 "0xc220" -> "0xc23c" [color=gray, style=dashed];
-"0xc23c" -> "0xc240" [color=gray, style=dashed];
 "0xc240" -> "0xc24c" [color=gray, style=dashed];
 "0xc24c" -> "0xc25c" [color=red];
 "0xc24c" -> "0xc268" [color=green];

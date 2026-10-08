@@ -2,10 +2,14 @@
 
 from types import SimpleNamespace
 
+import pytest
+
+from bingraph.cfg import decode as decode_module
 from bingraph.cfg.decode import (
     DecodedNode,
     decode_raw_capstone_insns,
     is_post_prefix_instruction_entry,
+    target_is_known_nonreturning,
 )
 
 
@@ -13,6 +17,39 @@ def _insn(addr: int, size: int) -> SimpleNamespace:
     """Create the minimal instruction shape required by ``DecodedNode``."""
 
     return SimpleNamespace(address=addr, size=size)
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("abort", True),
+        ("_Unwind_Resume", True),
+        ("__assert_fail", True),
+        ("__libc_assert_fail", True),
+        ("__malloc_assert", True),
+        ("__stack_chk_fail", True),
+        ("malloc", False),
+        ("_Unwind_Resume_or_Rethrow", False),
+    ],
+)
+def test_nonreturning_runtime_plt_requires_an_exact_known_entry(
+    monkeypatch, name: str, expected: bool
+) -> None:
+    """Use PLT metadata, not stub-address symbols or name-prefix guesses."""
+
+    obj = SimpleNamespace(reverse_plt={0x1000: name})
+    project = SimpleNamespace(
+        loader=SimpleNamespace(find_object_containing=lambda _addr: obj)
+    )
+    monkeypatch.setattr(
+        decode_module, "target_is_hooked_nonreturning", lambda *_: False
+    )
+    monkeypatch.setattr(
+        decode_module, "_symbol_is_declared_nonreturning", lambda *_: False
+    )
+
+    assert target_is_known_nonreturning(project, 0x1000) is expected
+    assert not target_is_known_nonreturning(project, 0x1001)
 
 
 def test_decoded_node_reports_exact_instruction_coverage() -> None:

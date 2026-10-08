@@ -96,7 +96,6 @@ edge [fontname=monospace, fontsize=8];
 "0x40eb18" -> "0x40eb3d" [color=green];
 "0x40eb1e" -> "0x40eb26" [color=red];
 "0x40eb1e" -> "0x40eb2b" [color=green];
-"0x40eb26" -> "0x40eb2b" [color=gray, style=dashed];
 "0x40eb2b" -> "0x40eb67" [color=blue];
 "0x40eb3d" -> "0x40eb4c" [color=red];
 "0x40eb3d" -> "0x40eb67" [color=green];
@@ -105,5 +104,4 @@ edge [fontname=monospace, fontsize=8];
 "0x40eb5f" -> "0x40eb67" [color=blue, style=dashed];
 "0x40eb67" -> "0x40eb7a" [color=red];
 "0x40eb67" -> "0x40eb7f" [color=green];
-"0x40eb7a" -> "0x40eb7f" [color=gray, style=dashed];
 }

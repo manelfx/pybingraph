@@ -37,5 +37,4 @@ edge [fontname=monospace, fontsize=8];
 "0x426898" -> "0x426899" [color=blue, style=dashed];
 "0x426899" -> "0x4268a8" [color=red];
 "0x426899" -> "0x4268ad" [color=green];
-"0x4268a8" -> "0x4268ad" [color=gray, style=dashed];
 }

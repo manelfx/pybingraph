@@ -2725,32 +2725,6 @@ def _constant_register_from_predecessors(
     return next(iter(definitions)) if len(definitions) == 1 else None
 
 
-def _unique_static_register_value(
-    graph: CFGGraph,
-    bounds: FunctionBounds,
-    register_offset: int,
-) -> int | None:
-    """Return one in-bounds VEX-proven static value assigned to a register."""
-
-    values: set[int] = set()
-    for node in _iter_graph_bound_nodes(graph, bounds):
-        if not _node_is_materialized_cfg_node(node):
-            continue
-        try:
-            vex = node.block.vex
-        except Exception:
-            continue
-        definitions = _vex_tmp_definitions(vex)
-        for stmt in vex.statements:
-            if not isinstance(stmt, pyvex.stmt.Put) or stmt.offset != register_offset:
-                continue
-            value = _vex_static_int(stmt.data, definitions)
-            if value is not None:
-                values.add(value)
-
-    return next(iter(values)) if len(values) == 1 else None
-
-
 def _x86_pc_thunk_predecessors(
     project: Project,
     graph: CFGGraph,
@@ -2953,66 +2927,6 @@ def _in_function_jump_table_entry_count(
             break
         count += 1
     return count if count >= 2 else None
-
-
-def _is_non_executable_static_data(project: Project, addr: int) -> bool:
-    """Return whether ``addr`` is mapped static data rather than code."""
-
-    obj = project.loader.find_object_containing(addr)
-    if obj is None or obj is getattr(project.loader, "extern_object", None):
-        return False
-    for method_name in ("find_section_containing", "find_segment_containing"):
-        method = getattr(obj, method_name, None)
-        region = method(addr) if callable(method) else None
-        if region is not None:
-            return not bool(getattr(region, "is_executable", False))
-    return False
-
-
-def plan_dynamic_selector_table_candidates(
-    project: Project,
-    graph: CFGGraph,
-    bounds: FunctionBounds,
-    node,
-) -> StaticJumpTablePlan | None:
-    """Return bounded candidate rows for an unguarded memory selector table.
-
-    This is intentionally weaker than :func:`plan_static_jump_table`: a
-    table's extent is inferred from its contiguous in-function entries, not
-    proven by the selector. Callers must retain an unresolved fallback and
-    render the resulting edges as candidates.
-    """
-
-    vex = _node_vex(node)
-    if vex is None:
-        return None
-    table = _vex_relative_jump_table(
-        vex,
-        allow_full_width_index=True,
-        allow_guarded_expression_index=True,
-    )
-    if (
-        table is None
-        or table.index_expression is None
-        or not table.entries_are_relative
-    ):
-        return None
-
-    base_addr = table.static_base_addr
-    if base_addr is None and table.base_register_offset is not None:
-        base_addr = _constant_register_from_predecessors(
-            graph, bounds, node, table.base_register_offset
-        )
-    if base_addr is None:
-        return None
-
-    table_addr = _jump_table_addr(base_addr, table)
-    if not _is_non_executable_static_data(project, table_addr):
-        return None
-    entry_count = _in_function_jump_table_entry_count(project, bounds, table, base_addr)
-    if entry_count is None:
-        return None
-    return StaticJumpTablePlan(table, base_addr, tuple(range(entry_count)))
 
 
 def _mips_static_value(
@@ -4101,10 +4015,6 @@ def plan_static_jump_table(
         base_addr = _constant_register_from_predecessors(
             graph, bounds, node, base_register_offset
         )
-    if base_addr is None and base_register_offset is not None:
-        # Disconnected dispatchers can lack a full predecessor path. Accept a
-        # base only if every bounded VEX definition agrees on its value.
-        base_addr = _unique_static_register_value(graph, bounds, base_register_offset)
     if base_addr is None:
         return (
             None,

@@ -32,5 +32,4 @@ rank=source;
 "0x4065c1" -> "0x4065c6" [color=blue, style=dashed];
 "0x4065c6" -> "0x4065d5" [color=red];
 "0x4065c6" -> "0x4065da" [color=green];
-"0x4065d5" -> "0x4065da" [color=gray, style=dashed];
 }

@@ -1,4 +1,4 @@
-"""Independent shared-table migration and remaining legacy shadow proofs."""
+"""Independent shared-table proofs and shared register facts."""
 
 from pathlib import Path
 from types import SimpleNamespace
@@ -6,7 +6,6 @@ from types import SimpleNamespace
 from angr import KnowledgeBase, options as sim_options
 import pytest
 
-from bingraph.cfg.jumps import plan_dynamic_selector_table_candidates
 from bingraph.cfg.builder import _BuildSession, build_custom_cfg
 from bingraph.cfg import builder as builder_module
 from bingraph.cfg import shared_table_proof as proof_module
@@ -34,85 +33,36 @@ import pyvex
         (0x497190, 0x4972A3),
     ],
 )
-def test_shared_affine_tables_prove_exact_targets_without_candidates(
+def test_shared_affine_tables_prove_exact_targets(
     function: int, dispatcher: int
 ) -> None:
-    """Resolve ordered affine dispatches without speculative table rows."""
+    """Resolve ordered affine dispatches through shared finite-table facts."""
 
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
     session = _BuildSession(project, KnowledgeBase(project), function)
     session._decode_all_blocks()
-    graph, nodes = session._analysis_graph({})
-
-    # Exact register-derived targets must not seed heuristic table candidates.
-    assert (
-        plan_dynamic_selector_table_candidates(
-            project, graph, session.bounds, nodes[dispatcher]
-        )
-        is None
-    )
-
     session._discover_static_jump_targets()
 
     assert len(session.static_targets[dispatcher]) == 15
     assert session.stats.exact_jump_proofs_by_flavor == {"shared_finite_table": 1}
-    assert dispatcher not in session.unresolved_dispatcher_reasons
-    assert not session.static_target_candidates
     assert session.stats.shared_fact_budget_exhausted == 0
 
 
-@pytest.mark.parametrize(
-    ("binary", "function", "expect_match"),
-    [
-        ("mipsel/busybox", 0x40FDC0, True),
-        ("mips64/ld.so.1", 0x402988, True),
-        ("mips64/ld.so.1", 0x41ABD8, True),
-        ("ppc64el/fauxware_static", 0x10002390, True),
-        ("ppc64el/fauxware_static", 0x100985E0, True),
-        # These bases require shared predecessor facts rather than the old
-        # same-block evaluator or MIPS-only fallback.
-        ("i386/nl", 0x402710, True),
-        ("x86_64/elf_with_static_libc_ubuntu_2004", 0x48EF40, True),
-        ("x86_64/bomb", 0x400F43, False),
-        # Static GOT bytes without local relocation evidence remain unknown.
-        ("mipsel/mips_syscall_demo", 0x408814, False),
-    ],
-)
-def test_shared_shadow_proof_does_not_change_exact_targets(
-    monkeypatch: pytest.MonkeyPatch, binary: str, function: int, expect_match: bool
-) -> None:
-    monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")
-    project = load_project(Path("angr-binaries/tests") / binary)
-    cfg = build_custom_cfg(project, KnowledgeBase(project), function)
-
-    assert cfg.custom_stats.shadow_table_attempts >= 1
-    if expect_match:
-        assert cfg.custom_stats.shadow_table_matches >= 1
-    else:
-        assert cfg.custom_stats.shadow_table_inconclusive >= 1
-    assert cfg.custom_stats.shadow_table_disagreements == 0
-    assert cfg.custom_stats.shadow_table_attempts == (
-        cfg.custom_stats.shadow_table_matches
-        + cfg.custom_stats.shadow_table_inconclusive
-        + cfg.custom_stats.shadow_table_disagreements
+def test_builder_records_rejections_inside_shared_queries(monkeypatch) -> None:
+    project = load_project(Path("angr-binaries/tests/x86_64/static"))
+    session = _BuildSession(project, KnowledgeBase(project), 0x42C6B0)
+    session._decode_all_blocks()
+    monkeypatch.setattr(
+        proof_module, "static_jump_target_rejection_reason", lambda *_: "non_executable"
     )
 
+    session._discover_static_jump_targets()
 
-def test_repeated_dispatch_searches_share_scans_without_exhausting_budget(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")
-    project = load_project(Path("angr-binaries/tests/mipsel/mips_syscall_demo"))
-    cfg = build_custom_cfg(project, KnowledgeBase(project), 0x42C460)
-
-    # This large function previously repeated the same backward statement
-    # scans at each dispatch and exhausted the shared 20K allowance.
-    assert cfg.custom_stats.shadow_fact_steps < 20000
-    assert cfg.custom_stats.shadow_fact_budget_exhausted == 0
-    assert cfg.custom_stats.shadow_table_attempts == 14
-    assert cfg.custom_stats.shadow_table_matches == 1
-    assert cfg.custom_stats.shadow_table_inconclusive == 13
-    assert cfg.custom_stats.shadow_table_disagreements == 0
+    assert (
+        session.stats.shared_target_rejection_attempts_by_reason["non_executable"] > 0
+    )
+    # The builder's external-only validator did not make this rejection.
+    assert session.stats.static_jump_external_target_rejection_attempts == 0
 
 
 @pytest.mark.parametrize("conditional_lift_fails", [False, True])
@@ -157,7 +107,6 @@ def test_shared_primary_discovers_cfg_without_any_legacy_table_rescue(
         "plan_mips_pic_relative_jump_table",
     ):
         monkeypatch.setattr(builder_module, name, forbidden)
-    monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")
     independent = _BuildSession(project, KnowledgeBase(project), function)
     independent.build()
 
@@ -174,10 +123,8 @@ def test_shared_primary_discovers_cfg_without_any_legacy_table_rescue(
         "shared_finite_table": proofs
     }
     assert independent.stats.legacy_table_fallback_attempts == 0
-    assert independent.stats.shadow_table_attempts == 0
     assert independent.stats.unresolved_indirect_targets == 0
     assert independent.stats.shared_fact_budget_exhausted == 0
-    assert independent.stats.sweep_runs == 0
     assert independent.stats.output_anomaly_count == 0
 
 
@@ -217,6 +164,13 @@ def test_shared_proof_requires_every_row_and_destination_to_be_valid(relative, f
     assert shared_table_targets(facts.project, use, facts) == (
         (0x400020, 0x400030) if failure is None else None
     )
+    assert facts.target_rejections == (
+        {"non_executable": 1} if failure == "non_executable" else {}
+    )
+    if failure == "non_executable":
+        # The metric counts declined queries, not unique bad destinations.
+        assert shared_table_targets(facts.project, use, facts) is None
+        assert facts.target_rejections == {"non_executable": 2}
     if failure is None:
         steps = facts.steps
         assert shared_table_targets(facts.project, use, facts) == (0x400020, 0x400030)
@@ -582,6 +536,11 @@ def test_finite_register_targets_require_every_destination_to_be_valid(
     assert shared_register_targets(facts.project, use, facts) == (
         None if reject_target else (0x400020, 0x400030)
     )
+    assert facts.target_rejections == (
+        {"invalid_call_target" if jumpkind == "Ijk_Call" else "non_executable": 1}
+        if reject_target
+        else {}
+    )
 
 
 @pytest.mark.parametrize("jumpkind", ["Ijk_Boring", "Ijk_Call"])
@@ -828,33 +787,3 @@ def test_unconstrained_rust_bytes_keep_ujt_without_external_table_expansion(
     assert (
         cfg.custom_stats.exact_jump_proofs_by_flavor.get("shared_finite_table", 0) == 0
     )
-
-
-@pytest.mark.parametrize(
-    ("binary", "function"),
-    [
-        ("mipsel/busybox", 0x40FDC0),
-        ("i386/nl", 0x402710),
-        ("x86_64/elf_with_static_libc_ubuntu_2004", 0x48EF40),
-    ],
-)
-def test_shadow_proof_does_not_change_cfg(
-    monkeypatch: pytest.MonkeyPatch, binary: str, function: int
-) -> None:
-    project = load_project(Path("angr-binaries/tests") / binary)
-    monkeypatch.delenv("BINGRAPH_SHADOW_TABLE_PROOFS", raising=False)
-    baseline = build_custom_cfg(project, KnowledgeBase(project), function)
-    monkeypatch.setenv("BINGRAPH_SHADOW_TABLE_PROOFS", "1")
-    shadowed = build_custom_cfg(project, KnowledgeBase(project), function)
-
-    def shape(cfg):
-        nodes = {(node.addr, node.is_simprocedure) for node in cfg.graph.nodes()}
-        edges = {
-            (source.addr, source.is_simprocedure, target.addr, target.is_simprocedure)
-            for source, target in cfg.graph.edges()
-        }
-        return nodes, edges
-
-    assert shape(shadowed) == shape(baseline)
-    assert baseline.custom_stats.shadow_table_attempts == 0
-    assert shadowed.custom_stats.shadow_table_matches >= 1
