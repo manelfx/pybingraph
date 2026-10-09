@@ -1,6 +1,29 @@
 === Check assembly code why doesn’t show “nice” (func names, etc.) ===
 
 
+=== Annotate source locations and links ===
+
+Use embedded debug information, when available, to relate assembly instructions
+to source files and line numbers without replacing the original disassembly.
+
+- Reuse CLE/pyelftools DWARF line support without CFGFast. Load and cache line
+  mappings lazily for annotations, not through a whole-debug analysis that
+  changes function discovery or CFG construction. Handle address rebasing,
+  line-table sequence gaps, and multiple or inlined source locations explicitly.
+- Start with plain `source: file.c:123` annotations. Add HTML links only when
+  the recorded build path can be mapped to an available local source file or
+  a known, version-specific repository URL. Rust compiler commit paths are
+  one possible source of version information.
+- Debug paths often belong to another machine; source contents are usually
+  absent, and playground source copies may differ from the compiled version.
+  Do not infer a correct source version from a matching basename alone. Keep
+  plain locations when a trustworthy link cannot be established, and restrict
+  any local source viewer to explicitly allowed roots.
+- Validate on `x86_64/cfg_switches`, MIPS btrfs tools, and Rust source mappings,
+  including missing debug information and unavailable or mismatched sources.
+  Preserve CFGs, assembly, and statistics; keep loading costs bounded and
+  avoid repeating source annotations on every instruction of the same line.
+
 === Render call graphs (based on CFGFast) ===
 
 Evaluate exposing angr's existing CFGFast/knowledge-base call graph as a
@@ -57,26 +80,6 @@ architecture-specific path.
   including alias, call-clobber, negative-case, and budget tests. Compare resolved
   connectivity separately from disconnected-code coverage; recovery hints must
   not become proof facts. Explicitly agree any precision loss before promotion.
-
-=== Address comments ===
-
-- Include comments-enabled golden checks in routine test runs, using separate
-  `cfg_comments_on` artifacts so annotation changes do not obscure structural
-  CFG differences.
-- Review which annotations are meaningful and which should be suppressed.
-- Refine use-aware string classification to recognize genuine text loaded
-  directly without interpreting printable integers, GOT slots, or vectors as
-  strings. Use `gimli::resolve` at 0x438e10 in the x86_64 `1cbbf108...` binary
-  as a regression probe: instruction 0x43d067 loads a path fragment at 0x45ef39
-  that should receive a readable text annotation rather than just an integer
-  reference.
-  Reuse bounded VEX reference/use information where practical to distinguish
-  text, character/vector comparisons, scalar constants, and pointer slots.
-  An address hint or printable bytes alone are not proof of textual use.
-  Success means retaining useful text without reintroducing false strings,
-  with no CFGFast, CFG changes, or significant annotation cost. Compare equal
-  instruction sites with comments enabled and validate against binary data,
-  not a previous CFG implementation. Keep broader analysis deferred if complex.
 
 === Investigate dominator-aware CFG layout ===
 

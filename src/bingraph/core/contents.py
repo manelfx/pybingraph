@@ -5,25 +5,10 @@ from angr import Project
 from angr.knowledge_plugins.cfg import CFGNode
 from bingraph.cfg.decode import decode_one
 
+from .labels import short_label
 from .vis import Content, Node
 from archinfo.archerror import ArchError
 from loguru import logger
-
-
-MAX_NODE_LABEL_LENGTH = 30
-
-
-def _short_node_name(name: str | None) -> str | None:
-    """Limit the displayed label while preserving its trailing block offset."""
-
-    if name is None:
-        return None
-    offset_match = re.search(r"[+-]0x[0-9a-fA-F]+$", name)
-    label = name[: offset_match.start()] if offset_match else name
-    offset = offset_match.group() if offset_match else ""
-    if len(label) > MAX_NODE_LABEL_LENGTH:
-        label = label[:MAX_NODE_LABEL_LENGTH] + "..."
-    return label + offset
 
 
 class NodeHead(Content):
@@ -57,7 +42,7 @@ class NodeHead(Content):
                         if show_addr
                         else None,
                     },
-                    "name": {"content": _short_node_name(display_name), "style": "B"},
+                    "name": {"content": short_label(display_name), "style": "B"},
                     "attributes": {"content": " ".join(attributes)},
                 }
             ],
@@ -96,7 +81,7 @@ class NodeAsm(Content):
             if vex_size is not None:
                 data.append(
                     {
-                        "addr": {"content": "0x%08x:\t" % addr, "align": "LEFT"},
+                        "addr": {"content": f"{addr:#x}:\t", "align": "LEFT"},
                         "mnemonic": {"content": ".word", "align": "LEFT"},
                         "operands": {
                             "content": self._vex_word(project, addr, vex_size),
@@ -116,7 +101,7 @@ class NodeAsm(Content):
                 continue
             data.append(
                 {
-                    "addr": {"content": "0x%08x:\t" % insn.address, "align": "LEFT"},
+                    "addr": {"content": f"{insn.address:#x}:\t", "align": "LEFT"},
                     "mnemonic": {"content": insn.mnemonic, "align": "LEFT"},
                     "operands": {"content": insn.op_str, "align": "LEFT"},
                     "_ins": insn,
@@ -176,7 +161,7 @@ class NodeAsm(Content):
         for ins in insns:
             data.append(
                 {
-                    "addr": {"content": "0x%08x:\t" % ins.address, "align": "LEFT"},
+                    "addr": {"content": f"{ins.address:#x}:\t", "align": "LEFT"},
                     "mnemonic": {"content": ins.mnemonic, "align": "LEFT"},
                     "operands": {"content": ins.op_str, "align": "LEFT"},
                     "_ins": ins,

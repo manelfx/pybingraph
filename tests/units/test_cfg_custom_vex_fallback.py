@@ -57,12 +57,12 @@ def test_custom_recovers_mips_fpu_compare_missing_from_capstone() -> None:
         cfg_exits="jump",
         format="raw",
     )
-    assert "0x0040f870" in rendered
+    assert '<TD ALIGN="LEFT">0x40f870&#58;&nbsp;</TD>' in rendered
     assert ".word" in rendered
     assert "0x4600113e" in rendered
     assert "VEX linear decode" in rendered
     assert "[VEX]" not in rendered
-    assert "0x0040f874" in rendered
+    assert '<TD ALIGN="LEFT">0x40f874&#58;&nbsp;</TD>' in rendered
 
     without_comments = render_cfg(
         project,

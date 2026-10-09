@@ -34,6 +34,8 @@ default_edge_attributes = {
     "fontsize": "8",
 }
 
+COMMENT_COLUMN_GAP = 8
+
 
 @dataclass
 class DotOutput(Output):
@@ -52,6 +54,7 @@ class DotOutput(Output):
                 "<TD "
                 + ('bgcolor="' + data["bgcolor"] + '" ' if "bgcolor" in data else "")
                 + ('ALIGN="' + data["align"] + '"' if "align" in data else "")
+                + (' VALIGN="' + data["valign"] + '"' if "valign" in data else "")
                 + ">"
             )
             if "color" in data:
@@ -71,7 +74,13 @@ class DotOutput(Output):
                     ret += "</TD></TR>"
                 ret += "</TABLE>"
             else:
-                ret += escape(data["content"])
+                line_break = '<BR ALIGN="' + data.get("align", "CENTER") + '"/>'
+                ret += line_break.join(
+                    escape(line) for line in data["content"].split("\n")
+                )
+                if "\n" in data["content"]:
+                    # BR alignment applies to the preceding line, including the last.
+                    ret += line_break
             if "style" in data:
                 ret += "</" + data["style"] + ">"
             if "color" in data:
@@ -82,9 +91,18 @@ class DotOutput(Output):
             return "<TD></TD>"
 
     def render_row(self, row: dict[str, Any], colmeta: list[str]) -> str:
+        # A multiline comment expands the row; keep assembly beside its first line.
+        comment = row.get("comment", {}).get("content")
+        multiline_comment = isinstance(comment, str) and "\n" in comment
         ret = "<TR>"
         for k in colmeta:
-            ret += self.render_cell(k, row[k] if k in row else None)
+            if k == "comment":
+                # Reserve space independently of whitespace and text/font metrics.
+                ret += f'<TD WIDTH="{COMMENT_COLUMN_GAP}"></TD>'
+            cell = row.get(k)
+            if multiline_comment and cell is not None:
+                cell = {**cell, "valign": "TOP"}
+            ret += self.render_cell(k, cell)
         ret += "</TR>"
         return ret
 

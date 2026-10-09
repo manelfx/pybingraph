@@ -9,13 +9,14 @@ from cle.backends.symbol import SymbolType
 import pytest
 
 from bingraph.cfg.builder import _local_node_names
-from bingraph.core.contents import MAX_NODE_LABEL_LENGTH, NodeHead
+from bingraph.core.contents import NodeHead
+from bingraph.core.labels import MAX_LABEL_LENGTH
 from bingraph.core.outputs import DotOutput
 from bingraph.core.vis import Node
 
 
 _LONG_NAME = "_ZN13fluent_bundle5types11FluentValue5write17hd5d59ec48b6606d8E"
-_SHORT_NAME = _LONG_NAME[:MAX_NODE_LABEL_LENGTH] + "..."
+_SHORT_NAME = _LONG_NAME[:MAX_LABEL_LENGTH] + "..."
 
 
 @pytest.mark.parametrize("arch", [ArchAMD64(), ArchARM(), ArchAArch64()])
@@ -97,14 +98,14 @@ def test_thumb_labels_match_normalized_block_starts(symbol_addr) -> None:
         (None, None),
         ("", ""),
         ("short_name", "short_name"),
-        ("f" * MAX_NODE_LABEL_LENGTH, "f" * MAX_NODE_LABEL_LENGTH),
-        ("f" * (MAX_NODE_LABEL_LENGTH + 1), "f" * MAX_NODE_LABEL_LENGTH + "..."),
+        ("f" * MAX_LABEL_LENGTH, "f" * MAX_LABEL_LENGTH),
+        ("f" * (MAX_LABEL_LENGTH + 1), "f" * MAX_LABEL_LENGTH + "..."),
         (_LONG_NAME, _SHORT_NAME),
         (_LONG_NAME + "+0xc4", _SHORT_NAME + "+0xc4"),
         (_LONG_NAME + "-0xABC", _SHORT_NAME + "-0xABC"),
         (
-            "f" * MAX_NODE_LABEL_LENGTH + "+0x12345",
-            "f" * MAX_NODE_LABEL_LENGTH + "+0x12345",
+            "f" * MAX_LABEL_LENGTH + "+0x12345",
+            "f" * MAX_LABEL_LENGTH + "+0x12345",
         ),
         ("operator+0xabc<long_template_name>", "operator+0xabc<long_template_n..."),
     ],
