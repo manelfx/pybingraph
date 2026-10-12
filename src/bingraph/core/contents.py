@@ -15,6 +15,10 @@ class NodeHead(Content):
     name: str = "head"
     columns: list[str] = ["addr", "name", "attributes"]
 
+    def __init__(self, *, demangle: bool = False) -> None:
+        super().__init__()
+        self.demangle = demangle
+
     def gen_render(self, node: Node) -> None:
         cfg_node = node.obj
         display_name = cfg_node.name
@@ -42,7 +46,10 @@ class NodeHead(Content):
                         if show_addr
                         else None,
                     },
-                    "name": {"content": short_label(display_name), "style": "B"},
+                    "name": {
+                        "content": short_label(display_name, demangle=self.demangle),
+                        "style": "B",
+                    },
                     "attributes": {"content": " ".join(attributes)},
                 }
             ],

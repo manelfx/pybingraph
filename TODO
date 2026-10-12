@@ -1,6 +1,3 @@
-=== Check assembly code why doesn’t show “nice” (func names, etc.) ===
-
-
 === Annotate source locations and links ===
 
 Use embedded debug information, when available, to relate assembly instructions

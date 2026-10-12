@@ -93,6 +93,9 @@ class CommentsAnnotator(ContentAnnotator):
 
 
 class CommentsDataRef(CommentsAnnotator):
+    def __init__(self, *, demangle: bool = False) -> None:
+        self.demangle = demangle
+
     @staticmethod
     def _symbol_name_at(node: Node, addr: int) -> str | None:
         """Prefer exact labels; infer offsets only inside a sized ELF symbol."""
@@ -190,7 +193,7 @@ class CommentsDataRef(CommentsAnnotator):
                 for dst in node.graph.successors(node.obj)
             ):
                 return []
-        return [f"{short_label(name)} "] if name else []
+        return [f"{short_label(name, demangle=self.demangle)} "] if name else []
 
     @staticmethod
     def _truncate_comment(text: str, max_len: int = 64) -> str:
@@ -208,7 +211,7 @@ class CommentsDataRef(CommentsAnnotator):
         sort = str(getattr(md, "sort", "data")).lower()
         symbol = self._symbol_name_at(node, addr) if addr is not None else None
         location = (
-            f"{short_label(symbol)} @ {addr:#x}"
+            f"{short_label(symbol, demangle=self.demangle)} @ {addr:#x}"
             if symbol
             else hex(addr)
             if addr is not None
@@ -264,7 +267,7 @@ class CommentsDataRef(CommentsAnnotator):
     def _format_address_comment(self, node: "Node", addr: int) -> str:
         symbol = self._symbol_name_at(node, addr)
         if symbol:
-            return f"{short_label(symbol)}"
+            return f"{short_label(symbol, demangle=self.demangle)}"
 
         return f"ref {hex(addr)}"
 

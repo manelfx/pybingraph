@@ -123,7 +123,7 @@ def test_cfg_api_has_no_recovery_parameter(monkeypatch, tmp_path, endpoint) -> N
     client = TestClient(app)
     params = {"filepath": binary.name, "function": "0x10", "format": "raw"}
     assert client.get(endpoint, params=params).status_code == 200
-    assert len(calls) == 1 and len(calls[0]) == 7
+    assert len(calls) == 1 and len(calls[0]) == 8
     names = {p["name"] for p in app.openapi()["paths"][endpoint]["get"]["parameters"]}
     assert "recovery" not in names
 

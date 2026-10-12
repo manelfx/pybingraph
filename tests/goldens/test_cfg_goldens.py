@@ -55,6 +55,7 @@ Useful environment variables:
    - `BINGRAPH_GOLDEN_CONFIGS=name1,name2,...` to run only selected configs
      Use `cfg_comments_on` for an isolated custom comments audit; its
      artifacts do not replace comments-disabled outputs.
+     Use `cfg_demangle_on` to audit demangled headers and comments separately.
    - `BINGRAPH_GOLDEN_MIN_BBS=<N>` to test only rows with at least `N` BBs
      (defaults to `10`)
    - `BINGRAPH_GOLDEN_LIMIT=<N>` to limit the filtered rows during local smoke tests
@@ -112,6 +113,7 @@ class GoldenConfig:
     cfg_mode: str
     cfg_exits: str = "jump"
     comments: bool = False
+    demangle: bool = False
 
 
 CONFIGS = [
@@ -123,6 +125,9 @@ CONFIGS = [
     GoldenConfig(name="cfg_exits_always", cfg_mode="custom", cfg_exits="always"),
     # Annotation audits have separate artifact trees, preserving CFG baselines.
     GoldenConfig(name="cfg_comments_on", cfg_mode="custom", comments=True),
+    GoldenConfig(
+        name="cfg_demangle_on", cfg_mode="custom", comments=True, demangle=True
+    ),
 ]
 
 # Custom construction is the production CFG path and therefore the default golden
@@ -361,6 +366,8 @@ def _summary_payload(
     # Keep the existing comments-disabled summary format unchanged.
     if not config.comments:
         payload["config"].pop("comments")
+    if not config.demangle:
+        payload["config"].pop("demangle")
     if config.cfg_mode == "custom":
         payload["custom_cfg_stats"] = {
             "runs": state.custom_cfg_runs,
@@ -609,6 +616,7 @@ def _build_test_settings(config: GoldenConfig) -> settings_module.Settings:
         cfg_mode=config.cfg_mode,
         cfg_exits=config.cfg_exits,
         comments=config.comments,
+        demangle=config.demangle,
         server=None,
         client=None,
     )

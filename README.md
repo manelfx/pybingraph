@@ -70,6 +70,12 @@ http://127.0.0.1:8000/cfg?filepath=samples/ais3_crackme&function=0x40043c
 Useful server options include `--port`, `--debug`, `--no-comments`, and
 `--cfg-mode none|custom`. Run `uv run bingraph --help` for the full CLI.
 
+Use the global `--demangle` option (or `BINGRAPH_DEMANGLE=true`) to display
+demangled C++ and Rust names in symbol tables, CFG headers, and comments.
+It defaults to false. CFG names are shortened after demangling, keeping
+block offsets; symbol-table names remain full. Addresses, assembly operands,
+and analysis metadata are unchanged. Unsupported names are kept as-is.
+
 ### Client
 
 The `client` subcommand makes an in-process request, so it is useful for
@@ -98,6 +104,8 @@ routes also accept optional `mode=none|custom`, `comments=true|false`,
 `dfs=true|false`, and `exits=never|jump|always` query
 parameters. A request value overrides the corresponding
 application setting for that render only.
+Both symbol-table and CFG routes also accept `demangle=true|false`, overriding
+the global setting for that request. Symbol-table links retain this override.
 
 ## Configuration
 
@@ -171,6 +179,11 @@ To run every selected corpus entry:
 ```bash
 BINGRAPH_GOLDEN_CONFIGS=cfg_mode_custom make goldens
 ```
+
+For an isolated audit of demangled names, including instruction comments, use
+`BINGRAPH_GOLDEN_CONFIGS=cfg_demangle_on make goldens`. Its artifacts are written
+under `tests/_actual/cfg_demangle_on/`; existing configurations and goldens
+keep demangling disabled.
 
 Promotion never rerenders CFGs. After reviewing a successful compare-mode run,
 copy its existing candidates into the golden tree with:

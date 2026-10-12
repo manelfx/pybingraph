@@ -44,6 +44,9 @@ class GlobalSettings(BaseSettings):
     comments: CliImplicitFlag[bool] = Field(
         True, description="Appends comments to instructions when available"
     )
+    demangle: CliImplicitFlag[bool] = Field(
+        False, description="Demangles displayed symbol names without changing analysis"
+    )
     dfs_rank: CliImplicitFlag[bool] = Field(
         False, description="Improves CFG layout on loop-back"
     )

@@ -20,6 +20,7 @@ from bingraph.helpers import (
     get_settings,
     resolve_under_root,
     MODULE_NAME,
+    demangle as demangle_name,
 )
 from bingraph.core import (
     load_project,
@@ -137,26 +138,45 @@ def create_app() -> FastAPI:
         resolved = resolve_under_root(settings.root, filepath)
         return load_project(resolved)
 
-    def _get_symbols(filepath: str) -> list[FunctionSymbol]:
+    def _get_symbols(
+        filepath: str, demangle: bool | None = None
+    ) -> list[FunctionSymbol]:
 
         project = _get_project(filepath)
-        return list_function_symbols(project)
+        symbols = list_function_symbols(project)
+        enabled = settings.demangle if demangle is None else demangle
+        # Cached discovery results remain canonical; transform response copies only.
+        return (
+            [s.model_copy(update={"name": demangle_name(s.name)}) for s in symbols]
+            if enabled
+            else symbols
+        )
 
     @app.get("/symtab", response_class=HTMLResponse)
-    def symtab(request: Request, filepath: str = Query(...)) -> HTMLResponse:
+    def symtab(
+        request: Request,
+        filepath: str = Query(...),
+        demangle: bool | None = Query(None),
+    ) -> HTMLResponse:
 
         return templates.TemplateResponse(
             request,
             "symtab.html",
-            {"symbols": _get_symbols(filepath), "filepath": filepath},
+            {
+                "symbols": _get_symbols(filepath, demangle),
+                "filepath": filepath,
+                "demangle": demangle,
+            },
         )
 
     @app.get("/api/symtab", response_model=ItemsList[FunctionSymbol])
     def api_symtab(
-        request: Request, filepath: str = Query(...)
+        request: Request,
+        filepath: str = Query(...),
+        demangle: bool | None = Query(None),
     ) -> ItemsList[FunctionSymbol]:
 
-        return ItemsList(items=_get_symbols(filepath))
+        return ItemsList(items=_get_symbols(filepath, demangle))
 
     # Control flow graph endpoints #############################################
 
@@ -176,6 +196,7 @@ def create_app() -> FastAPI:
         mode: CfgMode | None = None,
         exits: CfgExits | None = None,
         format: str = "svg",
+        demangle: bool | None = None,
     ) -> str:
         func_addr = _resolve_faddr(function)
         project = _get_project(filepath)
@@ -183,6 +204,7 @@ def create_app() -> FastAPI:
         comments = settings.comments if comments is None else comments
         cfg_mode = mode or settings.cfg_mode
         cfg_exits = exits or settings.cfg_exits
+        demangle = settings.demangle if demangle is None else demangle
         return render_cfg(
             project,
             func_addr,
@@ -191,6 +213,7 @@ def create_app() -> FastAPI:
             cfg_mode,
             cfg_exits,
             format,
+            demangle,
         )
 
     @app.get("/cfg")
@@ -202,6 +225,7 @@ def create_app() -> FastAPI:
         comments: bool | None = Query(None),
         mode: CfgMode | None = Query(None),
         exits: CfgExits | None = Query(None),
+        demangle: bool | None = Query(None),
     ) -> Response:
         """Endpoint to return the CFG of a specified function as an SVG image."""
 
@@ -213,6 +237,7 @@ def create_app() -> FastAPI:
             mode,
             exits,
             format="svg",
+            demangle=demangle,
         )
         return Response(content=svg, media_type="image/svg+xml")
 
@@ -226,10 +251,13 @@ def create_app() -> FastAPI:
         comments: bool | None = Query(None),
         mode: CfgMode | None = Query(None),
         exits: CfgExits | None = Query(None),
+        demangle: bool | None = Query(None),
     ) -> dict[str, str]:
         """Endpoint to return the CFG of a specified function."""
 
-        cfg = _render_cfg(filepath, function, dfs, comments, mode, exits, format)
+        cfg = _render_cfg(
+            filepath, function, dfs, comments, mode, exits, format, demangle
+        )
         return {"graph": cfg}
 
     return app

@@ -20,6 +20,20 @@ sys.modules[_SPEC.name] = _GOLDEN_TEST
 _SPEC.loader.exec_module(_GOLDEN_TEST)
 
 
+def test_demangle_audit_settings_do_not_change_existing_summary_formats():
+    state = _GOLDEN_TEST.ConfigRunState(expected_files={Path("summary.json")})
+    config = _GOLDEN_TEST.GoldenConfig("cfg_mode_custom", "custom")
+    assert _GOLDEN_TEST._summary_payload(config, state, None)["config"] == {
+        "name": "cfg_mode_custom",
+        "cfg_mode": "custom",
+        "cfg_exits": "jump",
+    }
+    audit = next(c for c in _GOLDEN_TEST.CONFIGS if c.name == "cfg_demangle_on")
+    assert _GOLDEN_TEST._build_test_settings(audit).demangle
+    assert _GOLDEN_TEST._build_test_settings(audit).comments
+    assert _GOLDEN_TEST._summary_payload(audit, state, None)["config"]["demangle"]
+
+
 def test_custom_summary_counts_actions_functions_and_architectures() -> None:
     state = _GOLDEN_TEST.ConfigRunState(expected_files={Path("summary.json")})
     _GOLDEN_TEST._record_custom_cfg_stats(

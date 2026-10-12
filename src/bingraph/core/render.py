@@ -27,6 +27,7 @@ def plot_cfg(
     comments: bool,
     exits: CfgExits,
     format: str,
+    demangle: bool = False,
 ) -> None:
 
     logger.info(f"Start CFG plotting function at {hex(func_addr)} as {format}")
@@ -36,7 +37,7 @@ def plot_cfg(
     if comments:
         if isinstance(cfg, CustomCFG):
             collect_custom_comments(cfg)
-        annotators.append(CommentsDataRef())
+        annotators.append(CommentsDataRef(demangle=demangle))
     annotators.append(ColorEdgesVex())
 
     vis = Vis(
@@ -45,7 +46,7 @@ def plot_cfg(
             fname=fname, format=format, dfs_rank=dfs_rank, entry_addr=func_addr
         ),
         transformers=[],
-        contents=[NodeHead(), NodeAsm()],
+        contents=[NodeHead(demangle=demangle), NodeAsm()],
         annotators=annotators,
     )
 
@@ -61,6 +62,7 @@ def render_cfg(
     cfg_mode: CfgMode,
     cfg_exits: CfgExits,
     format: str,
+    demangle: bool = False,
 ) -> str:
     """
     Render the control flow graph (CFG) of a specific function as an SVG image.
@@ -74,6 +76,7 @@ def render_cfg(
         project (angr.Project): The angr project containing the function.
         func_addr (int): The address of the function to visualize.
         format (str): Output format for the rendered CFG.
+        demangle (bool): Decode displayed names before shortening; cache separately.
 
     Returns:
         str: The SVG content representing the function's CFG.
@@ -104,6 +107,7 @@ def render_cfg(
             comments=comments,
             exits=cfg_exits,
             format=format,
+            demangle=demangle,
         )
         output_path = output_base.with_suffix(f".{format}")
         output = output_path.read_text(encoding="utf-8")

@@ -46,7 +46,7 @@
           <td>0x{{ "%x" | format(sym.addr) }}</td>
           <td>
             {% if not sym.is_import and sym.addr != 0 and sym.size != 0 %}
-              <a href="/cfg?filepath={{ filepath }}&function=0x{{ "%x" | format(sym.addr) }}">{{ sym.name }}</a>
+              <a href="/cfg?filepath={{ filepath }}&function=0x{{ "%x" | format(sym.addr) }}{% if demangle is not none %}&demangle={{ demangle | string | lower }}{% endif %}">{{ sym.name }}</a>
             {% else %}
               {{ sym.name }}
             {% endif %}
