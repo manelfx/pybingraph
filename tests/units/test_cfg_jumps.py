@@ -29,6 +29,43 @@ from bingraph.cfg.builder import _BuildSession
 from bingraph.core.project import load_project
 
 
+@pytest.mark.parametrize(
+    ("op", "bound", "taken", "default"),
+    [
+        ("Iop_CmpLT64U", 5, 4, 5),
+        ("Iop_CmpLE64U", 5, 5, 4),
+        ("Iop_CmpLT64U", 0, None, 0),
+        ("Iop_CmpLE64U", 0, 0, None),
+        ("Iop_CmpEQ64", 5, None, None),
+        ("Iop_CmpLT64U", None, None, None),
+    ],
+)
+def test_comparison_bounds_preserve_taken_and_default_polarity(
+    op, bound, taken, default
+):
+    assert jumps_module._unsigned_comparison_upper_bound(op, bound) == taken
+    assert jumps_module._unsigned_comparison_upper_bound(op, bound, False) == default
+
+
+@pytest.mark.parametrize(
+    ("op", "bound", "last"),
+    [
+        ("Iop_CmpLT64U", 0, None),
+        ("Iop_CmpLE64U", 0, 0),
+        ("Iop_CmpLT64U", 256, 255),
+        ("Iop_CmpLE64U", 256, None),
+        ("Iop_CmpLT64U", 257, None),
+        ("Iop_CmpEQ64", 4, None),
+    ],
+)
+def test_guard_range_preserves_empty_and_capped_domains(op, bound, last):
+    guard = pyvex.expr.Binop(
+        op, [pyvex.expr.Get(16, "Ity_I64"), pyvex.expr.Const(pyvex.const.U64(bound))]
+    )
+    values = jumps_module._vex_guard_range(guard, {})
+    assert values == (tuple(range(last + 1)) if last is not None else None)
+
+
 @dataclass(frozen=True)
 class _Node:
     """Provide the small hashable CFG-node surface used by jump helpers."""
@@ -412,6 +449,46 @@ def test_direct_jump_table_keeps_sparse_mask_domains_exact() -> None:
 
     assert table is not None
     assert table.index_values == (0, 1, 4, 5)
+
+
+@pytest.mark.parametrize("low_bits", [3, 9])
+@pytest.mark.parametrize("relative", [False, True])
+def test_shared_selector_keeps_relative_mask_policy_separate(low_bits, relative):
+    """Only relative shapes force a full-register view and preserve large masks."""
+
+    def constant(value):
+        return pyvex.expr.Const(pyvex.const.U64(value))
+
+    source = pyvex.expr.Get(16, "Ity_I64")
+    rotation = pyvex.expr.Binop(
+        "Iop_Or64",
+        [
+            pyvex.expr.Binop("Iop_Shl64", [source, constant(3)]),
+            pyvex.expr.Binop("Iop_Shr64", [source, constant(61)]),
+        ],
+    )
+    term = pyvex.expr.Binop(
+        "Iop_And64", [rotation, constant(((1 << low_bits) - 1) << 3)]
+    )
+    vex = SimpleNamespace(tyenv=pyvex.IRTypeEnv(archinfo.ArchAMD64(), []))
+    selector = jumps_module._vex_scaled_table_selector(
+        term,
+        {},
+        vex,
+        8,
+        allow_full_width_index=False,
+        allow_inline_index_values=False,
+        allow_masked_index_values=False,
+        allow_guarded_expression_index=False,
+        relative=relative,
+    )
+    if not relative and low_bits == 9:
+        assert selector is None
+    else:
+        assert selector["index_register_offset"] == (16 if relative else None)
+        assert selector["index_values"] == (tuple(range(8)) if low_bits == 3 else None)
+        assert selector["index_low_bits"] == low_bits
+        assert selector["preserve_unresolved_fallback"] == (relative and low_bits == 9)
 
 
 def test_shared_static_table_plan_is_graph_strategy_neutral(monkeypatch) -> None:

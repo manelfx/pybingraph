@@ -16,6 +16,9 @@ from capstone.x86 import X86_INS_JMP, X86_INS_LJMP, X86_INS_UD2
 from capstone.x86_const import X86_GRP_AVX512
 
 
+RISCV_ARCHES = frozenset({"RISCV32", "RISCV64"})
+
+
 class InsnSemantics:
     """Expose the Capstone control-flow properties used by bingraph."""
 
@@ -160,7 +163,7 @@ class InsnSemantics:
         target = self.direct_target()
         if target is None:
             return None
-        if arch_name in {"RISCV32", "RISCV64"} and self.is_jump():
+        if arch_name in RISCV_ARCHES and self.is_jump():
             return self.address + target
         return target
 

@@ -17,7 +17,6 @@ from __future__ import annotations
 from collections import Counter, deque
 from copy import deepcopy
 from dataclasses import replace
-import re
 from types import SimpleNamespace
 from typing import Iterable, Mapping, cast
 
@@ -66,7 +65,7 @@ from bingraph.cfg.decode import (
     target_is_known_nonreturning,
 )
 from bingraph.helpers.capstone import arch_has_delay_slot
-from bingraph.helpers.symbols import plt_symbol_name
+from bingraph.helpers.symbols import is_arm_mapping_symbol, plt_symbol_name
 
 from .anomalies import find_custom_cfg_anomalies
 from .data import StaticDataRegions
@@ -124,7 +123,6 @@ def _local_node_names(project: Project, addrs: Iterable[int]) -> dict[int, str]:
     starts = {addr: addr - int(_thumb_mode(project, addr)) for addr in addrs}
     byte_addrs = set(starts.values())
     aliases: dict[int, tuple[bool, str]] = {}
-    arm = project.arch.name.startswith("ARM") or project.arch.name == "AARCH64"
     for symbol in project.loader.main_object.symbols:
         if (
             not symbol.is_local
@@ -135,8 +133,8 @@ def _local_node_names(project: Project, addrs: Iterable[int]) -> dict[int, str]:
             continue
         addr = symbol.rebased_addr
         addr -= int(_thumb_mode(project, addr))
-        if addr not in byte_addrs or (
-            arm and re.fullmatch(r"\$[adtx](?:\..*)?", symbol.name)
+        if addr not in byte_addrs or is_arm_mapping_symbol(
+            project.arch.name, symbol.name
         ):
             continue
         rank = (symbol.is_function, symbol.name)

@@ -1,8 +1,31 @@
 """Fast tests for symbol-table normalization used by CFG reconstruction."""
 
 from types import SimpleNamespace
+import pytest
 
-from bingraph.helpers.symbols import list_function_symbols
+from bingraph.helpers.symbols import is_arm_mapping_symbol, list_function_symbols
+
+
+@pytest.mark.parametrize(
+    "arch", ["ARMEL", "ARMHF", "ARMfuture", "AARCH64", "AMD64", "MIPS32"]
+)
+@pytest.mark.parametrize(
+    "name,mapping",
+    [
+        ("$a", True),
+        ("$d.42", True),
+        ("$t.", True),
+        ("$x.suffix", True),
+        ("$table_loop", False),
+        ("$a_suffix", False),
+        (None, False),
+        ("", False),
+    ],
+)
+def test_mapping_symbols_require_arm_and_an_exact_marker(arch, name, mapping):
+    assert is_arm_mapping_symbol(arch, name) is (
+        mapping and arch.startswith(("ARM", "AARCH64"))
+    )
 
 
 def _symbol(

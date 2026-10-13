@@ -9,12 +9,14 @@ from cle.backends.symbol import SymbolType
 from bingraph.helpers import get_style
 from bingraph.helpers.capstone import (
     InsnSemantics,
+    RISCV_ARCHES,
     arch_has_delay_slot,
     control_transfer_index,
     proven_unconditional_direct_target,
 )
-from bingraph.helpers.symbols import plt_symbol_name
+from bingraph.helpers.symbols import is_arm_mapping_symbol, plt_symbol_name
 from bingraph.cfg.decode import decode_one, vex_jumpkind_is_terminal
+from bingraph.cfg.vex import is_call_like_jumpkind
 from .labels import short_label
 from .vis import NodeAnnotator, ContentAnnotator, EdgeAnnotator, Node
 
@@ -104,10 +106,7 @@ class CommentsDataRef(CommentsAnnotator):
 
         def meaningful(name):
             arch = getattr(getattr(project, "arch", None), "name", "")
-            return name and not (
-                (arch.startswith("ARM") or arch == "AARCH64")
-                and re.fullmatch(r"\$[adtx](?:\..*)?", name)
-            )
+            return name and not is_arm_mapping_symbol(arch, name)
 
         for kb in (node.kb, project.kb):
             if addr in kb.labels and meaningful(kb.labels[addr]):
@@ -148,7 +147,7 @@ class CommentsDataRef(CommentsAnnotator):
         if target is None:
             return []
         if (
-            node.project.arch.name in {"RISCV32", "RISCV64"}
+            node.project.arch.name in RISCV_ARCHES
             and semantic.is_call()
             and not semantic.is_jump()
         ):
@@ -722,9 +721,7 @@ def _edge_type(edge) -> str:
         return "FAKE_RET"
     # System transfers such as x86 ``int 0x80`` cross into an OS service just
     # like calls. Keep their explicit fake-return edges distinct below.
-    if jumpkind == "Ijk_Call" or (
-        isinstance(jumpkind, str) and jumpkind.startswith("Ijk_Sys_")
-    ):
+    if is_call_like_jumpkind(jumpkind):
         return "CALL"
     if jumpkind == "Ijk_Boring":
         return _vex_boring_edge_type(edge)

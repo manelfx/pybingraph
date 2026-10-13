@@ -3,6 +3,7 @@
 from __future__ import annotations
 from functools import lru_cache
 from itertools import groupby
+import re
 
 from loguru import logger
 from pydantic import BaseModel
@@ -10,6 +11,20 @@ from angr import Project, KnowledgeBase
 
 
 UNKNOWN_FUNC = "**UNKNOWN**"
+
+
+def is_arm_mapping_symbol(arch_name: str, name: str | None) -> bool:
+    """Identify ARM/AArch64 encoding markers, not meaningful code/data labels.
+
+    Keep arbitrary assembler suffixes on $a/$d/$t/$x markers supported. On
+    other architectures these spellings remain ordinary symbol names.
+    """
+
+    return bool(
+        name
+        and (arch_name.startswith("ARM") or arch_name == "AARCH64")
+        and re.fullmatch(r"\$[adtx](?:\..*)?", name)
+    )
 
 
 def plt_symbol_name(project: Project, addr: int) -> str | None:

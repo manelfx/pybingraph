@@ -3,20 +3,98 @@
 from types import SimpleNamespace
 
 import pytest
+import pyvex
 
 from bingraph.cfg import decode as decode_module
 from bingraph.cfg.decode import (
     DecodedNode,
     decode_raw_capstone_insns,
     is_post_prefix_instruction_entry,
+    read_static_integer,
     target_is_known_nonreturning,
 )
+from bingraph.cfg.vex import is_call_like_jumpkind, temporary_definitions
 
 
 def _insn(addr: int, size: int) -> SimpleNamespace:
     """Create the minimal instruction shape required by ``DecodedNode``."""
 
     return SimpleNamespace(address=addr, size=size)
+
+
+def test_temporary_definitions_keep_only_wrtmp_expressions():
+    first = pyvex.expr.Const(pyvex.const.U32(7))
+    last = pyvex.expr.Const(pyvex.const.U32(9))
+    statements = [
+        pyvex.stmt.WrTmp(0, first),
+        pyvex.stmt.Put(first, 16),
+        pyvex.stmt.LoadG(
+            "Iend_LE",
+            "ILGop_Ident32",
+            1,
+            first,
+            last,
+            pyvex.expr.Const(pyvex.const.U1(1)),
+        ),
+        pyvex.stmt.WrTmp(0, last),
+    ]
+    vex = SimpleNamespace(statements=statements)
+    before = tuple(statements)
+    assert temporary_definitions(vex) == {0: last}
+    assert tuple(vex.statements) == before
+
+
+@pytest.mark.parametrize(
+    "kind,expected",
+    [
+        ("Ijk_Call", True),
+        ("Ijk_Sys_syscall", True),
+        ("Ijk_Sys_int128", True),
+        ("Ijk_Sys_", True),
+        ("Ijk_Syscall", False),
+        ("Ijk_FakeRet", False),
+        ("Ijk_Boring", False),
+        ("Ijk_Ret", False),
+        (None, False),
+        (0, False),
+    ],
+)
+def test_call_like_vex_kinds_do_not_absorb_fake_returns_or_internal_labels(
+    kind, expected
+):
+    assert is_call_like_jumpkind(kind) is expected
+
+
+@pytest.mark.parametrize("size", [1, 2, 4, 8])
+@pytest.mark.parametrize("endness", ["Iend_LE", "Iend_BE"])
+def test_static_integer_reads_keep_exact_width_and_byte_order(size, endness):
+    reads = []
+    data = bytes(range(1, size + 1))
+    project = SimpleNamespace(
+        loader=SimpleNamespace(
+            memory=SimpleNamespace(
+                load=lambda addr, width: reads.append((addr, width)) or data
+            )
+        )
+    )
+    assert read_static_integer(project, 0x1000, size, endness) == int.from_bytes(
+        data, "little" if endness == "Iend_LE" else "big"
+    )
+    assert reads == [(0x1000, size)]
+
+
+def test_static_integer_reads_keep_zero_distinct_from_unknown():
+    def unreadable(*args):
+        raise KeyError("unmapped")
+
+    project = SimpleNamespace(
+        loader=SimpleNamespace(memory=SimpleNamespace(load=unreadable))
+    )
+    assert read_static_integer(project, 0x1000, 4, "Iend_LE") is None
+    project.loader.memory.load = lambda addr, size: b"\x00" * size
+    assert read_static_integer(project, 0x1000, 4, "Iend_LE") == 0
+    for size in (0, 3, 16):
+        assert read_static_integer(project, 0x1000, size, "Iend_LE") is None
 
 
 @pytest.mark.parametrize(

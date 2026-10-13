@@ -25,6 +25,7 @@ from bingraph.helpers.capstone import (
 from bingraph.helpers.symbols import plt_symbol_name
 
 from .models import BlockSpec, DecodedCallTargetKind, FunctionBounds, TerminatorInfo
+from .vex import STATIC_INTEGER_BYTES, temporary_definitions
 
 
 # CFGNode equality is address/block-ID based, so a recovered replacement can
@@ -401,20 +402,10 @@ def target_is_known_nonreturning(project: Project, addr: int) -> bool:
     )
 
 
-def _temporary_definitions(vex) -> dict[int, object]:
-    """Return the VEX expressions defining temporary values in ``vex``."""
-
-    return {
-        statement.tmp: statement.data
-        for statement in vex.statements
-        if isinstance(statement, pyvex.stmt.WrTmp)
-    }
-
-
 def _vex_exit_guard_reads_register(vex, exit_statement, register_offset: int) -> bool:
     """Return whether a VEX exit guard transitively reads one register."""
 
-    definitions = _temporary_definitions(vex)
+    definitions = temporary_definitions(vex)
     visited_temps: set[int] = set()
 
     def _reads_register(expression) -> bool:
@@ -482,7 +473,7 @@ def _mips_entry_global_pointer(project: Project, bounds: FunctionBounds) -> int 
     except Exception:
         return None
 
-    definitions = _temporary_definitions(entry_vex)
+    definitions = temporary_definitions(entry_vex)
     for statement in entry_vex.statements:
         if not isinstance(statement, pyvex.stmt.Put) or statement.offset != gp_offset:
             continue
@@ -545,7 +536,7 @@ def _mips_gp_relative_slot_from_load(
     if not isinstance(target_expr.addr, pyvex.expr.RdTmp):
         return None
 
-    definitions = _temporary_definitions(vex)
+    definitions = temporary_definitions(vex)
     slot_expr = definitions.get(target_expr.addr.tmp)
     if not isinstance(slot_expr, pyvex.expr.Binop) or not slot_expr.op.startswith(
         "Iop_Add"
@@ -581,7 +572,7 @@ def _mips_gp_relative_adjusted_indirect_jump_target(
     except KeyError:
         return None
 
-    definitions = _temporary_definitions(vex)
+    definitions = temporary_definitions(vex)
     if not isinstance(vex.next, pyvex.expr.RdTmp):
         return None
     target_expr = definitions.get(vex.next.tmp)
@@ -625,9 +616,7 @@ def _mips_gp_relative_adjusted_indirect_jump_target(
         return None
 
     slot_addr, endness = slot
-    target = _read_static_pointer_target(
-        project, slot_addr, project.arch.bytes, endness
-    )
+    target = read_static_integer(project, slot_addr, project.arch.bytes, endness)
     if target is None:
         return None
     mask = (1 << project.arch.bits) - 1
@@ -640,7 +629,7 @@ def _indirect_target_load(project: Project, vex) -> pyvex.expr.Load | None:
     if not isinstance(vex.next, pyvex.expr.RdTmp):
         return None
 
-    definitions = _temporary_definitions(vex)
+    definitions = temporary_definitions(vex)
     target_expr = definitions.get(vex.next.tmp)
     if isinstance(target_expr, pyvex.expr.Load):
         return target_expr
@@ -673,15 +662,19 @@ def _indirect_target_load(project: Project, vex) -> pyvex.expr.Load | None:
     return load if isinstance(load, pyvex.expr.Load) else None
 
 
-def _read_static_pointer_target(
+def read_static_integer(
     project: Project,
     slot_addr: int,
     entry_size: int,
     endness: str,
 ) -> int | None:
-    """Read one statically addressed pointer with VEX-proven representation."""
+    """Read an unsigned 1/2/4/8-byte integer using VEX's endianness.
 
-    if entry_size not in {1, 2, 4, 8}:
+    Callers own address and memory-permission proofs. Unreadable memory is
+    unknown, not zero; this helper neither validates targets nor signs entries.
+    """
+
+    if entry_size not in STATIC_INTEGER_BYTES:
         return None
     try:
         raw_target = project.loader.memory.load(slot_addr, entry_size)
@@ -739,7 +732,7 @@ def _static_memory_indirect_target(project: Project, vex, jumpkind: str) -> int 
     if vex.jumpkind != jumpkind or not isinstance(vex.next, pyvex.expr.RdTmp):
         return None
 
-    definitions = _temporary_definitions(vex)
+    definitions = temporary_definitions(vex)
     load = definitions.get(vex.next.tmp)
     if not isinstance(load, pyvex.expr.Load) or not isinstance(
         load.addr, pyvex.expr.Const
@@ -751,7 +744,7 @@ def _static_memory_indirect_target(project: Project, vex, jumpkind: str) -> int 
     if not isinstance(slot_addr, int):
         return None
 
-    return _read_static_pointer_target(project, slot_addr, entry_size, load.end)
+    return read_static_integer(project, slot_addr, entry_size, load.end)
 
 
 def static_memory_indirect_jump_target(project: Project, vex) -> int | None:
@@ -781,7 +774,7 @@ def _mips_gp_relative_indirect_jump_target(
         return _mips_gp_relative_adjusted_indirect_jump_target(project, bounds, vex)
 
     slot_addr, endness = slot
-    return _read_static_pointer_target(project, slot_addr, project.arch.bytes, endness)
+    return read_static_integer(project, slot_addr, project.arch.bytes, endness)
 
 
 def _mips_gp_relative_indirect_call_target(
@@ -796,7 +789,7 @@ def _mips_gp_relative_indirect_call_target(
         return None
 
     slot_addr, endness = slot
-    return _read_static_pointer_target(project, slot_addr, project.arch.bytes, endness)
+    return read_static_integer(project, slot_addr, project.arch.bytes, endness)
 
 
 def _static_memory_nonreturning_call_target(
@@ -827,7 +820,7 @@ def _static_memory_nonreturning_call_target(
     if slot is None:
         return None
 
-    target = _read_static_pointer_target(
+    target = read_static_integer(
         project,
         slot[0],
         project.arch.bytes,

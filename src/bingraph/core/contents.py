@@ -62,6 +62,21 @@ class NodeAsm(Content):
     columns: list[str] = ["addr", "mnemonic", "operands"]
 
     @staticmethod
+    def _asm_row(addr, mnemonic, operands, *, insn=None, comments=None):
+        """Keep native instructions and VEX fallback rows in the same format."""
+
+        row = {
+            "addr": {"content": f"{addr:#x}:\t", "align": "LEFT"},
+            "mnemonic": {"content": mnemonic, "align": "LEFT"},
+            "operands": {"content": operands, "align": "LEFT"},
+            "_ins": insn,
+            "_addr": addr,
+        }
+        if comments is not None:
+            row["_comments"] = comments
+        return row
+
+    @staticmethod
     def _vex_word(project: Any, addr: int, size: int) -> str:
         """Return a raw instruction word for a VEX-only decoded instruction."""
 
@@ -87,17 +102,12 @@ class NodeAsm(Content):
             vex_size = vex_sizes.get(addr)
             if vex_size is not None:
                 data.append(
-                    {
-                        "addr": {"content": f"{addr:#x}:\t", "align": "LEFT"},
-                        "mnemonic": {"content": ".word", "align": "LEFT"},
-                        "operands": {
-                            "content": self._vex_word(project, addr, vex_size),
-                            "align": "LEFT",
-                        },
-                        "_ins": None,
-                        "_addr": addr,
-                        "_comments": ["VEX linear decode"],
-                    }
+                    self._asm_row(
+                        addr,
+                        ".word",
+                        self._vex_word(project, addr, vex_size),
+                        comments=["VEX linear decode"],
+                    )
                 )
                 continue
 
@@ -107,13 +117,7 @@ class NodeAsm(Content):
             if insn is None:
                 continue
             data.append(
-                {
-                    "addr": {"content": f"{insn.address:#x}:\t", "align": "LEFT"},
-                    "mnemonic": {"content": insn.mnemonic, "align": "LEFT"},
-                    "operands": {"content": insn.op_str, "align": "LEFT"},
-                    "_ins": insn,
-                    "_addr": insn.address,
-                }
+                self._asm_row(insn.address, insn.mnemonic, insn.op_str, insn=insn)
             )
         return data
 
@@ -145,36 +149,20 @@ class NodeAsm(Content):
         if is_simprocedure or is_syscall:
             return None
 
-        custom_data = self._custom_insns(node)
-        if custom_data is not None:
-            node.content[self.name] = {
-                "data": custom_data,
-                "columns": self.columns,
-            }
-            return
-
-        try:
-            # FIXME -- pp writes "call <fn>" instead of "call <addr>"
-            # print(node.obj.block.pp())
-            insns = cfg_node.block.capstone.insns
-        except (ArchError, KeyError) as e:
-            logger.error(str(e))
-            insns = []
-        except Exception as e:
-            logger.exception(e)
-            insns = []
-
-        data = []
-        for ins in insns:
-            data.append(
-                {
-                    "addr": {"content": f"{ins.address:#x}:\t", "align": "LEFT"},
-                    "mnemonic": {"content": ins.mnemonic, "align": "LEFT"},
-                    "operands": {"content": ins.op_str, "align": "LEFT"},
-                    "_ins": ins,
-                    "_addr": ins.address,
-                }
-            )
+        data = self._custom_insns(node)
+        if data is None:
+            try:
+                insns = cfg_node.block.capstone.insns
+            except (ArchError, KeyError) as e:
+                logger.error(str(e))
+                insns = []
+            except Exception as e:
+                logger.exception(e)
+                insns = []
+            data = [
+                self._asm_row(ins.address, ins.mnemonic, ins.op_str, insn=ins)
+                for ins in insns
+            ]
 
         node.content[self.name] = {
             "data": data,

@@ -11,15 +11,15 @@ from cle.backends.elf.relocation.generic import MipsLocalReloc
 import pyvex
 
 from bingraph.cfg.graph import CFGGraph, node_vex
-from bingraph.cfg.decode import _is_static_pointer_call_target
+from bingraph.cfg.decode import _is_static_pointer_call_target, read_static_integer
 from bingraph.cfg.jumps import (
     _mips_entry_global_pointer,
     _resolve_vex_expr,
-    _vex_tmp_definitions,
     _vex_width_conversion,
     static_jump_target_rejection_reason,
 )
 from bingraph.cfg.models import FunctionBounds
+from bingraph.cfg.vex import STATIC_INTEGER_BYTES, temporary_definitions
 
 from .shared_facts import PredecessorFacts
 
@@ -126,7 +126,7 @@ def shared_table_targets(project: Project, node, facts: PredecessorFacts):
         return None
     entry, before, steps = expression
     size = entry.result_size(vex.tyenv) // 8
-    if size not in {1, 2, 4, 8}:
+    if size not in STATIC_INTEGER_BYTES:
         return None
     addresses = facts.values(node, entry.addr, before)
     if not addresses:
@@ -148,11 +148,9 @@ def shared_table_targets(project: Project, node, facts: PredecessorFacts):
             or address + size - 1 > section.max_addr
         ):
             return None
-        try:
-            data = project.loader.memory.load(address, size)
-        except Exception:
+        value = read_static_integer(project, address, size, entry.end)
+        if value is None:
             return None
-        value = int.from_bytes(data, "little" if entry.end == "Iend_LE" else "big")
         target_addr = _table_target(value, steps, facts)
         if target_addr is None:
             return None
@@ -181,7 +179,7 @@ def shared_register_targets(project: Project, node, facts: PredecessorFacts):
     vex = node_vex(node)
     if vex is None or vex.jumpkind not in {"Ijk_Boring", "Ijk_Call"}:
         return None
-    target = _resolve_vex_expr(vex.next, _vex_tmp_definitions(vex))
+    target = _resolve_vex_expr(vex.next, temporary_definitions(vex))
     # VEX may fold a same-block register call into Const even though the
     # decoder still classifies its machine instruction as indirect. Ordinary
     # constant NEXT jumps, however, include linear fallthroughs, not dispatches.

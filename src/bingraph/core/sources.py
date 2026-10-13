@@ -4,19 +4,12 @@ from typing import Any
 from angr.analyses.cfg import CFGBase
 
 from bingraph.helpers import CfgExits
+from bingraph.cfg.vex import is_call_like_jumpkind
 
 from .vis import Edge, Graph, Node, Source, VisError
 
 
 _EXTERNAL_FRONTIER_JUMPKINDS = frozenset({"Ijk_Boring", "Ijk_Call", "Ijk_FakeRet"})
-
-
-def _is_call_like_exit(jumpkind: object) -> bool:
-    """Return whether an exit is optional under the call-leaf policy."""
-
-    return jumpkind == "Ijk_Call" or (
-        isinstance(jumpkind, str) and jumpkind.startswith("Ijk_Sys_")
-    )
 
 
 def _is_fake_return_only_leaf(cfg_graph: Any, node: Any) -> bool:
@@ -132,7 +125,7 @@ def _select_cfg_nodes(
                 exits == "always"
                 or (
                     exits == "jump"
-                    and not _is_call_like_exit(jumpkind)
+                    and not is_call_like_jumpkind(jumpkind)
                     and not _is_fake_return_only_leaf(cfg_graph, destination)
                 )
             ):

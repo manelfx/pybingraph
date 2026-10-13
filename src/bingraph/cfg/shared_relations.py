@@ -19,6 +19,7 @@ import claripy
 import pyvex
 
 from bingraph.cfg.jumps import MAX_STATIC_JUMPTABLE_ENTRIES
+from bingraph.cfg.vex import X86_CONDITION_HELPER_NAMES
 
 if TYPE_CHECKING:
     from bingraph.cfg.shared_facts import PredecessorFacts
@@ -163,10 +164,7 @@ class RelationalValues(ClaripyDataMixin):
         return super()._handle_vex_expr_Op(expr)
 
     def _handle_vex_expr_CCall(self, expr):
-        if expr.cee.name not in {
-            "amd64g_calculate_condition",
-            "x86g_calculate_condition",
-        }:
+        if expr.cee.name not in X86_CONDITION_HELPER_NAMES:
             raise SimError("Unsupported condition helper")
         node, before = self.context
         # A concrete operation selector is required by angr's flag helpers.

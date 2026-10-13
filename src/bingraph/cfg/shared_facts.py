@@ -19,29 +19,36 @@ from angr.engines.vex.claripy.ccall import data as x86_cc_data
 import pyvex
 
 from bingraph.cfg.graph import CFGGraph, node_vex
+from bingraph.cfg.decode import read_static_integer
 from bingraph.cfg.jumps import (
     MAX_STATIC_JUMPTABLE_ENTRIES,
     _vex_const_value,
-    _vex_tmp_definitions,
     _vex_width_conversion,
     _x86_pic_thunk_reads_return_address,
 )
 from bingraph.cfg.models import FunctionBounds
 from bingraph.cfg.shared_relations import RelationalValues
+from bingraph.cfg.vex import (
+    STATIC_INTEGER_BYTES,
+    X86_CONDITION_HELPERS,
+    temporary_definitions,
+)
 
 
 # These are preserved integer registers under the ELF ABIs used by the corpus.
 # Unknown ABIs retain no register facts across calls. SP is deliberately absent:
 # VEX's call-side stack update is not the stack state after a callee returns.
+_MIPS_PRESERVED = tuple(f"s{i}" for i in range(8)) + ("fp",)
+_ARM_PRESERVED = tuple(f"r{i}" for i in range(4, 12))
 _PRESERVED = {
     "AMD64": ("rbx", "rbp", "r12", "r13", "r14", "r15"),
     "X86": ("ebx", "ebp", "esi", "edi"),
-    "MIPS32": tuple(f"s{i}" for i in range(8)) + ("fp",),
-    "MIPS64": tuple(f"s{i}" for i in range(8)) + ("fp",),
+    "MIPS32": _MIPS_PRESERVED,
+    "MIPS64": _MIPS_PRESERVED,
     "PPC64": tuple(f"r{i}" for i in range(14, 32)),
     "S390X": tuple(f"r{i}" for i in range(6, 14)),
-    "ARMEL": tuple(f"r{i}" for i in range(4, 12)),
-    "ARMHF": tuple(f"r{i}" for i in range(4, 12)),
+    "ARMEL": _ARM_PRESERVED,
+    "ARMHF": _ARM_PRESERVED,
 }
 
 
@@ -187,7 +194,7 @@ class PredecessorFacts:
         if isinstance(expr, pyvex.expr.Load):
             address = self.value(node, expr.addr, before, depth + 1)
             size = expr.result_size(vex.tyenv) // 8
-            if address is None or size not in {1, 2, 4, 8}:
+            if address is None or size not in STATIC_INTEGER_BYTES:
                 return None
             section = self.project.loader.find_section_containing(address)
             linkage = address in self.linkage_slots and size == self.project.arch.bytes
@@ -207,11 +214,7 @@ class PredecessorFacts:
                 or address + size - 1 > section.max_addr
             ):
                 return None
-            try:
-                raw = self.project.loader.memory.load(address, size)
-            except Exception:
-                return None
-            return int.from_bytes(raw, "little" if expr.end == "Iend_LE" else "big")
+            return read_static_integer(self.project, address, size, expr.end)
         conversion = _vex_width_conversion(expr)
         if conversion is not None:
             source, destination, signed = conversion
@@ -245,7 +248,7 @@ class PredecessorFacts:
         if self.project.arch.name != "X86" or bits != 32:
             return None
         vex, _ = self._block(node)
-        target = _vex_const_value(vex.next, _vex_tmp_definitions(vex))
+        target = _vex_const_value(vex.next, temporary_definitions(vex))
         symbol = self.project.loader.find_symbol(target) if target is not None else None
         name = self.project.arch.register_names.get(offset, "")
         if (
@@ -797,11 +800,7 @@ class PredecessorFacts:
         """
 
         arch = self.project.arch.name
-        helper = {
-            "AMD64": "amd64g_calculate_condition",
-            "X86": "x86g_calculate_condition",
-        }
-        if expr.callee.name != helper.get(arch) or len(expr.args) != 5:
+        if expr.callee.name != X86_CONDITION_HELPERS.get(arch) or len(expr.args) != 5:
             return None
         condition = self._guard_constant(node, expr.args[0], before)
         operation = self.value(node, expr.args[1], before)
