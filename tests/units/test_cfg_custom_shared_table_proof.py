@@ -3,20 +3,21 @@
 from pathlib import Path
 from types import SimpleNamespace
 
-from angr import KnowledgeBase, options as sim_options
 import pytest
+import pyvex
+from angr import KnowledgeBase
+from angr import options as sim_options
+from test_cfg_custom_shared_facts import RBX, const, get, node, setup
 
-from bingraph.cfg.builder import _BuildSession, build_custom_cfg
+import bingraph.cfg.shared.proofs as proof_module
 from bingraph.cfg import builder as builder_module
-from bingraph.cfg import shared_table_proof as proof_module
-from bingraph.cfg.shared_table_proof import (
+from bingraph.cfg.builder import _BuildSession, build_custom_cfg
+from bingraph.cfg.shared.proofs import (
     shared_register_targets,
     shared_table_targets,
     table_predecessor_facts,
 )
 from bingraph.core.project import load_project
-from test_cfg_custom_shared_facts import RBX, const, get, node, setup
-import pyvex
 
 
 @pytest.mark.parametrize(

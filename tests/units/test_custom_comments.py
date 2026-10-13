@@ -1,22 +1,22 @@
 """Reference annotations must enrich custom CFGs without reconstructing them."""
 
-from copy import deepcopy
 import re
+from copy import deepcopy
 from types import SimpleNamespace
 from unittest.mock import patch
 from xml.etree import ElementTree
 
+import networkx as nx
+import pytest
+import pyvex
 from angr import Project, load_shellcode
 from angr.knowledge_plugins.cfg import CFGNode
 from angr.knowledge_plugins.xrefs import XRefType
 from archinfo import arch_from_id
 from cle.backends.symbol import SymbolType
-import networkx as nx
-import pyvex
 from pyvex.data_ref import DataRef
-import pytest
 
-from bingraph.core.annotators import CommentsDataRef
+from bingraph.core.annotators.comments import CommentsDataRef
 from bingraph.core.comments import (
     _is_scalar_reference,
     _reference_uses,

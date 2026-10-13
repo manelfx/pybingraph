@@ -8,18 +8,30 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from angr import KnowledgeBase, load_shellcode
-from elftools.common.exceptions import ELFRelocationError
 import networkx as nx
 import pytest
+from angr import KnowledgeBase, load_shellcode
+from elftools.common.exceptions import ELFRelocationError
 
 from bingraph.cfg import build_custom_cfg
-from bingraph.cfg.anomalies import find_custom_cfg_anomalies
 from bingraph.cfg import builder as builder_module
 from bingraph.cfg import exceptions as exceptions_module
+from bingraph.cfg.anomalies import find_custom_cfg_anomalies
+from bingraph.cfg.calls import target_is_known_nonreturning
+from bingraph.cfg.decode import decode_bounded_block, lift_block_terminator
 from bingraph.cfg.exceptions import (
     ExceptionalCallSite,
     exceptional_call_sites_for_function,
+)
+from bingraph.cfg.jumps.mips import abi_static_register_transfer_targets
+from bingraph.cfg.jumps.tables import plan_static_jump_table
+from bingraph.cfg.models import (
+    BlockSpec,
+    CustomCFGStats,
+    CustomCFGSummary,
+    FunctionBounds,
+    StaticJumpTable,
+    StaticJumpTablePlan,
 )
 from bingraph.cfg.sweep import (
     ExecutableSweep,
@@ -28,21 +40,9 @@ from bingraph.cfg.sweep import (
     select_disconnected_components,
     validate_disconnected_baseline,
 )
-from bingraph.cfg.jumps import (
-    abi_static_register_transfer_targets,
-    plan_static_jump_table,
-)
-from bingraph.cfg.models import BlockSpec, FunctionBounds, StaticJumpTable
-from bingraph.cfg.models import StaticJumpTablePlan
-from bingraph.cfg.decode import (
-    decode_bounded_block,
-    decode_raw_capstone_insns,
-    lift_block_terminator,
-    target_is_known_nonreturning,
-)
-from bingraph.cfg.models import CustomCFGStats, CustomCFGSummary
 from bingraph.cfg.syscalls import resolve_static_syscall, unknown_syscall_target
 from bingraph.core import project as project_module
+from bingraph.helpers.disassembly import decode_raw_capstone_insns
 
 
 def test_custom_builder_decodes_a_bounded_function_without_cfgfast() -> None:
@@ -1774,7 +1774,9 @@ def test_custom_keeps_mips_call_return_without_nonreturning_proof() -> None:
     )
     session = builder_module._BuildSession(project, KnowledgeBase(project), 0x46656C)
     session._decode_all_blocks()
-    with patch("bingraph.cfg.jumps.target_is_known_nonreturning", return_value=False):
+    with patch(
+        "bingraph.cfg.jumps.mips.target_is_known_nonreturning", return_value=False
+    ):
         targets, exhausted, _ = abi_static_register_transfer_targets(
             project, session.bounds, session.blocks
         )

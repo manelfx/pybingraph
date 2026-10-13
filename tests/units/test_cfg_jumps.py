@@ -6,26 +6,33 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import archinfo
-from angr import KnowledgeBase
 import networkx as nx
 import pytest
 import pyvex
+from angr import KnowledgeBase
 
-from bingraph.cfg.jumps import (
-    is_memory_dependent_indirect_jump,
-    _jump_table_target_addr,
-    plan_static_jump_table,
-    _read_static_jump_table_targets,
+import bingraph.cfg.jumps.expressions as expressions_module
+import bingraph.cfg.jumps.guards as guards_module
+import bingraph.cfg.jumps.mips as mips_module
+import bingraph.cfg.jumps.tables as tables_module
+from bingraph.cfg.builder import _BuildSession
+from bingraph.cfg.jumps.expressions import (
     _vex_direct_jump_table,
-    _vex_guarded_index_upper_bound,
     _vex_relative_jump_table,
-    _x86_pc_thunk_base_addr,
-    _x86_pc_thunk_guarded_entry_count,
+    is_memory_dependent_indirect_jump,
     static_jump_target_rejection_reason,
 )
-from bingraph.cfg import jumps as jumps_module
+from bingraph.cfg.jumps.guards import _vex_guarded_index_upper_bound
+from bingraph.cfg.jumps.tables import (
+    _jump_table_target_addr,
+    _read_static_jump_table_targets,
+    plan_static_jump_table,
+)
+from bingraph.cfg.jumps.x86 import (
+    _x86_pc_thunk_base_addr,
+    _x86_pc_thunk_guarded_entry_count,
+)
 from bingraph.cfg.models import BlockSpec, FunctionBounds, StaticJumpTable
-from bingraph.cfg.builder import _BuildSession
 from bingraph.core.project import load_project
 
 
@@ -43,8 +50,8 @@ from bingraph.core.project import load_project
 def test_comparison_bounds_preserve_taken_and_default_polarity(
     op, bound, taken, default
 ):
-    assert jumps_module._unsigned_comparison_upper_bound(op, bound) == taken
-    assert jumps_module._unsigned_comparison_upper_bound(op, bound, False) == default
+    assert guards_module._unsigned_comparison_upper_bound(op, bound) == taken
+    assert guards_module._unsigned_comparison_upper_bound(op, bound, False) == default
 
 
 @pytest.mark.parametrize(
@@ -62,7 +69,7 @@ def test_guard_range_preserves_empty_and_capped_domains(op, bound, last):
     guard = pyvex.expr.Binop(
         op, [pyvex.expr.Get(16, "Ity_I64"), pyvex.expr.Const(pyvex.const.U64(bound))]
     )
-    values = jumps_module._vex_guard_range(guard, {})
+    values = guards_module._vex_guard_range(guard, {})
     assert values == (tuple(range(last + 1)) if last is not None else None)
 
 
@@ -134,25 +141,25 @@ def test_memory_dependent_jump_tracks_only_the_computed_target() -> None:
             SimpleNamespace(jumpkind=jumpkind, next=dynamic_load, statements=()),
         )
         assert is_memory_dependent_indirect_jump(node) is expected
-    with patch.object(jumps_module, "_node_vex", return_value=None):
+    with patch.object(expressions_module, "_node_vex", return_value=None):
         assert not is_memory_dependent_indirect_jump(node)
 
 
 def test_mips_pic_join_requires_every_path_and_a_small_domain() -> None:
     """Disagreement stays finite; unknown or oversized paths do not prove it."""
 
-    state = jumps_module._MipsPicState
+    state = mips_module._MipsPicState
     first = state({108: frozenset({0x50000C})}, {16: frozenset({0x4CFAD0})})
     second = state({108: frozenset({0x500104})}, {16: frozenset({0x4CFAD0})})
 
-    joined = jumps_module._mips_join_states((first, second))
+    joined = mips_module._mips_join_states((first, second))
     assert joined.registers[108] == frozenset({0x50000C, 0x500104})
     assert joined.stack[16] == frozenset({0x4CFAD0})
-    assert 108 not in jumps_module._mips_join_states((first, state({}, {}))).registers
+    assert 108 not in mips_module._mips_join_states((first, state({}, {}))).registers
     assert (
-        jumps_module._mips_finite_union(
+        mips_module._mips_finite_union(
             frozenset({value})
-            for value in range(jumps_module.MAX_ABI_STATIC_TARGET_VALUES + 1)
+            for value in range(mips_module.MAX_ABI_STATIC_TARGET_VALUES + 1)
         )
         is None
     )
@@ -166,13 +173,13 @@ def test_mips_pic_call_clobbers_registers_but_keeps_frame_save() -> None:
     sp = project.arch.registers["sp"][0]
     t9 = project.arch.registers["t9"][0]
     saved = frozenset({0x4CFAD0})
-    incoming = jumps_module._MipsPicState(
+    incoming = mips_module._MipsPicState(
         {gp: saved, t9: frozenset({0x50000C, 0x500104})},
         {16: saved},
     )
     block = BlockSpec(0x473E80, 12, (0x473E80, 0x473E84, 0x473E88), "Ijk_Call")
 
-    output, targets = jumps_module._mips_pic_transfer(
+    output, targets = mips_module._mips_pic_transfer(
         project, block, incoming, gp, sp, {sp}
     )
 
@@ -200,7 +207,7 @@ def test_mips_pic_entry_call_does_not_reject_valid_gp(
     session._decode_all_blocks()
     assert session.blocks[entry].jumpkind == "Ijk_Call"
 
-    targets, exhausted, ran = jumps_module.abi_static_register_transfer_targets(
+    targets, exhausted, ran = mips_module.abi_static_register_transfer_targets(
         project, session.bounds, session.blocks
     )
 
@@ -215,8 +222,8 @@ def test_mips_pic_budget_discards_partial_target_sets() -> None:
     session = _BuildSession(project, KnowledgeBase(project), 0x473DCC)
     session._decode_all_blocks()
 
-    with patch.object(jumps_module, "MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES", 0):
-        targets, exhausted, ran = jumps_module.abi_static_register_transfer_targets(
+    with patch.object(mips_module, "MAX_ABI_STATIC_TARGET_WORKLIST_UPDATES", 0):
+        targets, exhausted, ran = mips_module.abi_static_register_transfer_targets(
             project, session.bounds, session.blocks
         )
 
@@ -231,8 +238,8 @@ def test_mips_pic_masked_table_exceeding_value_cap_stays_unresolved() -> None:
     session = _BuildSession(project, KnowledgeBase(project), 0x417E1C)
     session._decode_all_blocks()
 
-    with patch.object(jumps_module, "MAX_ABI_STATIC_TARGET_VALUES", 4):
-        targets, exhausted, ran = jumps_module.abi_static_register_transfer_targets(
+    with patch.object(mips_module, "MAX_ABI_STATIC_TARGET_VALUES", 4):
+        targets, exhausted, ran = mips_module.abi_static_register_transfer_targets(
             project, session.bounds, session.blocks
         )
 
@@ -471,7 +478,7 @@ def test_shared_selector_keeps_relative_mask_policy_separate(low_bits, relative)
         "Iop_And64", [rotation, constant(((1 << low_bits) - 1) << 3)]
     )
     vex = SimpleNamespace(tyenv=pyvex.IRTypeEnv(archinfo.ArchAMD64(), []))
-    selector = jumps_module._vex_scaled_table_selector(
+    selector = expressions_module._vex_scaled_table_selector(
         term,
         {},
         vex,
@@ -511,13 +518,13 @@ def test_shared_static_table_plan_is_graph_strategy_neutral(monkeypatch) -> None
     bounds = FunctionBounds(0x1000, 0x1100, 0x100, SimpleNamespace(name="f"))
     project = SimpleNamespace(arch=SimpleNamespace(name="ARMEL", bits=32))
     monkeypatch.setattr(
-        jumps_module, "_vex_relative_jump_table", lambda *_args, **_kwargs: table
+        tables_module, "_vex_relative_jump_table", lambda *_args, **_kwargs: table
     )
     monkeypatch.setattr(
-        jumps_module, "_vex_direct_jump_table", lambda *_args, **_kwargs: None
+        tables_module, "_vex_direct_jump_table", lambda *_args, **_kwargs: None
     )
     monkeypatch.setattr(
-        jumps_module, "_guarded_jump_table_entry_count", lambda *_args: 3
+        tables_module, "_guarded_jump_table_entry_count", lambda *_args: 3
     )
 
     plan, reason = plan_static_jump_table(project, graph, bounds, dispatcher)
@@ -556,10 +563,10 @@ def test_table_base_requires_known_reaching_definitions(
     bounds = FunctionBounds(0x1000, 0x1100, 0x100, SimpleNamespace(name="f"))
     project = SimpleNamespace(arch=SimpleNamespace(name="ARMEL", bits=32))
     monkeypatch.setattr(
-        jumps_module, "_vex_relative_jump_table", lambda *_args, **_kwargs: _table()
+        tables_module, "_vex_relative_jump_table", lambda *_args, **_kwargs: _table()
     )
     monkeypatch.setattr(
-        jumps_module, "_guarded_jump_table_entry_count", lambda *_args: 3
+        tables_module, "_guarded_jump_table_entry_count", lambda *_args: 3
     )
 
     plan, reason = plan_static_jump_table(project, graph, bounds, dispatcher)

@@ -31,7 +31,12 @@ _DW_EH_PE_UDATA8 = 0x04
 
 @dataclass(frozen=True)
 class ExceptionalCallSite:
-    """One LSDA-proven call instruction range and its landing pad."""
+    """One rebased half-open call-site range with an exact landing-pad address.
+
+    The builder associates it with the actual call instruction, excluding its
+    delay slot, before adding an exceptional edge. A record is metadata
+    evidence, not a claim that arbitrary cleanup blocks are normally reachable.
+    """
 
     start_addr: int
     end_addr: int
@@ -52,7 +57,12 @@ class _UnsupportedLSDA(ValueError):
 
 
 def _read_uleb128(data: bytes, offset: int, end: int) -> tuple[int, int]:
-    """Read one bounded unsigned LEB128 value."""
+    """Decode a ULEB128 value without reading beyond the supplied table boundary.
+
+    Return the integer and next offset. Reject truncated or oversized encodings
+    with _UnsupportedLSDA so metadata parsing fails closed instead of consuming
+    adjacent bytes as another record.
+    """
 
     value = 0
     shift = 0
@@ -76,7 +86,13 @@ def _read_call_site_value(
     *,
     byteorder: Literal["little", "big"],
 ) -> tuple[int, int]:
-    """Read one LSDA call-site-table value with no relative interpretation."""
+    """Decode one admitted unsigned call-site field and return its next offset.
+
+    Support ULEB128 or fixed-width unsigned values in the ELF byte order. The
+    caller later interprets offsets relative to its function/landing-pad base;
+    this reader does not apply pointer encodings or assume signed offsets.
+    Unsupported encodings and truncated fields reject the metadata record.
+    """
 
     if encoding == _DW_EH_PE_ULEB128:
         return _read_uleb128(data, offset, end)

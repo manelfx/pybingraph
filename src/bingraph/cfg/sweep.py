@@ -3,25 +3,25 @@
 from __future__ import annotations
 
 from bisect import bisect_left
-from collections.abc import Callable, Collection
 from collections import deque
+from collections.abc import Callable, Collection
 from dataclasses import dataclass, replace
 from typing import Mapping
 
-from angr import Project
 import networkx as nx
+from angr import Project
 
-from bingraph.cfg.graph import vex_is_transparent_fallthrough_padding
-from bingraph.cfg.jumps import static_jump_target_rejection_reason
-from bingraph.cfg.models import BlockSpec, FunctionBounds
+from bingraph.cfg.calls import target_is_known_nonreturning
 from bingraph.cfg.decode import (
     alternate_block_entry_rejoin_addr,
     decode_bounded_block,
-    decode_raw_capstone_insns,
     is_valid_block_entry,
-    target_is_known_nonreturning,
 )
+from bingraph.cfg.graph import vex_is_transparent_fallthrough_padding
+from bingraph.cfg.jumps.expressions import static_jump_target_rejection_reason
+from bingraph.cfg.models import BlockSpec, FunctionBounds
 from bingraph.helpers.capstone import InsnSemantics
+from bingraph.helpers.disassembly import decode_raw_capstone_insns
 
 
 class SweepBudgetExceeded(Exception):
@@ -107,23 +107,36 @@ def _recover_direct_closure(
     *,
     resolve_static_memory_calls: bool = False,
 ) -> None:
-    """Close sweep targets using the builder's safe leader invariant."""
+    """Close speculative direct flow while preserving valid block boundaries.
+
+    Queue decoded direct successors and split covering spans at admitted new
+    leaders, including supported alternate-entry rejoin points. Reject data
+    roots and mid-instruction targets instead of retaining overlapping guesses.
+    This mutates the sweep's private block/leader maps, never the builder's
+    exact proof snapshot, and does not rerun indirect-jump solvers.
+    """
 
     pending: deque[int] = deque()
     pending_addrs: set[int] = set()
     rejected_leaders: set[int] = set()
 
     def queue(addr: int) -> None:
+        """Deduplicate unfinished closure work without hiding later redecodes."""
+
         if addr not in pending_addrs:
             pending.append(addr)
             pending_addrs.add(addr)
 
     def reject(addr: int) -> None:
+        """Remove an invalid speculative leader so later edges cannot revive it."""
+
         rejected_leaders.add(addr)
         leaders.discard(addr)
         blocks.pop(addr, None)
 
     def add_leader(addr: int) -> None:
+        """Admit a local code boundary and reschedule any covering old span."""
+
         if not bounds.addr <= addr < bounds.end_addr:
             return
         if addr in rejected_leaders:
@@ -159,6 +172,8 @@ def _recover_direct_closure(
             queue(addr)
 
     def normalize_inner_leaders(block: BlockSpec) -> None:
+        """Reject covered non-boundaries unless a supported alternate stream rejoins."""
+
         for leader in tuple(leaders):
             if not block.addr < leader < block.addr + block.size:
                 continue

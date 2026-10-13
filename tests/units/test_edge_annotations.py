@@ -1,15 +1,15 @@
 """Fast tests for control-flow edge classification used by render styles."""
 
-from pathlib import Path
 import re
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 from capstone import CS_GRP_JUMP, CS_OP_IMM
 from capstone.x86 import X86_INS_JMP
 
-import bingraph.core.annotators as annotators
-from bingraph.core.annotators import _edge_type
+import bingraph.core.annotators.edges as edges_module
+from bingraph.core.annotators.edges import _edge_type
 from bingraph.core.project import load_project
 from bingraph.core.render import render_cfg
 
@@ -494,7 +494,7 @@ def test_tail_lift_disambiguates_one_operand_direct_jump(
         arch_name="MIPS32",
     )
     monkeypatch.setattr(
-        annotators,
+        edges_module,
         "_lift_control_transfer_tail",
         lambda _edge, _tail: _vex("Ijk_Boring", next_addr=0x2000),
     )
@@ -524,7 +524,7 @@ def test_tail_lift_overrides_stale_full_block_exit_for_direct_jump(
         graph=graph,
     )
     monkeypatch.setattr(
-        annotators,
+        edges_module,
         "_lift_control_transfer_tail",
         lambda _edge, _tail: _vex("Ijk_Boring", next_addr=0x2000),
     )

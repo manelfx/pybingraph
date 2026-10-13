@@ -1,31 +1,31 @@
 """Architecture-neutral finite dispatch proofs using shared bounded facts.
 
 Table proofs establish complete entry-address sets independently of legacy
-selector domains. Register proofs reuse the same facts for non-table transfers.
-"""
+selector domains. Register proofs reuse the same facts for non-table transfers."""
 
 from __future__ import annotations
 
+import pyvex
 from angr import Project
 from cle.backends.elf.relocation.generic import MipsLocalReloc
-import pyvex
 
+from bingraph.cfg.calls import _is_static_pointer_call_target
 from bingraph.cfg.graph import CFGGraph, node_vex
-from bingraph.cfg.decode import _is_static_pointer_call_target, read_static_integer
-from bingraph.cfg.jumps import (
-    _mips_entry_global_pointer,
+from bingraph.cfg.jumps.expressions import static_jump_target_rejection_reason
+from bingraph.cfg.models import FunctionBounds
+from bingraph.cfg.shared.facts import PredecessorFacts
+from bingraph.helpers.abi import entry_base_registers
+from bingraph.helpers.vex import (
+    STATIC_INTEGER_BYTES,
     _resolve_vex_expr,
     _vex_width_conversion,
-    static_jump_target_rejection_reason,
+    read_static_integer,
+    temporary_definitions,
 )
-from bingraph.cfg.models import FunctionBounds
-from bingraph.cfg.vex import STATIC_INTEGER_BYTES, temporary_definitions
-
-from .shared_facts import PredecessorFacts
-
 
 _MAX_EXPRESSION_DEPTH = 24
-# Operation, output width, scalar operand/source width, and load-side polarity.
+
+
 _TargetStep = tuple[str, int, int, bool]
 
 
@@ -202,29 +202,13 @@ def shared_register_targets(project: Project, node, facts: PredecessorFacts):
     return tuple(sorted(values))
 
 
-def _known_registers(project: Project, bounds: FunctionBounds, node) -> dict[int, int]:
-    """Seed ABI-proven base registers without encoding dispatch instructions."""
-
-    registers: dict[int, int] = {}
-    if project.arch.name.startswith("MIPS"):
-        gp = _mips_entry_global_pointer(project, bounds)
-        if gp is not None:
-            registers[project.arch.registers["gp"][0]] = gp
-    elif project.arch.name == "PPC64":
-        obj = project.loader.find_object_containing(node.addr)
-        toc = obj.get_symbol(".TOC.") if obj is not None else None
-        if toc is not None:
-            registers[project.arch.registers["r2"][0]] = toc.rebased_addr
-    return registers
-
-
 def table_predecessor_facts(
     project: Project, graph: CFGGraph, bounds: FunctionBounds
 ) -> PredecessorFacts:
     """Create shared facts once for the stabilized table-analysis snapshot."""
 
     entry = next((node for node in graph.nodes() if node.addr == bounds.addr), None)
-    seeds = _known_registers(project, bounds, entry) if entry is not None else {}
+    seeds = entry_base_registers(project, bounds.addr) if entry is not None else {}
     if project.arch.name.startswith("MIPS"):
         seeds[project.arch.registers["t9"][0]] = bounds.addr
     obj = project.loader.find_object_containing(bounds.addr)

@@ -3,17 +3,16 @@
 from types import SimpleNamespace
 from typing import cast
 
-from angr.knowledge_plugins.cfg import CFGNode
-from archinfo import ArchAMD64, ArchARM, ArchAArch64
-from cle.backends.symbol import SymbolType
 import pytest
+from angr.knowledge_plugins.cfg import CFGNode
+from archinfo import ArchAArch64, ArchAMD64, ArchARM
+from cle.backends.symbol import SymbolType
 
-from bingraph.cfg.builder import _local_node_names
+from bingraph.cfg.nodes import _local_node_names
 from bingraph.core.contents import NodeHead
 from bingraph.core.labels import MAX_LABEL_LENGTH
 from bingraph.core.outputs import DotOutput
 from bingraph.core.vis import Node
-
 
 _LONG_NAME = "_ZN13fluent_bundle5types11FluentValue5write17hd5d59ec48b6606d8E"
 _SHORT_NAME = _LONG_NAME[:MAX_LABEL_LENGTH] + "..."

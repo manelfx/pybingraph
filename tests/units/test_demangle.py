@@ -1,19 +1,19 @@
 """Demangling is a display choice, never a change to symbol or CFG identity."""
 
+import re
 from html import escape, unescape
 from types import SimpleNamespace
 from typing import cast
-import re
 from xml.etree import ElementTree
 
+import pytest
 from angr import Project
 from angr.knowledge_plugins.cfg import CFGNode
 from fastapi.testclient import TestClient
-import pytest
 
 import bingraph.api.app as app_module
 import bingraph.helpers.settings as settings_module
-from bingraph.core.annotators import CommentsDataRef
+from bingraph.core.annotators.comments import CommentsDataRef
 from bingraph.core.contents import NodeHead
 from bingraph.core.labels import MAX_LABEL_LENGTH, short_label
 from bingraph.core.outputs import escape as dot_escape
@@ -23,7 +23,6 @@ from bingraph.core.vis import Node
 from bingraph.helpers.settings import GlobalSettings, Settings
 from bingraph.helpers.symbols import FunctionSymbol
 from bingraph.helpers.utils import demangle
-
 
 METHOD = "a_very_long_method_name_for_formatting"
 MANGLED = f"_ZN3Foo{len(METHOD)}{METHOD}Ev"

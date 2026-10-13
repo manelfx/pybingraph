@@ -1,18 +1,27 @@
+"""Cached binary loading and explicit per-function CFG strategy selection.
+
+Project reuse avoids repeated CLE loading, while each CFG receives an isolated
+knowledge base. Resolve defaults before forming the CFG cache key so changing
+settings cannot reuse another strategy's result. Custom construction and the
+bounded CFGFast comparison mode retain independent discovery metadata.
+"""
+
 from __future__ import annotations
+
+import traceback
 from functools import lru_cache
 from pathlib import Path
-import traceback
 from typing import Any, cast
 
-from angr import Project, KnowledgeBase
+from angr import KnowledgeBase, Project
 from angr.analyses import CFGFast
 from angr.analyses.cfg import CFGBase
 from loguru import logger
 
-from bingraph.helpers import time_it, get_settings, CfgMode
 from bingraph.cfg import build_custom_cfg
-from bingraph.cfg.decode import decode_raw_capstone_insns
+from bingraph.helpers import CfgMode, get_settings, time_it
 from bingraph.helpers.capstone import InsnSemantics
+from bingraph.helpers.disassembly import decode_raw_capstone_insns
 from bingraph.helpers.symbols import list_function_symbols
 
 
@@ -213,7 +222,12 @@ def get_cfg(
     func_addr: int,
     cfg_mode: CfgMode | None = None,
 ) -> CFGBase:
-    """Resolve the CFG mode before caching its graph."""
+    """Resolve a request's explicit/default strategy before querying the cache.
+
+    Cache the resolved mode, project and function address, not a missing mode
+    whose meaning could change with global settings. Forward cache-control
+    methods to the underlying cached builder for callers and corpus runners.
+    """
 
     return _get_cfg(project, func_addr, cfg_mode or get_settings().cfg_mode)
 
@@ -221,7 +235,13 @@ def get_cfg(
 @lru_cache
 @time_it
 def _get_cfg(project: Project, func_addr: int, resolved_cfg_mode: CfgMode) -> CFGBase:
-    """Build a graph with fully resolved settings forming its cache key."""
+    """Construct a strategy-specific graph with an isolated knowledge base.
+
+    Custom mode uses the independent bounded builder; none mode exposes the
+    region-bounded CFGFast path. A cached graph can be reused for presentation
+    options such as comments/exits without redoing discovery. Unknown strategy
+    names raise ValueError instead of silently selecting another analysis.
+    """
 
     logger.info(
         f"Getting CFG for function {func_addr:#x} with mode '{resolved_cfg_mode}'"

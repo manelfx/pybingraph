@@ -6,6 +6,13 @@ bounded values, but never drop an unknown path. Both follow VEX definitions
 at their actual read positions and share alias, ABI and work-budget rules.
 Scalar searches can pass unchanged registers through loops; finite-domain
 searches conservatively stop at recursive definitions instead of unrolling.
+
+Use ``value`` for one must-known scalar and ``values`` for a capped superset of
+alternatives. Neither query makes a table or callee safe by itself: proof
+clients validate memory representation and destinations. Each instance belongs
+to an immutable exact-flow snapshot; leaders, splits or changed edges require
+a new instance. All recursive evaluation, guard normalization and optional
+relational refinement consume the same work budget.
 """
 
 from __future__ import annotations
@@ -14,42 +21,26 @@ from collections import Counter
 from copy import deepcopy
 from typing import Any
 
+import pyvex
 from angr import Project
 from angr.engines.vex.claripy.ccall import data as x86_cc_data
-import pyvex
 
 from bingraph.cfg.graph import CFGGraph, node_vex
-from bingraph.cfg.decode import read_static_integer
-from bingraph.cfg.jumps import (
-    MAX_STATIC_JUMPTABLE_ENTRIES,
-    _vex_const_value,
-    _vex_width_conversion,
-    _x86_pic_thunk_reads_return_address,
-)
+from bingraph.cfg.jumps.expressions import MAX_STATIC_JUMPTABLE_ENTRIES
 from bingraph.cfg.models import FunctionBounds
-from bingraph.cfg.shared_relations import RelationalValues
-from bingraph.cfg.vex import (
+from bingraph.cfg.shared.relations import RelationalValues
+from bingraph.helpers.abi import (
+    callee_preserved_register_offsets,
+    x86_pic_thunk_reads_return_address,
+)
+from bingraph.helpers.vex import (
     STATIC_INTEGER_BYTES,
     X86_CONDITION_HELPERS,
+    _vex_const_value,
+    _vex_width_conversion,
+    read_static_integer,
     temporary_definitions,
 )
-
-
-# These are preserved integer registers under the ELF ABIs used by the corpus.
-# Unknown ABIs retain no register facts across calls. SP is deliberately absent:
-# VEX's call-side stack update is not the stack state after a callee returns.
-_MIPS_PRESERVED = tuple(f"s{i}" for i in range(8)) + ("fp",)
-_ARM_PRESERVED = tuple(f"r{i}" for i in range(4, 12))
-_PRESERVED = {
-    "AMD64": ("rbx", "rbp", "r12", "r13", "r14", "r15"),
-    "X86": ("ebx", "ebp", "esi", "edi"),
-    "MIPS32": _MIPS_PRESERVED,
-    "MIPS64": _MIPS_PRESERVED,
-    "PPC64": tuple(f"r{i}" for i in range(14, 32)),
-    "S390X": tuple(f"r{i}" for i in range(6, 14)),
-    "ARMEL": _ARM_PRESERVED,
-    "ARMHF": _ARM_PRESERVED,
-}
 
 
 class PredecessorFacts:
@@ -84,6 +75,14 @@ class PredecessorFacts:
         max_steps: int = 20000,
         linkage_slots: frozenset[int] = frozenset(),
     ) -> None:
+        """Create one snapshot's caches, entry roots and shared work budget.
+
+        Seeds apply only at the function entry; disconnected roots do not
+        inherit them. Linkage slots are caller-verified relocation roots, not
+        permission to read arbitrary writable data. Initialize ABI preservation
+        and the optional relational evaluator without traversing the graph.
+        """
+
         self.project, self.graph, self.bounds = project, graph, bounds
         self.seeds = seeds
         self.max_steps = max_steps
@@ -115,14 +114,16 @@ class PredecessorFacts:
         self._guard_views: dict[tuple[Any, Any, int, int], tuple] = {}
         self._guard_widths: set[int] = set()
         self._relations = RelationalValues(self)
-        elf = getattr(project.loader.main_object, "os", "") == "UNIX - System V"
-        self.preserved = {
-            project.arch.registers[name][0]
-            for name in _PRESERVED.get(project.arch.name, ())
-            if elf and name in project.arch.registers
-        }
+        self.preserved = callee_preserved_register_offsets(project)
 
     def _step(self) -> bool:
+        """Charge one unit of analysis work and latch budget exhaustion.
+
+        Exhaustion is permanent for this snapshot. Returning false makes the
+        current proof unknown; callers must not publish a partially enumerated
+        domain or reset this budget to retry the same graph indefinitely.
+        """
+
         if self.exhausted:
             return False
         if self.steps >= self.max_steps:
@@ -132,6 +133,15 @@ class PredecessorFacts:
         return True
 
     def _block(self, node):
+        """Cache a usable VEX block and temporary definitions with read positions.
+
+        Compose contiguous PAUSE/Yield suffixes inside the decoded node span;
+        pyvex renumbers temporaries while combining them. Keep statement
+        indices alongside definitions so later writes cannot replace old reads.
+        A failed or over-budget composition caches an unavailable lift, not
+        a claim that the omitted instructions preserve register state.
+        """
+
         if node not in self._blocks:
             vex = node_vex(node)
             # PAUSE ends a VEX IRSB, not the decoded basic block. Compose its
@@ -172,7 +182,16 @@ class PredecessorFacts:
     def value(
         self, node, expr, before: int | None = None, depth: int = 0
     ) -> int | None:
-        """Evaluate a use without substituting later register definitions."""
+        """Evaluate one must-known scalar at its actual VEX read position.
+
+        ``before`` excludes later statements and defaults to block end. Follow
+        temporaries back to their definition positions and GETs to agreeing
+        reaching writes. Loads require a static address and supported scalar
+        width, with immutable section/RELRO or caller-proven linkage evidence.
+        Supported arithmetic uses machine-width wrapping. Unknown inputs,
+        unsupported operations, recursion limits or exhaustion return ``None``;
+        integer zero remains a valid result.
+        """
 
         if depth >= 32 or not self._step():
             return None
@@ -243,7 +262,13 @@ class PredecessorFacts:
         return result & ((1 << bits) - 1) if result is not None else None
 
     def _call_value(self, node, offset: int, bits: int) -> int | None:
-        """Summarize a verified i386 PC thunk, without following its CFG."""
+        """Summarize the one supported call-side register definition.
+
+        A named i386 PC thunk must also pass byte-level return-address-load
+        verification. Its chosen register then contains this call block's
+        continuation address. Ordinary callees supply no such value: their
+        preservation/clobber policy is handled separately by ``_inputs``.
+        """
 
         if self.project.arch.name != "X86" or bits != 32:
             return None
@@ -255,7 +280,7 @@ class PredecessorFacts:
             target is not None
             and symbol is not None
             and symbol.name == f"__x86.get_pc_thunk.{name.removeprefix('e')}"
-            and _x86_pic_thunk_reads_return_address(self.project, target, offset)
+            and x86_pic_thunk_reads_return_address(self.project, target, offset)
         ):
             return node.addr + node.size
         return None
@@ -494,6 +519,15 @@ class PredecessorFacts:
         return result
 
     def _expression_values(self, node, expr, before, depth):
+        """Evaluate one finite expression before caching a completed superset.
+
+        Reuse reaching-register domains, width conversions and bounded
+        Cartesian arithmetic. A small mask can bound an unknown operand;
+        additive domains may additionally use proven joint correlations.
+        Other loads/operations fall back to the scalar evaluator. A narrow
+        storage type alone never invents an exhaustive dispatch domain.
+        """
+
         if not self._step():
             return None
         vex, definitions = self._block(node)
@@ -653,14 +687,26 @@ class PredecessorFacts:
         return None
 
     def _low_view_offset(self, offset, source_bits, bits):
-        """Locate a low register slice in VEX's endian-specific byte layout."""
+        """Locate the low-bit slice using VEX register endianness, not names.
+
+        Big-endian layouts place low bytes at higher offsets. This calculation
+        identifies a contained view only; it does not prove that the unqueried
+        high bits are known or that a partial write defines the whole register.
+        """
 
         if self.project.arch.register_endness == "Iend_BE":
             return offset + (source_bits - bits) // 8
         return offset
 
     def _written_view(self, node, stmt, offset, bits):
-        """Project a containing PUT; partial writes never define wider reads."""
+        """Project a queried byte range from a containing register PUT.
+
+        Shift and truncate according to register endianness so aliases share
+        the correct underlying bits. Require the write to contain the whole
+        query; a smaller overlapping write cannot establish untouched bytes.
+        Return a VEX expression for the consumed view, or ``None`` for a barrier
+        or incomplete write. Evaluation still occurs at the write's position.
+        """
 
         vex, _ = self._block(node)
         if not isinstance(stmt, pyvex.stmt.Put):
@@ -685,7 +731,14 @@ class PredecessorFacts:
         return expr
 
     def _combine(self, op, bits, left, right):
-        """Cache only completed, bounded, machine-width Cartesian products."""
+        """Apply supported integer arithmetic to every bounded operand pair.
+
+        Require both domains and cap their Cartesian product before evaluating
+        it. Charge every pair, preserve machine-width wrapping and reject
+        unsupported/out-of-range shifts. Cache only completed results; one
+        unknown operand or interrupted pair makes the whole operation unknown.
+        The cache is pure arithmetic, not path-dependent reaching evidence.
+        """
 
         if (
             left is None
@@ -720,7 +773,13 @@ class PredecessorFacts:
         return result
 
     def _definition(self, node, expr, position):
-        """Retain a temporary's read position when matching a branch operand."""
+        """Resolve a local temporary chain while moving to earlier read positions.
+
+        Require each definition to precede its use. Return ``(expression,
+        position)`` once the chain reaches a non-temporary; missing, forward or
+        excessive chains return an unknown expression. Keeping the position
+        prevents an old comparison operand from observing a subsequent PUT.
+        """
 
         _, definitions = self._block(node)
         for _ in range(32):
@@ -733,7 +792,13 @@ class PredecessorFacts:
         return None, position
 
     def _same_value(self, node, expr, before, other, other_before, bits):
-        """Match a VEX definition or register reads with the same reaching write."""
+        """Check local equality of same-width expressions at two read positions.
+
+        Identical definition objects match; GETs additionally require the same
+        register offset and nearest overlapping write at both positions. This
+        is not algebraic equivalence or a cross-block register-copy search.
+        Unknown definitions, width mismatches or interrupted scans do not match.
+        """
 
         vex, _ = self._block(node)
         expr, before = self._definition(node, expr, before)
@@ -844,7 +909,13 @@ class PredecessorFacts:
         return pyvex.expr.Binop(f"Iop_Cmp{op}{bits}{sign}", operands), before, inverted
 
     def _guard_constant(self, node, expr, before, depth=0):
-        """Fold local constant-only guard terms without predecessor searches."""
+        """Cache local constant guard terms without triggering graph searches.
+
+        Support constants, width conversions and constant masks needed for
+        guard normalization. A register-dependent term is not an excuse to
+        launch a costly reaching-definition query for every unrelated branch.
+        Cache known completed values only, preserving zero versus unknown.
+        """
 
         key = node, expr, before
         if key in self._guard_constants:
@@ -855,6 +926,13 @@ class PredecessorFacts:
         return result
 
     def _fold_guard_constant(self, node, expr, before, depth):
+        """Fold the supported local guard constants with exact widths/signs.
+
+        Resolve temporaries at their read positions, then recurse only through
+        conversions and masks. Unsupported arithmetic, depth limits or work
+        exhaustion decline normalization rather than manufacturing a bound.
+        """
+
         if depth >= 32 or self.exhausted:
             return None
         expr, before = self._definition(node, expr, before)
@@ -880,7 +958,13 @@ class PredecessorFacts:
         return None
 
     def _unsigned_operand(self, node, expr, before, depth=0):
-        """Remove only injective zero extensions and redundant upper masks."""
+        """Cache an unsigned operand's value-preserving normalized view.
+
+        Remove injective widening and masks that retain every source bit, not
+        arbitrary truncations. Return the expression with its read position;
+        this lets wider guard encodings match a narrow proven definition
+        without asserting that unknown high bits of another value are zero.
+        """
 
         key = node, expr, before
         if key in self._guard_operands:
@@ -891,6 +975,13 @@ class PredecessorFacts:
         return result
 
     def _normalize_unsigned_operand(self, node, expr, before, depth):
+        """Strip only wrappers proved redundant for the unsigned source width.
+
+        An unsigned widening is injective; a mask is redundant only if all
+        normalized source bits survive it. Keep other expressions intact so
+        callers cannot equate a lossy transformation with its original value.
+        """
+
         if depth >= 32 or not self._step():
             return None, before
         expr, before = self._definition(node, expr, before)
@@ -932,6 +1023,14 @@ class PredecessorFacts:
         return result
 
     def _build_guard_view_key(self, node, expr, before, bits, depth):
+        """Describe a guard's consumed bits through local reaching definitions.
+
+        Follow containing writes, explicit conversions and masks while keeping
+        widths and endianness in the key. Constants are projected to the
+        requested view; an opaque expression is keyed by identity only when
+        its width already matches. Unknown or narrower sources decline.
+        """
+
         if depth >= 32 or not self._step():
             return None
         expr, before = self._definition(node, expr, before)
@@ -972,7 +1071,13 @@ class PredecessorFacts:
         return ("expression", id(expr), bits) if source_bits == bits else None
 
     def _same_guard_value(self, node, expr, before, other, other_before):
-        """Match numeric values without confusing narrow views with full reads."""
+        """Match unsigned guard/query values without discarding unknown high bits.
+
+        Use the cheap same-width definition/write test first. Then remove only
+        injective wrappers and compare equal-width view keys derived from
+        reaching definitions. Record observed guard widths for later masked
+        queries; low-view equality is never evidence for a wider unknown value.
+        """
 
         expr, before = self._definition(node, expr, before)
         other, other_before = self._definition(node, other, other_before)
@@ -1063,6 +1168,8 @@ class PredecessorFacts:
                 continue
 
             def matches(expr, before, other, other_before):
+                """Use exact-width matching for signed bounds, typed views otherwise."""
+
                 if signed:
                     return self._same_value(
                         node, expr, before, other, other_before, guard_bits
@@ -1070,6 +1177,8 @@ class PredecessorFacts:
                 return self._same_guard_value(node, expr, before, other, other_before)
 
             def constraint():
+                """Lazily query and cache this edge's complete selector constraint."""
+
                 # Search predecessors only once the outgoing expression has
                 # been shown to depend on this guard. Many guards observe an
                 # unrelated register; eager searches waste the shared budget.
@@ -1128,6 +1237,8 @@ class PredecessorFacts:
         bits = selector.result_size(vex.tyenv)
 
         def numeric(value):
+            """Interpret the compared bit pattern with the predicate's signedness."""
+
             return value - (1 << bits) if signed and value >> (bits - 1) else value
 
         result = set()
@@ -1204,6 +1315,15 @@ class PredecessorFacts:
         return self._combine(expr.op, expr.result_size(vex.tyenv), left, right)
 
     def _register_values(self, node, before, offset, bits, depth):
+        """Union finite reaching-register alternatives without losing a path.
+
+        A containing local PUT supplies the queried view. Otherwise obtain
+        entry seeds and exact incoming read positions, applying each edge's
+        guard before unioning its domain. Any unknown path, recursive register
+        definition or oversized union makes the query unknown. Cache results
+        only within this snapshot; finite recursion does not unroll loops.
+        """
+
         key = node, before, offset, bits
         if (
             key in self._domain_active

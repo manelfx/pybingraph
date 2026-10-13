@@ -5,11 +5,11 @@ from types import SimpleNamespace
 
 import archinfo
 import networkx as nx
-import pyvex
 import pytest
+import pyvex
 
 from bingraph.cfg.models import FunctionBounds
-from bingraph.cfg.shared_facts import PredecessorFacts
+from bingraph.cfg.shared.facts import PredecessorFacts
 
 
 @dataclass(eq=False)

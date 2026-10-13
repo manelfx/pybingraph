@@ -3,12 +3,12 @@ from typing import Any
 
 from angr import Project
 from angr.knowledge_plugins.cfg import CFGNode
-from bingraph.cfg.decode import decode_one
-
-from .labels import short_label
-from .vis import Content, Node
 from archinfo.archerror import ArchError
 from loguru import logger
+
+from bingraph.core.labels import short_label
+from bingraph.core.vis import Content, Node
+from bingraph.helpers.disassembly import decode_one
 
 
 class NodeHead(Content):

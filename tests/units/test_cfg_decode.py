@@ -5,15 +5,15 @@ from types import SimpleNamespace
 import pytest
 import pyvex
 
-from bingraph.cfg import decode as decode_module
-from bingraph.cfg.decode import (
-    DecodedNode,
-    decode_raw_capstone_insns,
-    is_post_prefix_instruction_entry,
+import bingraph.cfg.calls as calls_module
+from bingraph.cfg.calls import target_is_known_nonreturning
+from bingraph.cfg.decode import is_post_prefix_instruction_entry
+from bingraph.helpers.disassembly import DecodedNode, decode_raw_capstone_insns
+from bingraph.helpers.vex import (
+    is_call_like_jumpkind,
     read_static_integer,
-    target_is_known_nonreturning,
+    temporary_definitions,
 )
-from bingraph.cfg.vex import is_call_like_jumpkind, temporary_definitions
 
 
 def _insn(addr: int, size: int) -> SimpleNamespace:
@@ -119,11 +119,9 @@ def test_nonreturning_runtime_plt_requires_an_exact_known_entry(
     project = SimpleNamespace(
         loader=SimpleNamespace(find_object_containing=lambda _addr: obj)
     )
+    monkeypatch.setattr(calls_module, "target_is_hooked_nonreturning", lambda *_: False)
     monkeypatch.setattr(
-        decode_module, "target_is_hooked_nonreturning", lambda *_: False
-    )
-    monkeypatch.setattr(
-        decode_module, "_symbol_is_declared_nonreturning", lambda *_: False
+        calls_module, "_symbol_is_declared_nonreturning", lambda *_: False
     )
 
     assert target_is_known_nonreturning(project, 0x1000) is expected

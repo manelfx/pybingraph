@@ -1,4 +1,10 @@
-"""Conservative SimOS-backed syscall recovery for custom blocks."""
+"""Local syscall-number proofs using angr's existing SimOS ABI conventions.
+
+Execute only the decoded prefix before a system transfer, not the syscall or
+callee itself. Inputs start symbolic; ambiguous memory must not gain constants
+through an arbitrary concretization choice. The builder consumes a proved
+procedure identity/no-return flag or retains the stable unknown syscall leaf.
+"""
 
 from __future__ import annotations
 
@@ -26,7 +32,13 @@ class ResolvedSyscall:
 
 
 def unknown_syscall_target(project: Project) -> ResolvedSyscall:
-    """Return angr's stable synthetic identity for an unresolved syscall."""
+    """Obtain SimOS's unknown syscall identity without inventing a known number.
+
+    Use its procedure/address/name when the userland SimOS exposes them,
+    otherwise return Bingraph's generic placeholder. The address is synthetic
+    node identity, not evidence for a concrete binary destination or a syscall
+    whose numeric identifier happens to be zero.
+    """
 
     try:
         simos = project.simos
@@ -82,6 +94,8 @@ def resolve_static_syscall(
         state.memory.write_strategies = [SimConcretizationStrategySingle()]
 
         def forget_ambiguous_store(state: SimState) -> None:
+            """Latch memory uncertainty when a skipped symbolic store may alias reads."""
+
             if (
                 state.inspect.attrs.address_concretization_action == "store"
                 and state.inspect.attrs.address_concretization_result is None
@@ -89,6 +103,8 @@ def resolve_static_syscall(
                 cast(SimStateGlobals, state.globals)["syscall_memory_unknown"] = True
 
         def read_after_ambiguous_store(state: SimState) -> None:
+            """Replace later loads with unknown values instead of stale loader bytes."""
+
             # Conservative writes skip an unknown address. It could alias any
             # later load, including a concrete one, so do not trust old data.
             if cast(SimStateGlobals, state.globals).get("syscall_memory_unknown"):

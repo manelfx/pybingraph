@@ -3,11 +3,9 @@ from typing import Any
 
 from angr.analyses.cfg import CFGBase
 
+from bingraph.core.vis import Edge, Graph, Node, Source, VisError
 from bingraph.helpers import CfgExits
-from bingraph.cfg.vex import is_call_like_jumpkind
-
-from .vis import Edge, Graph, Node, Source, VisError
-
+from bingraph.helpers.vex import is_call_like_jumpkind
 
 _EXTERNAL_FRONTIER_JUMPKINDS = frozenset({"Ijk_Boring", "Ijk_Call", "Ijk_FakeRet"})
 

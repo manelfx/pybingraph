@@ -1,4 +1,10 @@
-"""VEX-proven static data ranges used to bound construction."""
+"""Concrete data-reference observations used to prevent code/data overlap.
+
+Exact decoded blocks contribute non-store VEX reads; direct control-flow
+claims override data classification at their addresses. Execute-relative
+instruction templates stay eligible as code. These observations constrain
+decoding/recovery, not indirect-target domains, and are scoped to a build.
+"""
 
 from __future__ import annotations
 
@@ -50,7 +56,11 @@ class StaticDataRegions:
 
     @staticmethod
     def _memory_addr(project: Project, addr: int) -> int:
-        """Return the physical memory address for an execution address."""
+        """Normalize Thumb-tagged execution addresses to loader byte addresses.
+
+        Code claims and data ranges must share this coordinate system, while
+        actual CFG node addresses retain their instruction-set mode bit.
+        """
 
         try:
             if project.arch.is_thumb(addr):
@@ -60,18 +70,35 @@ class StaticDataRegions:
         return addr
 
     def claim_code(self, project: Project, addr: int) -> None:
-        """Keep an explicit direct control-flow target executable."""
+        """Give an explicit code target precedence over a prior data observation.
+
+        Record its physical address without deleting the data evidence. The
+        membership query resolves the conflict; this method neither decodes
+        instructions nor declares an arbitrary observed load executable.
+        """
 
         self.code_addrs.add(self._memory_addr(project, addr))
 
     def contains(self, project: Project, addr: int) -> bool:
-        """Return whether an address is data without an explicit code claim."""
+        """Test an observed data byte while respecting direct code precedence.
+
+        Normalize mode-tagged addresses before comparing sets. A false result
+        means decoding is not excluded here, not that an instruction boundary
+        or executable destination has been proved.
+        """
 
         memory_addr = self._memory_addr(project, addr)
         return memory_addr in self.data_bytes and memory_addr not in self.code_addrs
 
     def record_block(self, project: Project, block: BlockSpec) -> bool:
-        """Record concrete non-store reads from one exact VEX block lift."""
+        """Collect data bytes from one exact lift, returning whether the set grew.
+
+        Deduplicate observations by block start/size so redecoding identical
+        spans does not repeat work. Include concrete reads even when VEX calls
+        their type unknown, but exclude stores and execution-template fetches.
+        Failed lifting contributes no observations; existing code claims remain
+        authoritative without making data classification a target proof.
+        """
 
         key = block.addr, block.size
         if key in self.observed_blocks:

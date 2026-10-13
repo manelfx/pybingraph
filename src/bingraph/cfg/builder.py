@@ -10,6 +10,11 @@ indirect transfers, discover disconnected code with an unknown entry, then
 materialize the final graph. VEX-proven static jump tables contribute leaders
 during the exact-resolution stage; remaining indirect transfers stay explicit
 synthetic leaves. The builder never reads CFGFast's discovered regions.
+
+This session owns scheduling and mutation. cfg.nodes only constructs labels and
+nodes, cfg.returns reports read-only return proofs, and cfg.jumps/cfg.shared
+provide target evidence for immutable exact-flow snapshots. Moving these
+implementations must not change discovery order or cache invalidation points.
 """
 
 from __future__ import annotations
@@ -20,192 +25,90 @@ from dataclasses import replace
 from types import SimpleNamespace
 from typing import Iterable, Mapping, cast
 
+import networkx as nx
 from angr import KnowledgeBase, Project
 from angr.knowledge_plugins.cfg import CFGModel, CFGNode
-from capstone import CS_OP_REG
-from capstone.arm import (
-    ARM_CC_AL,
-    ARM_INS_BX,
-    ARM_INS_IT,
-    ARM_INS_POP,
-    ARM_INS_PUSH,
-    ARM_REG_LR,
-    ARM_REG_PC,
-    ARM_REG_SP,
-)
-from cle.backends.symbol import SymbolType
 from loguru import logger
-import networkx as nx
 
-from bingraph.cfg.anomalies import _lookup_function_bounds
-from bingraph.cfg.graph import CFGGraph, add_successor_edge, node_vex
-from bingraph.cfg.jumps import (
-    _jump_table_addr,
-    _read_static_jump_table_targets,
-    abi_static_register_transfer_targets,
-    conditional_pc_dispatch_targets,
-    is_memory_dependent_indirect_jump,
-    plan_mips_pic_relative_jump_table,
-    plan_static_jump_table,
-    s390_table_loaded_branch,
-    static_jump_target_rejection_reason,
-    vex_has_computed_pc_transfer,
-    vex_is_conditional_link_return,
-)
-from bingraph.cfg.models import (
-    BlockSpec,
-    EdgeJumpKind,
-    FunctionBounds,
-)
+from bingraph.cfg.anomalies import _lookup_function_bounds, find_custom_cfg_anomalies
+from bingraph.cfg.calls import target_is_known_nonreturning
+from bingraph.cfg.data import StaticDataRegions
 from bingraph.cfg.decode import (
     alternate_block_entry_rejoin_addr,
     decode_bounded_block,
-    decode_raw_capstone_insns,
     is_valid_block_entry,
-    target_is_known_nonreturning,
 )
-from bingraph.helpers.capstone import arch_has_delay_slot
-from bingraph.helpers.symbols import is_arm_mapping_symbol, plt_symbol_name
-
-from .anomalies import find_custom_cfg_anomalies
-from .data import StaticDataRegions
-from .exceptions import ExceptionalCallSite, exceptional_call_sites_for_function
-from .models import (
+from bingraph.cfg.exceptions import (
+    ExceptionalCallSite,
+    exceptional_call_sites_for_function,
+)
+from bingraph.cfg.graph import CFGGraph, add_successor_edge, node_vex
+from bingraph.cfg.jumps.conditional import (
+    conditional_pc_dispatch_targets,
+    vex_has_computed_pc_transfer,
+    vex_is_conditional_link_return,
+)
+from bingraph.cfg.jumps.expressions import (
+    is_memory_dependent_indirect_jump,
+    s390_table_loaded_branch,
+    static_jump_target_rejection_reason,
+)
+from bingraph.cfg.jumps.mips import (
+    abi_static_register_transfer_targets,
+    plan_mips_pic_relative_jump_table,
+)
+from bingraph.cfg.jumps.tables import (
+    _jump_table_addr,
+    _read_static_jump_table_targets,
+    plan_static_jump_table,
+)
+from bingraph.cfg.models import (
+    BlockSpec,
     CustomCFG,
-    CustomCFGNode,
     CustomCFGStats,
     CustomCFGSummary,
+    EdgeJumpKind,
 )
-from .shared_table_proof import (
+from bingraph.cfg.nodes import (
+    _external_target_name,
+    _local_node_names,
+    _make_block_node,
+    _make_leaf_node,
+    _thumb_mode,
+)
+from bingraph.cfg.returns import saved_link_return_addrs
+from bingraph.cfg.shared.proofs import (
     shared_register_targets,
     shared_table_targets,
     table_predecessor_facts,
 )
-from .sweep import (
+from bingraph.cfg.sweep import (
     SweepBudgetExceeded,
     recover_executable_components,
     select_disconnected_components,
     validate_disconnected_baseline,
 )
-from .syscalls import ResolvedSyscall, resolve_static_syscall, unknown_syscall_target
-
+from bingraph.cfg.syscalls import (
+    ResolvedSyscall,
+    resolve_static_syscall,
+    unknown_syscall_target,
+)
+from bingraph.helpers.capstone import arch_has_delay_slot
+from bingraph.helpers.disassembly import decode_raw_capstone_insns
 
 _UNRESOLVABLE_CALL_ADDR = 0xFFFFFFFFFFFFFFD0
 _UNRESOLVABLE_ENTRY_ADDR = 0xFFFFFFFFFFFFFFC0
 
 
-def _thumb_mode(project: Project, addr: int) -> bool:
-    """Return the execution mode encoded by an ARM/Thumb address."""
-
-    try:
-        return bool(project.arch.is_thumb(addr))
-    except AttributeError:
-        return False
-
-
-def _node_name(bounds: FunctionBounds, addr: int) -> str:
-    """Return the stable display name used for a recovered block."""
-
-    if addr == bounds.addr:
-        return bounds.name
-    return f"{bounds.name}+0x{addr - bounds.addr:x}"
-
-
-def _local_node_names(project: Project, addrs: Iterable[int]) -> dict[int, str]:
-    """Choose local code labels at existing block starts, never new leaders.
-
-    Untyped assembler labels precede local function aliases, then names sort
-    lexically so symbol-table order cannot change the title. Object, section,
-    and file symbols are not code labels; ARM mapping symbols only describe
-    decoding regions. Normalize Thumb execution addresses to their byte address.
-    """
-
-    starts = {addr: addr - int(_thumb_mode(project, addr)) for addr in addrs}
-    byte_addrs = set(starts.values())
-    aliases: dict[int, tuple[bool, str]] = {}
-    for symbol in project.loader.main_object.symbols:
-        if (
-            not symbol.is_local
-            or symbol.is_import
-            or symbol.type not in (SymbolType.TYPE_NONE, SymbolType.TYPE_FUNCTION)
-            or not symbol.name
-        ):
-            continue
-        addr = symbol.rebased_addr
-        addr -= int(_thumb_mode(project, addr))
-        if addr not in byte_addrs or is_arm_mapping_symbol(
-            project.arch.name, symbol.name
-        ):
-            continue
-        rank = (symbol.is_function, symbol.name)
-        if addr not in aliases or rank < aliases[addr]:
-            aliases[addr] = rank
-    return {
-        addr: aliases[byte_addr][1]
-        for addr, byte_addr in starts.items()
-        if byte_addr in aliases
-    }
-
-
-def _make_block_node(
-    model: CFGModel,
-    project: Project,
-    func_addr: int,
-    bounds: FunctionBounds,
-    block: BlockSpec,
-    *,
-    name: str | None = None,
-) -> CFGNode:
-    """Materialize one recovered normal CFG node."""
-
-    return CustomCFGNode(
-        block.addr,
-        block.size,
-        cfg=model,
-        function_address=func_addr,
-        block_id=block.addr,
-        instruction_addrs=block.instruction_addrs,
-        thumb=_thumb_mode(project, block.addr),
-        name=name or _node_name(bounds, block.addr),
-        vex_linear_instruction_sizes=dict(block.vex_linear_instruction_sizes),
-    )
-
-
-def _external_target_name(project: Project, addr: int) -> str:
-    """Return the loader symbol name for an external target when known."""
-
-    symbol = project.loader.find_symbol(addr)
-    name = getattr(symbol, "name", None)
-    if isinstance(name, str) and name:
-        return name
-    return plt_symbol_name(project, addr) or f"ExternalTarget_{addr:#x}"
-
-
-def _make_leaf_node(
-    model: CFGModel,
-    func_addr: int,
-    addr: int,
-    name: str,
-    *,
-    is_syscall: bool = False,
-) -> CFGNode:
-    """Materialize a synthetic CFG leaf without making it a function block."""
-
-    return CFGNode(
-        addr,
-        0,
-        cfg=model,
-        function_address=func_addr,
-        block_id=addr,
-        instruction_addrs=(),
-        simprocedure_name=name,
-        is_syscall=is_syscall,
-        name=name,
-    )
-
-
 class _BuildSession:
-    """Own the leader worklist and graph materialization for one function."""
+    """Own one function's mutable discovery state and immutable proof snapshots.
+
+    Keep decoded exact-flow blocks separate from disconnected display recovery.
+    New leaders can split old blocks, so invalidate/revalidate target proofs
+    against their source and incoming-flow snapshot rather than caching them
+    by address alone. This class schedules analyses and applies their evidence;
+    individual helpers must not independently materialize speculative edges.
+    """
 
     def __init__(
         self,
@@ -213,6 +116,14 @@ class _BuildSession:
         kb: KnowledgeBase,
         func_addr: int,
     ) -> None:
+        """Resolve symbol bounds and initialize isolated per-function work state.
+
+        The entry is the first queued leader. Target maps, proof provenance,
+        data claims, synthetic leaves and recovery overlays belong to this
+        session; the supplied knowledge base receives the completed function.
+        No CFGFast discovery graph is consulted or inherited.
+        """
+
         self.project = project
         self.kb = kb
         self.func_addr = func_addr
@@ -266,7 +177,12 @@ class _BuildSession:
             self.stats.post_decode_call_fallthroughs_suppressed += 1
 
     def _queue(self, addr: int) -> None:
-        """Schedule one in-bounds block leader only once per pending round."""
+        """Queue an admitted in-function leader without duplicating pending work.
+
+        Scheduling is separate from proving a new leader's validity. The
+        pending-address set prevents repeated incoming edges or loops from
+        growing the worklist with identical unfinished decode requests.
+        """
 
         if not self.bounds.addr <= addr < self.bounds.end_addr:
             return
@@ -377,7 +293,14 @@ class _BuildSession:
         return block
 
     def _decode_all_blocks(self) -> None:
-        """Drain discovered leaders until their block boundaries stabilize."""
+        """Decode queued leaders and close their admitted direct continuations.
+
+        Stop at known leaders/data boundaries, classify local calls and system
+        transfers, and feed newly discovered direct targets back into the same
+        queue. A split or changed data claim can schedule redecoding. This stage
+        supplies exact instructions/flow to later proofs; it does not connect
+        unresolved jumps to guessed nearby components.
+        """
 
         while self.pending:
             addr = self.pending.popleft()
@@ -591,7 +514,13 @@ class _BuildSession:
             self._decode_all_blocks()
 
     def _restore_shared_register_blocks(self, addresses: Iterable[int]) -> None:
-        """Withdraw a proof and its no-return side effect, not decoded facts."""
+        """Restore decoded blocks when their shared register proof is withdrawn.
+
+        A proved non-returning call may have suppressed its continuation.
+        Restore that continuation and adjust the net action counters together
+        with the target, so a stale proof cannot prove itself using a path it
+        removed. Keep unrelated decoded instructions and leader work intact.
+        """
 
         for addr in addresses:
             original, proved = self._shared_register_blocks.pop(addr)
@@ -769,128 +698,15 @@ class _BuildSession:
             # withdraws one for this snapshot; copy cycles are never unrolled.
 
     def _recognize_saved_link_returns(self) -> None:
-        """Recognize split ARM pops of the entry LR in an unchanged leaf frame.
+        """Apply read-only saved-link proofs to the session's decoded blocks."""
 
-        This is a provenance proof, not a guess based on a jump register's
-        name. An unconditional entry push creates a private frame; a suffix
-        of unconditional pops must restore the entire frame and load its LR
-        slot into the final BX register. Other SP uses (including exporting a
-        frame pointer), calls, IT predication, and unresolved intervening flow
-        make this deliberately small proof inconclusive.
-
-        As with private stack saves in the ABI target pass, ordinary argument
-        pointers are assumed not to alias a newly allocated, unescaped frame.
-        The scan is bounded and runs only for ARM functions with unknown exits.
-        """
-
-        if not self.project.arch.name.startswith("ARM"):
-            return
-        candidates = {
-            addr
-            for addr, block in self.blocks.items()
-            if block.jumpkind == "Ijk_Boring"
-            and not block.direct_targets
-            and addr not in self.static_targets
-            and block.fallthrough_addr is None
-        }
-        if not candidates:
-            return
-        entry = self.blocks[self.bounds.addr]
-        entry_insns = decode_raw_capstone_insns(self.project, entry.addr, entry.size)
-        if not entry_insns:
-            return
-        push = entry_insns[0]
-        if push.id != ARM_INS_PUSH or push.cc != ARM_CC_AL:
-            return
-        saved = [op.reg for op in push.operands if op.type == CS_OP_REG]
-        if ARM_REG_LR not in saved or {ARM_REG_SP, ARM_REG_PC}.intersection(saved):
-            return
-
-        graph, nodes = self._analysis_graph(self.static_targets)
-        root = nodes[self.bounds.addr]
-        reachable = {root, *nx.descendants(graph, root)}
-        if graph.in_degree(root) or any(
-            self.blocks[node.addr].jumpkind in {"Ijk_Call", "Ijk_Syscall"}
-            or (
-                self.blocks[node.addr].jumpkind == "Ijk_Boring"
-                and not self.blocks[node.addr].direct_targets
-                and node.addr not in self.static_targets
-                and node.addr not in candidates
-            )
-            for node in reachable
+        for addr in saved_link_return_addrs(
+            self.project,
+            self.bounds,
+            self.blocks,
+            self.static_targets,
+            lambda: self._analysis_graph(self.static_targets),
         ):
-            return
-        # An undecodable internal successor could alter the frame before
-        # rejoining an epilogue; a partial exact graph cannot prove a return.
-        if any(
-            target is not None
-            and self.bounds.addr <= target < self.bounds.end_addr
-            and target not in self.blocks
-            for node in reachable
-            for target in (
-                *self.blocks[node.addr].direct_targets,
-                *self.static_targets.get(node.addr, ()),
-                self.blocks[node.addr].fallthrough_addr,
-            )
-        ):
-            return
-        insns = {}
-        count = 0
-        for node in reachable:
-            block = self.blocks[node.addr]
-            decoded = decode_raw_capstone_insns(self.project, block.addr, block.size)
-            count += len(decoded)
-            if (
-                not decoded
-                or count > 20000
-                or decoded[0].address != block.addr
-                or decoded[-1].address + decoded[-1].size != block.addr + block.size
-            ):
-                return
-            insns[node.addr] = decoded
-
-        epilogue_addrs = set()
-        returns = set()
-        for addr in candidates & insns.keys():
-            decoded = insns[addr]
-            branch = decoded[-1]
-            if (
-                branch.id != ARM_INS_BX
-                or branch.cc != ARM_CC_AL
-                or len(branch.operands) != 1
-                or branch.operands[0].type != CS_OP_REG
-            ):
-                return
-            start = len(decoded) - 1
-            while start and decoded[start - 1].id == ARM_INS_POP:
-                start -= 1
-            consumed = 0
-            restored_link = None
-            for pop in decoded[start:-1]:
-                registers = [op.reg for op in pop.operands if op.type == CS_OP_REG]
-                if pop.cc != ARM_CC_AL or {ARM_REG_SP, ARM_REG_PC}.intersection(
-                    registers
-                ):
-                    return
-                if restored_link in registers:
-                    restored_link = None
-                slot = saved.index(ARM_REG_LR) - consumed
-                if 0 <= slot < len(registers):
-                    restored_link = registers[slot]
-                consumed += len(registers)
-            if consumed != len(saved) or restored_link != branch.operands[0].reg:
-                return
-            epilogue_addrs.update(insn.address for insn in decoded[start:-1])
-            returns.add(addr)
-
-        for decoded in insns.values():
-            for insn in decoded:
-                if insn.address == push.address or insn.address in epilogue_addrs:
-                    continue
-                reads, writes = insn.regs_access()
-                if insn.id == ARM_INS_IT or ARM_REG_SP in (*reads, *writes):
-                    return
-        for addr in returns:
             self.blocks[addr] = replace(self.blocks[addr], jumpkind="Ijk_Ret")
 
     def _discover_static_jump_targets(self) -> None:
@@ -1131,7 +947,12 @@ class _BuildSession:
             return
 
     def _leaf(self, addr: int, name: str, *, is_syscall: bool = False) -> CFGNode:
-        """Return a unique synthetic leaf for one address/name pair."""
+        """Intern a synthetic destination by semantic address/name identity.
+
+        Reuse it for repeated references and account for creation separately
+        from reuse. Different labels at one address remain separate leaves;
+        unresolved placeholders are not normal blocks or instruction coverage.
+        """
 
         key = (addr, name)
         node = self.leaf_nodes.get(key)
@@ -1151,7 +972,13 @@ class _BuildSession:
         return node
 
     def _target_node(self, addr: int) -> CFGNode:
-        """Return a recovered destination or a precise synthetic leaf."""
+        """Map an explicit target to a decoded block or the appropriate leaf.
+
+        Missing in-function code becomes an undecodable-target diagnostic,
+        while out-of-function addresses retain loader/PLT labels as external
+        leaves. This preserves known branch destinations without pretending
+        failed decoding recovered their instructions.
+        """
 
         node = self.nodes.get(addr)
         if node is not None:
@@ -1163,7 +990,13 @@ class _BuildSession:
         return self._leaf(addr, _external_target_name(self.project, addr))
 
     def _fallthrough_target_node(self, addr: int) -> CFGNode | None:
-        """Return a valid continuation without inventing one past bad bytes."""
+        """Materialize sequential flow only to an admitted continuation.
+
+        Unlike an explicit branch target, failed in-function decoding is not
+        evidence for a fallthrough diagnostic edge. Return ``None`` there;
+        decoded blocks and legitimate out-of-function continuations use the
+        existing node/leaf policy.
+        """
 
         node = self.nodes.get(addr)
         if node is not None:
@@ -1379,7 +1212,14 @@ class _BuildSession:
             self._set_recovery_partition(baseline | self.recovered_blocks)
 
     def _set_recovery_partition(self, blocks: Mapping[int, BlockSpec]) -> None:
-        """Adopt validated display blocks while keeping proof inputs immutable."""
+        """Partition a validated display snapshot around the original exact flow.
+
+        Recovery can split an existing block without changing its instructions.
+        Keep those pieces in a baseline overlay and genuinely new code in the
+        recovered overlay; map original terminal sources to their split display
+        nodes. The resolver's decoded blocks and proof inputs are not replaced
+        by this presentation partition.
+        """
 
         original_insns = {a for b in self.blocks.values() for a in b.instruction_addrs}
         self.recovery_baseline = {
@@ -1445,7 +1285,13 @@ class _BuildSession:
         return self.blocks | self.recovery_baseline | self.recovered_blocks
 
     def _attach_disconnected_components(self) -> None:
-        """Explain discovered regions without inventing a dispatcher edge."""
+        """Link recovered roots to one explicit unknown-entry source.
+
+        Mark these presentation edges unresolved/recovered rather than choosing
+        a real indirect dispatcher as their predecessor. The recovery region's
+        coverage is useful, but its entry provenance remains unknown and must
+        never become a reaching-definition input to exact target proofs.
+        """
 
         if not self.recovered_roots:
             return
@@ -1460,7 +1306,14 @@ class _BuildSession:
             edge["recovered_entry"] = True
 
     def _summarize_output(self) -> None:
-        """Record the final graph shape separately from construction decisions."""
+        """Count stabilized display coverage and graph shape after construction.
+
+        Count decoder provenance once per final call block, not once per
+        redecoding attempt. Separate entry-connected and recovered instructions
+        so extra unknown-entry coverage cannot masquerade as resolved control
+        flow. Construction counters intentionally retain their different work/
+        action meanings rather than being inferred from rendered edge counts.
+        """
 
         blocks = self._output_blocks()
         # Count stabilized call sites once, not every decode of their block.
@@ -1588,7 +1441,14 @@ def build_custom_cfg(
     kb: KnowledgeBase,
     func_addr: int,
 ) -> CustomCFG:
-    """Build one bounded function CFG with recovery, without invoking CFGFast."""
+    """Construct and report one function's custom CFG without CFGFast seeding.
+
+    A fresh session owns direct decoding, exact target proofs, exceptional flow
+    and conservative disconnected coverage before final materialization.
+    Return the CFG with its knowledge-base function, graph and separate work/
+    coverage statistics. The caller controls caching and rendering options;
+    comments, labels and exit filtering do not drive this discovery pipeline.
+    """
 
     logger.info(f"Building custom CFG for function {func_addr:#x} without CFGFast")
     cfg = _BuildSession(project, kb, func_addr).build()

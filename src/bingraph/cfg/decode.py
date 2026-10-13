@@ -1,20 +1,36 @@
-"""Capstone-backed node inspection used by custom CFG reconstruction."""
+"""Function-bounded block decoding and normalized control-flow terminators.
+
+Instruction bytes and cached node views come from helpers.disassembly; local
+callee evidence and non-returning declarations come from cfg.calls. This layer
+owns leader boundaries, delay slots, exceptional ISA transfers and BlockSpec
+construction, without discovering a whole-function graph or resolving tables.
+"""
 
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
-from functools import lru_cache
-import re
 
-from angr import Project
-from angr.procedures.definitions import SIM_LIBRARIES, SimSyscallLibrary
-from capstone import CsInsn
-from elftools.elf.elffile import ELFFile
-from elftools.elf.sections import SymbolTableSection
-from loguru import logger
 import pyvex
+from angr import Project
+from capstone import CsInsn
+from loguru import logger
 
+from bingraph.cfg.calls import (
+    _is_known_synthetic_function_target,
+    _is_static_pointer_call_target,
+    _is_trusted_direct_call_target,
+    _mips_gp_relative_indirect_call_target,
+    _mips_gp_relative_indirect_jump_target,
+    known_nonreturning_call_target,
+    static_memory_indirect_call_target,
+    static_memory_indirect_jump_target,
+)
+from bingraph.cfg.models import (
+    BlockSpec,
+    DecodedCallTargetKind,
+    FunctionBounds,
+    TerminatorInfo,
+)
 from bingraph.helpers.capstone import (
     InsnSemantics,
     arch_has_delay_slot,
@@ -22,76 +38,8 @@ from bingraph.helpers.capstone import (
     instruction_is_conditionally_executed,
     proven_unconditional_direct_target,
 )
-from bingraph.helpers.symbols import plt_symbol_name
-
-from .models import BlockSpec, DecodedCallTargetKind, FunctionBounds, TerminatorInfo
-from .vex import STATIC_INTEGER_BYTES, temporary_definitions
-
-
-# CFGNode equality is address/block-ID based, so a recovered replacement can
-# compare equal to the stale node it supersedes. Keep the object alive in each
-# entry and key by identity so replacement nodes never reuse stale decoding.
-_DECODED_NODE_CACHE: dict[int, tuple[object, DecodedNode]] = {}
-
-
-def clear_decoded_node_cache() -> None:
-    """Discard decoded-node views from the preceding custom CFG build."""
-
-    _DECODED_NODE_CACHE.clear()
-
-
-def decode_raw_capstone_insns(
-    project: Project,
-    addr: int,
-    size: int,
-    *,
-    count: int = 0,
-) -> tuple[CsInsn, ...]:
-    """Decode bytes directly through the project's architecture Capstone engine."""
-
-    try:
-        arch = project.arch
-        try:
-            is_thumb = arch.is_thumb(addr)
-        except AttributeError:
-            is_thumb = False
-
-        # ARM/Thumb stores the execution mode in address bit 0. Read bytes at
-        # the physical address, while preserving the tagged address in output.
-        # ``capstone_thumb`` is an ARM-specific extension not declared on the
-        # base archinfo ``Arch`` type.
-        thumb_capstone = getattr(arch, "capstone_thumb", None)
-
-        if is_thumb and thumb_capstone is not None:
-            capstone = thumb_capstone
-            memory_addr = addr & ~1
-        else:
-            capstone = arch.capstone
-            memory_addr = addr
-        data = project.loader.memory.load(memory_addr, size)
-        return tuple(capstone.disasm(data, addr, count=count))
-    except Exception:
-        return ()
-
-
-def decode_one(project: Project, addr: int, size: int) -> CsInsn | None:
-    """Decode one instruction with mode-aware Capstone and a raw fallback."""
-
-    try:
-        block = project.factory.block(
-            addr,
-            size=size,
-            strict_block_end=True,
-            cross_insn_opt=False,
-        )
-        capstone_insns = block.capstone.insns
-        if capstone_insns:
-            return capstone_insns[0].insn
-    except Exception:
-        pass
-
-    fallback_insns = decode_raw_capstone_insns(project, addr, size, count=1)
-    return fallback_insns[0] if fallback_insns else None
+from bingraph.helpers.disassembly import decode_one, decode_raw_capstone_insns
+from bingraph.helpers.vex import temporary_definitions
 
 
 def decode_linear_vex_span(
@@ -137,23 +85,6 @@ def decode_linear_vex_span(
     ):
         return None
     return mark.addr, mark.len
-
-
-def _is_trusted_direct_call_target(project: Project, addr: int) -> bool:
-    """Return whether a constant VEX call target is safe to materialize.
-
-    Address zero can be a valid code address in a deliberately zero-based
-    image. In an image that does not map zero, however, it commonly denotes an
-    unresolved weak function reference. Do not turn such a reference into a
-    concrete external callee merely because another zero-valued symbol exists.
-    """
-
-    if addr != 0:
-        return True
-    try:
-        return project.loader.find_object_containing(addr) is not None
-    except AttributeError:
-        return False
 
 
 def is_post_prefix_instruction_entry(insn: CsInsn, addr: int) -> bool:
@@ -285,123 +216,6 @@ def call_fallthrough_addr(
     return None
 
 
-def _library_family(name: str) -> str:
-    """Return a stable family name for a versioned shared-library filename."""
-
-    basename = name.rsplit("/", 1)[-1]
-    match = re.match(
-        r"(?P<family>.+?)(?:-[0-9][0-9A-Za-z._-]*)?\\.so(?:\\..*)?$", basename
-    )
-    return match.group("family") if match is not None else basename
-
-
-_LINKED_NONRETURNING_RUNTIME_SYMBOLS = frozenset(
-    {
-        "abort",
-        "_Unwind_Resume",
-        "__assert_fail",
-        "__libc_assert_fail",
-        "__malloc_assert",
-        "__stack_chk_fail",
-    }
-)
-
-
-@lru_cache(maxsize=32)
-def _ppc64_nonreturning_local_entries(project: Project) -> frozenset[int]:
-    """Read ELFv2 local-entry offsets for linked non-returning functions."""
-
-    obj = project.loader.main_object
-    if project.arch.name != "PPC64" or not obj.binary:
-        return frozenset()
-
-    entries: set[int] = set()
-    try:
-        with open(obj.binary, "rb") as stream:
-            elf = ELFFile(stream)
-            if elf["e_machine"] != "EM_PPC64" or elf["e_flags"] & 3 != 2:
-                return frozenset()
-            for section in elf.iter_sections():
-                if not isinstance(section, SymbolTableSection):
-                    continue
-                for raw_symbol in section.iter_symbols():
-                    if (
-                        raw_symbol.name not in _LINKED_NONRETURNING_RUNTIME_SYMBOLS
-                        or raw_symbol["st_info"]["type"] != "STT_FUNC"
-                    ):
-                        continue
-                    symbol = obj.get_symbol(raw_symbol.name)
-                    if (
-                        symbol is None
-                        or symbol.is_import
-                        or symbol.relative_addr
-                        != raw_symbol["st_value"] - obj.linked_base
-                    ):
-                        continue
-                    encoded_offset = raw_symbol["st_other"]["local"]
-                    # ELFv2 encodes the local entry's byte displacement in
-                    # st_other; this is not an arbitrary in-function alias.
-                    offset = ((1 << encoded_offset) >> 2) << 2
-                    if 0 < offset < raw_symbol["st_size"]:
-                        entries.add(symbol.rebased_addr + offset)
-    except OSError:
-        return frozenset()
-    return frozenset(entries)
-
-
-def _symbol_is_declared_nonreturning(project: Project, addr: int) -> bool:
-    """Recognize exact no-return runtime symbols and compatible declarations."""
-
-    symbol = project.loader.find_symbol(addr)
-    if symbol is None or symbol.rebased_addr != addr or not symbol.is_function:
-        return addr in _ppc64_nonreturning_local_entries(project)
-
-    # A statically linked runtime has an application filename, so its libc
-    # declarations cannot be matched by the owning object's library name.
-    if (
-        symbol.owner is project.loader.main_object
-        and not symbol.is_import
-        and symbol.name in _LINKED_NONRETURNING_RUNTIME_SYMBOLS
-    ):
-        return True
-
-    binary = project.loader.find_object_containing(addr)
-    if binary is None:
-        return False
-
-    binary_names = (binary.provides, binary.binary)
-    families = {_library_family(name) for name in binary_names if name}
-    for library_name, libraries in SIM_LIBRARIES.items():
-        if _library_family(library_name) not in families:
-            continue
-        for library in libraries:
-            if isinstance(library, SimSyscallLibrary):
-                continue
-            if library.has_prototype(symbol.name) and not library.is_returning(
-                symbol.name
-            ):
-                return True
-    return False
-
-
-def target_is_hooked_nonreturning(project: Project, addr: int) -> bool:
-    """Return whether angr exposes a concrete target as a no-return hook."""
-
-    return bool(
-        project.is_hooked(addr) and getattr(project.hooked_by(addr), "NO_RET", False)
-    )
-
-
-def target_is_known_nonreturning(project: Project, addr: int) -> bool:
-    """Recognize no-return hooks, declarations, and exact runtime PLT entries."""
-
-    return (
-        target_is_hooked_nonreturning(project, addr)
-        or _symbol_is_declared_nonreturning(project, addr)
-        or plt_symbol_name(project, addr) in _LINKED_NONRETURNING_RUNTIME_SYMBOLS
-    )
-
-
 def _vex_exit_guard_reads_register(vex, exit_statement, register_offset: int) -> bool:
     """Return whether a VEX exit guard transitively reads one register."""
 
@@ -449,418 +263,6 @@ def _is_unproven_itstate_fallthrough(
     ) and any(
         _vex_exit_guard_reads_register(vex, statement, itstate_offset)
         for statement in exit_statements
-    )
-
-
-def _mips_entry_global_pointer(project: Project, bounds: FunctionBounds) -> int | None:
-    """Resolve a MIPS PIC global pointer initialized from the entry ``$t9``.
-
-    MIPS PIC functions commonly establish ``$gp`` as ``$t9 + constant`` at
-    entry, where ABI rules guarantee that the incoming ``$t9`` is the function
-    address. Restrict this to the exact VEX shape so calls reached through
-    arbitrary register state remain unresolved.
-    """
-
-    if not project.arch.name.startswith("MIPS"):
-        return None
-
-    try:
-        gp_offset = project.arch.registers["gp"][0]
-        t9_offset = project.arch.registers["t9"][0]
-        entry_vex = project.factory.block(bounds.addr).vex
-    except (AttributeError, KeyError):
-        return None
-    except Exception:
-        return None
-
-    definitions = temporary_definitions(entry_vex)
-    for statement in entry_vex.statements:
-        if not isinstance(statement, pyvex.stmt.Put) or statement.offset != gp_offset:
-            continue
-        if not isinstance(statement.data, pyvex.expr.RdTmp):
-            continue
-
-        expression = definitions.get(statement.data.tmp)
-        if not isinstance(expression, pyvex.expr.Binop) or not expression.op.startswith(
-            "Iop_Add"
-        ):
-            continue
-
-        left, right = expression.args
-        constant, register = (
-            (left, right) if isinstance(left, pyvex.expr.Const) else (right, left)
-        )
-        if not isinstance(constant, pyvex.expr.Const):
-            continue
-        if not isinstance(register, pyvex.expr.RdTmp):
-            continue
-
-        source = definitions.get(register.tmp)
-        if not isinstance(source, pyvex.expr.Get) or source.offset != t9_offset:
-            continue
-
-        mask = (1 << project.arch.bits) - 1
-        return (bounds.addr + constant.con.value) & mask
-
-    return None
-
-
-def _mips_gp_relative_indirect_slot(
-    project: Project, bounds: FunctionBounds, vex
-) -> tuple[int, str] | None:
-    """Resolve a MIPS PIC indirect transfer through ``Load($gp + offset)``."""
-
-    target_expr = _indirect_target_load(project, vex)
-    if target_expr is None:
-        return None
-    return _mips_gp_relative_slot_from_load(project, bounds, vex, target_expr)
-
-
-def _mips_gp_relative_slot_from_load(
-    project: Project,
-    bounds: FunctionBounds,
-    vex,
-    target_expr: pyvex.expr.Load,
-) -> tuple[int, str] | None:
-    """Return a static ``$gp``-relative load slot used for a MIPS target."""
-
-    global_pointer = _mips_entry_global_pointer(project, bounds)
-    if global_pointer is None:
-        return None
-
-    try:
-        gp_offset = project.arch.registers["gp"][0]
-    except KeyError:
-        return None
-
-    if not isinstance(target_expr.addr, pyvex.expr.RdTmp):
-        return None
-
-    definitions = temporary_definitions(vex)
-    slot_expr = definitions.get(target_expr.addr.tmp)
-    if not isinstance(slot_expr, pyvex.expr.Binop) or not slot_expr.op.startswith(
-        "Iop_Add"
-    ):
-        return None
-
-    left, right = slot_expr.args
-    constant, register = (
-        (left, right) if isinstance(left, pyvex.expr.Const) else (right, left)
-    )
-    if not isinstance(constant, pyvex.expr.Const):
-        return None
-    if not isinstance(register, pyvex.expr.RdTmp):
-        return None
-
-    source = definitions.get(register.tmp)
-    if not isinstance(source, pyvex.expr.Get) or source.offset != gp_offset:
-        return None
-
-    mask = (1 << project.arch.bits) - 1
-    return ((global_pointer + constant.con.value) & mask, target_expr.end)
-
-
-def _mips_gp_relative_adjusted_indirect_jump_target(
-    project: Project, bounds: FunctionBounds, vex
-) -> int | None:
-    """Resolve ``lw $t9, offset($gp); addiu $t9, $t9, imm; jr $t9``."""
-
-    if vex.jumpkind != "Ijk_Boring" or not project.arch.name.startswith("MIPS"):
-        return None
-    try:
-        t9_offset = project.arch.registers["t9"][0]
-    except KeyError:
-        return None
-
-    definitions = temporary_definitions(vex)
-    if not isinstance(vex.next, pyvex.expr.RdTmp):
-        return None
-    target_expr = definitions.get(vex.next.tmp)
-    if not isinstance(target_expr, pyvex.expr.Get) or target_expr.offset != t9_offset:
-        return None
-
-    assignments = [
-        statement.data.tmp
-        for statement in vex.statements
-        if isinstance(statement, pyvex.stmt.Put)
-        and statement.offset == t9_offset
-        and isinstance(statement.data, pyvex.expr.RdTmp)
-    ]
-    if len(assignments) < 2:
-        return None
-
-    adjusted = definitions.get(assignments[-1])
-    if not isinstance(adjusted, pyvex.expr.Binop) or not adjusted.op.startswith(
-        "Iop_Add"
-    ):
-        return None
-    left, right = adjusted.args
-    constant, register = (
-        (left, right) if isinstance(left, pyvex.expr.Const) else (right, left)
-    )
-    if not isinstance(constant, pyvex.expr.Const) or not isinstance(
-        register, pyvex.expr.RdTmp
-    ):
-        return None
-    register_source = definitions.get(register.tmp)
-    if not isinstance(register_source, pyvex.expr.Get) or (
-        register_source.offset != t9_offset
-    ):
-        return None
-
-    load = definitions.get(assignments[-2])
-    if not isinstance(load, pyvex.expr.Load):
-        return None
-    slot = _mips_gp_relative_slot_from_load(project, bounds, vex, load)
-    if slot is None:
-        return None
-
-    slot_addr, endness = slot
-    target = read_static_integer(project, slot_addr, project.arch.bytes, endness)
-    if target is None:
-        return None
-    mask = (1 << project.arch.bits) - 1
-    return (target + constant.con.value) & mask
-
-
-def _indirect_target_load(project: Project, vex) -> pyvex.expr.Load | None:
-    """Return a direct VEX load supplying an indirect transfer target."""
-
-    if not isinstance(vex.next, pyvex.expr.RdTmp):
-        return None
-
-    definitions = temporary_definitions(vex)
-    target_expr = definitions.get(vex.next.tmp)
-    if isinstance(target_expr, pyvex.expr.Load):
-        return target_expr
-
-    # Strict MIPS lifts retain the call target as GET($t9), while the preceding
-    # instruction writes that register from the PIC GOT. Follow just this one
-    # register assignment; arbitrary register-derived calls stay unresolved.
-    if not project.arch.name.startswith("MIPS"):
-        return None
-    try:
-        t9_offset = project.arch.registers["t9"][0]
-    except KeyError:
-        return None
-    if not isinstance(target_expr, pyvex.expr.Get) or target_expr.offset != t9_offset:
-        return None
-
-    assigned = next(
-        (
-            statement.data
-            for statement in reversed(vex.statements)
-            if isinstance(statement, pyvex.stmt.Put)
-            and statement.offset == t9_offset
-            and isinstance(statement.data, pyvex.expr.RdTmp)
-        ),
-        None,
-    )
-    if assigned is None:
-        return None
-    load = definitions.get(assigned.tmp)
-    return load if isinstance(load, pyvex.expr.Load) else None
-
-
-def read_static_integer(
-    project: Project,
-    slot_addr: int,
-    entry_size: int,
-    endness: str,
-) -> int | None:
-    """Read an unsigned 1/2/4/8-byte integer using VEX's endianness.
-
-    Callers own address and memory-permission proofs. Unreadable memory is
-    unknown, not zero; this helper neither validates targets nor signs entries.
-    """
-
-    if entry_size not in STATIC_INTEGER_BYTES:
-        return None
-    try:
-        raw_target = project.loader.memory.load(slot_addr, entry_size)
-    except Exception:
-        return None
-
-    byteorder = "little" if endness == "Iend_LE" else "big"
-    return int.from_bytes(raw_target, byteorder=byteorder)
-
-
-def _is_known_synthetic_function_target(project: Project, addr: int) -> bool:
-    """Return whether CLE identifies a synthetic address as an exact function."""
-
-    try:
-        symbol = project.loader.find_symbol(addr)
-    except Exception:
-        return False
-    return bool(
-        symbol is not None
-        and getattr(symbol, "rebased_addr", None) == addr
-        and getattr(symbol, "is_function", False)
-    )
-
-
-def _is_static_pointer_call_target(project: Project, addr: int) -> bool:
-    """Return whether a static pointer supplies a safe concrete call target."""
-
-    if not _is_trusted_direct_call_target(project, addr):
-        return False
-    try:
-        obj = project.loader.find_object_containing(addr)
-    except Exception:
-        return False
-    if obj is None:
-        return False
-    if obj is getattr(project.loader, "extern_object", None):
-        return _is_known_synthetic_function_target(project, addr)
-
-    for method_name in ("find_section_containing", "find_segment_containing"):
-        method = getattr(obj, method_name, None)
-        region = method(addr) if callable(method) else None
-        if region is not None:
-            return bool(getattr(region, "is_executable", False))
-    return False
-
-
-def _static_memory_indirect_target(project: Project, vex, jumpkind: str) -> int | None:
-    """Resolve an exact constant-slot indirect transfer target, if present.
-
-    This recognizes only ``next = Load(Const(slot))``.  In particular, it does
-    not follow register-derived addresses or table indices, which remain the
-    responsibility of the bounded static jump-table planner.
-    """
-
-    if vex.jumpkind != jumpkind or not isinstance(vex.next, pyvex.expr.RdTmp):
-        return None
-
-    definitions = temporary_definitions(vex)
-    load = definitions.get(vex.next.tmp)
-    if not isinstance(load, pyvex.expr.Load) or not isinstance(
-        load.addr, pyvex.expr.Const
-    ):
-        return None
-
-    slot_addr = load.addr.con.value
-    entry_size = load.result_size(vex.tyenv) // 8
-    if not isinstance(slot_addr, int):
-        return None
-
-    return read_static_integer(project, slot_addr, entry_size, load.end)
-
-
-def static_memory_indirect_jump_target(project: Project, vex) -> int | None:
-    """Resolve an exact static-memory indirect jump target, if present."""
-
-    return _static_memory_indirect_target(project, vex, "Ijk_Boring")
-
-
-def static_memory_indirect_call_target(project: Project, vex) -> int | None:
-    """Resolve an exact static-memory indirect call target, if present."""
-
-    target = _static_memory_indirect_target(project, vex, "Ijk_Call")
-    if target is None or not _is_static_pointer_call_target(project, target):
-        return None
-    return target
-
-
-def _mips_gp_relative_indirect_jump_target(
-    project: Project, bounds: FunctionBounds, vex
-) -> int | None:
-    """Resolve an exact MIPS PIC ``jr $t9`` target through its GOT slot."""
-
-    if vex.jumpkind != "Ijk_Boring":
-        return None
-    slot = _mips_gp_relative_indirect_slot(project, bounds, vex)
-    if slot is None:
-        return _mips_gp_relative_adjusted_indirect_jump_target(project, bounds, vex)
-
-    slot_addr, endness = slot
-    return read_static_integer(project, slot_addr, project.arch.bytes, endness)
-
-
-def _mips_gp_relative_indirect_call_target(
-    project: Project, bounds: FunctionBounds, vex
-) -> int | None:
-    """Resolve an exact MIPS PIC ``jalr $t9`` target through its GOT slot."""
-
-    if vex.jumpkind != "Ijk_Call":
-        return None
-    slot = _mips_gp_relative_indirect_slot(project, bounds, vex)
-    if slot is None:
-        return None
-
-    slot_addr, endness = slot
-    return read_static_integer(project, slot_addr, project.arch.bytes, endness)
-
-
-def _static_memory_nonreturning_call_target(
-    project: Project,
-    bounds: FunctionBounds,
-    vex,
-    *,
-    resolve_declared_nonreturning: bool,
-) -> int | None:
-    """Resolve a call through one constant-address pointer to a no-return target.
-
-    This intentionally covers only the simple GOT-like VEX shape where the
-    call's ``next`` value comes directly from ``LDle/LDbe(Const(slot))``. It
-    avoids treating arbitrary memory-derived indirect calls as resolved.
-    """
-
-    load = _indirect_target_load(project, vex)
-    if load is None:
-        return None
-
-    slot: tuple[int, str] | None = None
-    if isinstance(load.addr, pyvex.expr.Const):
-        slot_addr = load.addr.con.value
-        if isinstance(slot_addr, int):
-            slot = (slot_addr, load.end)
-    if slot is None:
-        slot = _mips_gp_relative_indirect_slot(project, bounds, vex)
-    if slot is None:
-        return None
-
-    target = read_static_integer(
-        project,
-        slot[0],
-        project.arch.bytes,
-        slot[1],
-    )
-    if target is None:
-        return None
-
-    predicate = (
-        target_is_known_nonreturning
-        if resolve_declared_nonreturning
-        else target_is_hooked_nonreturning
-    )
-    return target if predicate(project, target) else None
-
-
-def known_nonreturning_call_target(
-    project: Project,
-    bounds: FunctionBounds,
-    vex,
-    *,
-    resolve_declared_nonreturning: bool = False,
-) -> int | None:
-    """Return a conservatively resolved non-returning call target, if any."""
-
-    predicate = (
-        target_is_known_nonreturning
-        if resolve_declared_nonreturning
-        else target_is_hooked_nonreturning
-    )
-    if isinstance(vex.next, pyvex.expr.Const):
-        target = vex.next.con.value
-        if isinstance(target, int) and predicate(project, target):
-            return target
-
-    return _static_memory_nonreturning_call_target(
-        project,
-        bounds,
-        vex,
-        resolve_declared_nonreturning=resolve_declared_nonreturning,
     )
 
 
@@ -970,7 +372,7 @@ def _instruction_has_unclassified_vex_transfer(
     # Keep conditional computed-PC detection VEX-driven. This covers both a
     # guarded table load into PC and arithmetic PC dispatch without embedding
     # instruction-set-specific mnemonic rules in the decoder.
-    from .jumps import vex_has_computed_pc_transfer
+    from bingraph.cfg.jumps.conditional import vex_has_computed_pc_transfer
 
     return (
         vex.jumpkind
@@ -1028,12 +430,27 @@ def lift_block_terminator(
     resolve_declared_nonreturning: bool = False,
     resolve_static_memory_calls: bool = False,
 ) -> TerminatorInfo:
-    """Lift decoded block bytes and derive their control-flow shape."""
+    """Normalize one decoded block's actual transfer into TerminatorInfo.
+
+    Locate the machine terminator, including delay-slot instructions, and
+    prefer a focused tail lift over a possibly stale full-block VEX boundary.
+    Distinguish direct destinations, genuine continuations, returns, traps,
+    system transfers and unresolved register/memory targets. Opt-in call
+    policies can resolve supported pointers and suppress a declared no-return
+    continuation; they do not invoke whole-function or callee analysis.
+
+    Failed control-transfer lifts raise a diagnostic RuntimeError rather than
+    silently classifying unknown bytes as ordinary fallthrough. The result
+    describes addresses and provenance, not graph nodes or rendered edges.
+    """
 
     # Jump-table support consumes the basic decoding utilities in this module.
     # Delay the reverse dependency until terminator classification to avoid an
     # import cycle while still sharing its target-validity policy.
-    from .jumps import is_direct_target_valid, static_jump_target_rejection_reason
+    from bingraph.cfg.jumps.expressions import (
+        is_direct_target_valid,
+        static_jump_target_rejection_reason,
+    )
 
     block_end_addr = block_insns[-1].address + block_insns[-1].size
 
@@ -1069,6 +486,8 @@ def lift_block_terminator(
     block_size = sum(insn.size for insn in block_insns)
 
     def _lift(addr: int, size: int):
+        """Lift exact supplied bytes without cross-instruction optimization."""
+
         return project.factory.block(
             addr,
             size=size,
@@ -1328,7 +747,20 @@ def decode_bounded_block(
     on_vex_linear_fallback: Callable[[int], None] | None = None,
     stop_at_data: Callable[[int], bool] | None = None,
 ) -> BlockSpec | None:
-    """Decode one bounded block until control flow or a known leader stops it."""
+    """Recover one BlockSpec while respecting function bounds and leader stops.
+
+    Decode instruction-by-instruction until a transfer, known leader, data
+    barrier or native VEX boundary is reached. Include supported branch delay
+    slots and optionally preserve narrowly proven VEX-only linear instructions
+    missing from Capstone. Policy flags are forwarded to terminator handling;
+    callbacks record decoding events without supplying branch evidence.
+
+    If a direct target enters the recovered span, recursively decode with that
+    address as a new stop so the returned block does not cover its own leader.
+    Return ``None`` when no Capstone instruction was recovered; lifting errors
+    from transfer normalization remain explicit. The caller closes successors
+    and handles overlap with already established blocks.
+    """
 
     max_inst_bytes = getattr(project.arch, "max_inst_bytes", 16)
     cur = start_addr
@@ -1497,77 +929,3 @@ def decode_bounded_block(
         )
 
     return block
-
-
-@dataclass(frozen=True)
-class DecodedNode:
-    """The Capstone instruction view of one CFG node, when it is available."""
-
-    insns: tuple[CsInsn, ...] | None
-    inspection_error: Exception | None = None
-
-    @classmethod
-    def from_node(cls, node) -> DecodedNode:
-        """Read and cache Capstone instructions for one live CFG node.
-
-        Target queries inspect the same CFG nodes repeatedly while the
-        worklist discovers nearby blocks. ``node.block.capstone`` constructs a
-        fresh angr Block each time, so retaining this immutable view avoids
-        repeatedly disassembling unchanged node bytes. The cache is scoped to
-        object identity because angr CFG nodes compare by block identity; a
-        recovered replacement can otherwise collide with the stale node it
-        replaced at the same address.
-        """
-
-        cache_key = id(node)
-        cached = _DECODED_NODE_CACHE.get(cache_key)
-        if cached is not None and cached[0] is node:
-            return cached[1]
-
-        try:
-            block = node.block
-            insns = tuple(item.insn for item in block.capstone.insns)
-            if insns:
-                decoded = cls(insns)
-            else:
-                project = block._project
-                decoded = cls(decode_raw_capstone_insns(project, node.addr, node.size))
-
-        except Exception as exc:
-            decoded = cls(None, exc)
-
-        _DECODED_NODE_CACHE[cache_key] = node, decoded
-        return decoded
-
-    @property
-    def is_empty(self) -> bool:
-        """Return whether Capstone found no instructions in the node."""
-
-        return not self.insns
-
-    @property
-    def last(self) -> CsInsn | None:
-        """Return the final decoded instruction, if one exists."""
-
-        return self.insns[-1] if self.insns else None
-
-    def has_exact_coverage(self, node) -> bool:
-        """Return whether instructions exactly cover the node's declared range."""
-
-        if node.size == 0 or self.insns is None:
-            return False
-        expected_addr = node.addr
-        for insn in self.insns:
-            if insn.address != expected_addr:
-                return False
-            expected_addr += insn.size
-        return expected_addr == node.addr + node.size
-
-    def contains_mid_instruction_addr(self, addr: int) -> bool:
-        """Return whether ``addr`` falls strictly inside a decoded instruction."""
-
-        if self.insns is None:
-            return False
-        return any(
-            insn.address < addr < insn.address + insn.size for insn in self.insns
-        )
