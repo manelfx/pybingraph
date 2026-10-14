@@ -10,6 +10,7 @@ analysis and UI routes. This does not replace unit tests or the CFG golden corpu
 from __future__ import annotations
 
 import argparse
+from email.parser import Parser
 import json
 import os
 from pathlib import Path
@@ -42,13 +43,31 @@ def _one(directory: Path, pattern: str) -> Path:
 
 
 def _check_wheel_contents(wheel: Path) -> None:
-    """Ensure development tests, build scripts and playground binaries are absent."""
+    """Require licensing metadata/notices and reject development-only payloads."""
 
     with ZipFile(wheel) as archive:
-        for name in archive.namelist():
+        names = archive.namelist()
+        for name in names:
             parts = Path(name).parts
             if any(part in {"tests", "scripts", "angr-binaries"} for part in parts):
                 raise ValueError(f"Unexpected development file in wheel: {name}")
+        metadata_files = [
+            name for name in names if name.endswith(".dist-info/METADATA")
+        ]
+        if len(metadata_files) != 1:
+            raise ValueError("Expected exactly one wheel METADATA file")
+        metadata_path = metadata_files[0]
+        metadata = Parser().parsestr(archive.read(metadata_path).decode("utf-8"))
+        if metadata["License-Expression"] != "BSD-2-Clause":
+            raise ValueError("Wheel must declare License-Expression: BSD-2-Clause")
+        if set(metadata.get_all("License-File", [])) != {"LICENSE", "NOTICE"}:
+            raise ValueError("Wheel must declare both LICENSE and NOTICE")
+        # PEP 639 places these files under .dist-info/licenses, not the package.
+        root = metadata_path.rsplit("/", 1)[0] + "/licenses/"
+        for filename in ("LICENSE", "NOTICE"):
+            name = root + filename
+            if name not in names or not archive.read(name).strip():
+                raise ValueError(f"Missing or empty wheel license file: {filename}")
 
 
 def _check_install(

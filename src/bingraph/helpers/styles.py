@@ -1,3 +1,5 @@
+# Portions adapted from bingraphvis (BSD-2-Clause); see NOTICE.
+
 from typing import Any, Union
 
 STYLE_CLASSIC = {

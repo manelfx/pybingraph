@@ -20,8 +20,8 @@ unresolved targets and additionally discovered code explicit.
 ## CFG Examples
 
 These are real custom-mode CFGs from the playground binaries. Comments are
-disabled for compact previews, matching the golden-test configuration; use
-`comments=true` in the browser to include annotations. Click a thumbnail to
+disabled for compact previews, matching the golden-test configuration; they
+will be shown in the browser as block annotations. Click a thumbnail to
 inspect the full-size SVG.
 
 | Example | Description | Preview |
@@ -220,6 +220,13 @@ make coverage
 
 `make coverage` runs both unit tests and curated golden checkpoints, prints a
 terminal summary, and writes a browsable report to `htmlcov/index.html`.
+
+## License
+
+pybingraph's original code is licensed under the [BSD 2-Clause License](LICENSE).
+Copied or adapted code retains the upstream copyright and license notices in
+[NOTICE](NOTICE). Dependencies, playground binaries and their disassembly
+examples remain subject to their respective upstream terms.
 
 ## Troubleshooting
 

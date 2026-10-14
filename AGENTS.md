@@ -127,6 +127,8 @@ including `BINGRAPH_GOLDEN_MIN_BBS` and `BINGRAPH_GOLDEN_LIMIT`.
   from `main` with `release_tag`, verify attachments, then publish.
 - Keep runtime dependency bounds compatible with the tested stack. Retain the angr
   pin and `bitstring<5` safeguard; dependency upgrades need unit/golden validation.
+- Preserve `LICENSE` and upstream attributions in `NOTICE`; both must accompany
+  wheels and source distributions.
 
 Before release, run `make check`, applicable goldens, and packaging audits using
 an empty build output directory. The runtime audit requires Clang and Graphviz;

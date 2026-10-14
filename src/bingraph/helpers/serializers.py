@@ -1,4 +1,4 @@
-# serializers borrowed from angr/mcp/serializers.py
+# Adapted from angr/mcp/serializers.py (BSD-2-Clause); see NOTICE.
 
 from __future__ import annotations
 

@@ -1,3 +1,5 @@
+# Portions adapted from bingraphvis (BSD-2-Clause); see NOTICE.
+
 """Synthetic-node coloring for graph presentation, without modifying CFGs."""
 
 from __future__ import annotations

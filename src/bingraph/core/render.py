@@ -1,3 +1,5 @@
+# Portions adapted from angr-utils (BSD-2-Clause); see NOTICE.
+
 """Render cached CFGs through presentation-only sources, contents and annotators.
 
 Discovery belongs to core.project/cfg.builder. Comments can populate reference

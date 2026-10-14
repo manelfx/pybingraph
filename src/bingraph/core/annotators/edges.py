@@ -1,3 +1,5 @@
+# Portions adapted from bingraphvis (BSD-2-Clause); see NOTICE.
+
 """Presentation-only edge classification from exact transfers and provenance.
 
 Use decoded tails and focused VEX lifts to classify existing edges, including

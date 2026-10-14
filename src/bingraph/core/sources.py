@@ -1,3 +1,5 @@
+# Portions adapted from bingraphvis (BSD-2-Clause); see NOTICE.
+
 from dataclasses import dataclass
 from typing import Any
 

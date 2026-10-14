@@ -45,6 +45,50 @@ def test_wheels_reject_development_payloads(checker, tmp_path, name):
         checker._check_wheel_contents(wheel)
 
 
+@pytest.fixture
+def licensed_wheel(tmp_path):
+    """Build small archives exercising licensing without installing packages."""
+
+    def build(expression="BSD-2-Clause", declared=("LICENSE", "NOTICE"), missing=None):
+        wheel = tmp_path / "package.whl"
+        root = "pybingraph-0.1.10.dist-info/"
+        metadata = "Metadata-Version: 2.4\nName: pybingraph\nVersion: 0.1.10\n"
+        if expression is not None:
+            metadata += f"License-Expression: {expression}\n"
+        metadata += "".join(f"License-File: {name}\n" for name in declared)
+        with ZipFile(wheel, "w") as archive:
+            archive.writestr(root + "METADATA", metadata)
+            for name in ("LICENSE", "NOTICE"):
+                if name != missing:
+                    archive.writestr(root + "licenses/" + name, "License notice\n")
+        return wheel
+
+    return build
+
+
+def test_wheel_contains_project_and_upstream_license_notices(checker, licensed_wheel):
+    checker._check_wheel_contents(licensed_wheel())
+
+
+@pytest.mark.parametrize("expression", [None, "MIT"])
+def test_wheel_rejects_missing_or_incorrect_license_expression(
+    checker, licensed_wheel, expression
+):
+    with pytest.raises(ValueError, match="License-Expression"):
+        checker._check_wheel_contents(licensed_wheel(expression=expression))
+
+
+@pytest.mark.parametrize("name", ["LICENSE", "NOTICE"])
+def test_wheel_rejects_missing_license_notices(checker, licensed_wheel, name):
+    with pytest.raises(ValueError, match="Missing or empty wheel license file"):
+        checker._check_wheel_contents(licensed_wheel(missing=name))
+
+
+def test_wheel_rejects_undeclared_upstream_notice(checker, licensed_wheel):
+    with pytest.raises(ValueError, match="declare both LICENSE and NOTICE"):
+        checker._check_wheel_contents(licensed_wheel(declared=("LICENSE",)))
+
+
 def test_complete_install_requests_dependencies_and_runtime_probe(
     checker, tmp_path, monkeypatch
 ):

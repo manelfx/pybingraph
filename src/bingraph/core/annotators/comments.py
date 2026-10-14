@@ -1,3 +1,5 @@
+# Portions adapted from bingraphvis (BSD-2-Clause); see NOTICE.
+
 """Assembly annotations that preserve original operands and graph structure.
 
 Render collected references and symbolic names as bounded comments. Comment
