@@ -1,13 +1,20 @@
 # pybingraph
 
+![Development version](https://manelfx.github.io/pybingraph/version.svg)
+
 `pybingraph` is a binary-inspection service and library built on
 [angr](https://angr.io/). It reads function symbols from a binary and renders
-per-function control-flow graphs (CFGs) as SVG, DOT, or other Graphviz output.
+per-function control-flow graphs (CFGs) as SVG or DOT.
 
 The default `custom` strategy constructs a function-bounded CFG directly from
 Capstone decoding and VEX control-flow proofs, without a `CFGFast` seed graph.
 It resolves proven indirect transfers, recovers ELF exception paths, and keeps
 unresolved targets and additionally discovered code explicit.
+
+TODOs for this library are:
+- Render call graph (CG) of all functions in a binary.
+- Render data dependency graph (DDG) for instructions in a basic block.
+- Graph coloring from execution counts, after adding support for profile information.
 
 ## Requirements
 
@@ -22,6 +29,29 @@ brew install graphviz
 ```
 
 ## Setup
+
+### Install a release
+
+Download the wheel (`.whl`) from a GitHub release. In the directory containing
+that file, create an environment and install it with its Python dependencies:
+
+```bash
+uv venv --python 3.12
+uv pip install ./pybingraph-*.whl
+```
+
+On macOS/Linux, activate that environment and run the installed command:
+
+```bash
+source .venv/bin/activate
+bingraph --version
+bingraph --root /path/to/your/binaries server
+```
+
+No repository checkout is required. Install the Graphviz `dot` executable
+separately; wheels do not bundle system tools or the optional playground corpus.
+
+### Work from a checkout
 
 Install the runtime dependencies:
 
@@ -51,6 +81,13 @@ It is cloned into `./angr-binaries/`; the binaries themselves live under
 
 All binary paths are relative to `--root` and are constrained to remain below
 that directory.
+
+Check the version from the CLI or Python:
+
+```bash
+uv run bingraph --version
+uv run python -c 'import bingraph; print(bingraph.__version__, bingraph.__commit__)'
+```
 
 ### Server
 
@@ -100,7 +137,11 @@ JSON.
 | `GET /api/cfg?filepath=<path>&function=<addr>&format=dot` | `{"graph": "..."}` CFG response |
 
 `function` accepts either decimal or `0x`-prefixed hexadecimal addresses. CFG
-routes also accept optional `mode=none|custom`, `comments=true|false`,
+JSON responses support `format=svg|dot|raw|xdot`; `raw` is unprocessed DOT,
+`dot` runs Graphviz's DOT output backend, and `xdot` includes drawing metadata.
+Binary formats such as PNG/PDF are not supported by the string-returning API.
+
+CFG routes also accept optional `mode=none|custom`, `comments=true|false`,
 `dfs=true|false`, and `exits=never|jump|always` query
 parameters. A request value overrides the corresponding
 application setting for that render only.
@@ -159,68 +200,6 @@ make coverage
 
 `make coverage` runs both unit tests and curated golden checkpoints, prints a
 terminal summary, and writes a browsable report to `htmlcov/index.html`.
-
-### Source organization
-
-- `cfg/builder.py` owns function discovery, leader splitting and final graph
-  construction. `cfg/decode.py` normalizes bounded block terminators;
-  `cfg/calls.py` supplies local callee and non-returning evidence.
-- `cfg/jumps/` separates dispatch expressions, guard bounds, table planning,
-  conditional-PC transfers and the retained MIPS, PPC and x86 adapters.
-- `cfg/shared/{facts,relations,proofs}.py` implements snapshot-scoped predecessor
-  facts, bounded angr/Claripy evaluation and exact table/register target proofs.
-  Disconnected recovery hints never become exact proof facts.
-- `cfg/nodes.py` constructs and names existing block leaders and synthetic
-  leaves. `cfg/returns.py` provides read-only saved-link return proofs; the
-  builder decides when to apply them.
-- `helpers/disassembly.py` and `helpers/vex.py` provide reusable instruction
-  decoding and stateless IR primitives, without CFG discovery or rendering.
-- `helpers/abi.py` supplies shared entry-base roots, ELF register preservation
-  and verified x86 PC-thunk semantics. Entry roots do not imply preservation
-  across calls or unknown paths.
-- `core/annotators/` separates node styling, assembly comments and edge styling.
-  These presentation operations do not change discovered control flow.
-
-Module moves must preserve resolver priority, proof budgets, cache lifetime and
-unknown-target handling. Keep internal imports directed at their implementation
-modules; package entry points expose the public construction and annotation API.
-
-### Golden CFG regression tests
-
-Golden tests render CFGs for the corpus in
-[`tests/playground_functions.csv`](tests/playground_functions.csv). Compare
-mode writes fresh candidates under `tests/_actual/` and compares them with the
-committed artifacts under `tests/goldens/`.
-
-The complete corpus can take a long time. Use the curated checkpoint suite for
-quick custom-CFG regression coverage:
-
-```bash
-BINGRAPH_GOLDEN_CONFIGS=cfg_mode_custom make goldens-checkpoint
-```
-
-To run every selected corpus entry:
-
-```bash
-BINGRAPH_GOLDEN_CONFIGS=cfg_mode_custom make goldens
-```
-
-For an isolated audit of demangled names, including instruction comments, use
-`BINGRAPH_GOLDEN_CONFIGS=cfg_demangle_on make goldens`. Its artifacts are written
-under `tests/_actual/cfg_demangle_on/`; existing configurations and goldens
-keep demangling disabled.
-
-Promotion never rerenders CFGs. After reviewing a successful compare-mode run,
-copy its existing candidates into the golden tree with:
-
-```bash
-BINGRAPH_GOLDEN_CONFIGS=cfg_mode_custom make goldens-promote
-```
-
-Review the resulting Git diff before committing promoted artifacts. Additional
-selection controls are documented at the top of
-[`tests/goldens/test_cfg_goldens.py`](tests/goldens/test_cfg_goldens.py),
-including `BINGRAPH_GOLDEN_MIN_BBS` and `BINGRAPH_GOLDEN_LIMIT`.
 
 ## Troubleshooting
 

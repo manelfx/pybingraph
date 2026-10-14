@@ -1,0 +1,115 @@
+name: Python packages
+
+on:
+  push:
+    branches: [dev, main]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing release tag to attach files to (leave empty for build-only)'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: packages-${{ github.event.release.tag_name || inputs.release_tag || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event.release.tag_name || inputs.release_tag) && format('refs/tags/{0}', github.event.release.tag_name || inputs.release_tag) || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: '3.12'
+      - name: Verify release tag and main ancestry
+        if: env.RELEASE_TAG != ''
+        run: |
+          VERSION=$(uv run --no-project python src/bingraph/version.py)
+          if [ "$RELEASE_TAG" != "v$VERSION" ]; then
+            printf 'Release tag %s must match v%s\n' "$RELEASE_TAG" "$VERSION" >&2
+            exit 1
+          fi
+          git merge-base --is-ancestor HEAD origin/main
+      - name: Build and validate distributions
+        run: |
+          uv run --no-project python src/bingraph/version.py --json > version.json
+          uv build
+          uv run --no-project python scripts/distributions.py
+      - name: Install runtime audit tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends graphviz clang
+      - name: Validate complete installed runtime
+        run: uv run --no-project python scripts/distributions.py --runtime
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distributions-${{ github.sha }}
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            version.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 30
+
+  attach:
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions-${{ github.sha }}
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: '3.12'
+      - name: Attach files without replacing existing assets
+        run: |
+          gh api "repos/$GH_REPO/releases/tags/$RELEASE_TAG" > release.json
+          uv run --no-project python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+
+          release = json.loads(Path("release.json").read_text())
+          assets = {asset["name"]: asset for asset in release["assets"]}
+          files = [*Path("dist").glob("*.whl"), *Path("dist").glob("*.tar.gz")]
+          if len(files) != 2:
+              raise SystemExit("Expected one wheel and one source distribution to attach")
+          pending = []
+          for path in files:
+              existing = assets.get(path.name)
+              digest = "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+              if existing is not None:
+                  if existing.get("digest") != digest:
+                      raise SystemExit(f"Existing asset differs; refusing to overwrite {path.name}")
+                  print(f"Already attached: {path.name}")
+              else:
+                  pending.append(path)
+          if pending and release.get("immutable"):
+              raise SystemExit("Attach files to a draft before publishing an immutable release")
+          for path in pending:
+              subprocess.run(["gh", "release", "upload", os.environ["RELEASE_TAG"], str(path)], check=True)
+          PY

@@ -99,7 +99,7 @@ class ClientSettings(BaseModel):
     function: str | None = Field(
         None, description="Function address (in int or 0x hex format)"
     )
-    format: str = Field("dot", description="Output format for graphs")
+    format: str = Field("dot", description="Textual CFG output: svg, dot, raw, xdot")
 
     def cli_cmd(self) -> None:
         pass

@@ -14,6 +14,8 @@ from starlette.requests import Request
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from loguru import logger
 
+from bingraph import __version__
+from bingraph.core.outputs import TEXT_CFG_FORMATS, validate_text_cfg_format
 from bingraph.helpers import (
     CfgExits,
     CfgMode,
@@ -105,6 +107,7 @@ def create_app() -> FastAPI:
     # Enable debug mode on the FastAPI app context if set via CLI
     app = FastAPI(
         title="bingraph",
+        version=__version__,
         debug=settings.server is not None and settings.debug,
     )
 
@@ -198,6 +201,7 @@ def create_app() -> FastAPI:
         format: str = "svg",
         demangle: bool | None = None,
     ) -> str:
+        validate_text_cfg_format(format)
         func_addr = _resolve_faddr(function)
         project = _get_project(filepath)
         dfs = settings.dfs_rank if dfs is None else dfs
@@ -246,7 +250,11 @@ def create_app() -> FastAPI:
         request: Request,
         filepath: str = Query(...),
         function: str = Query(...),
-        format: str = Query(...),
+        format: str = Query(
+            ...,
+            description="Textual CFG output format",
+            json_schema_extra={"enum": list(TEXT_CFG_FORMATS)},
+        ),
         dfs: bool | None = Query(None),
         comments: bool | None = Query(None),
         mode: CfgMode | None = Query(None),

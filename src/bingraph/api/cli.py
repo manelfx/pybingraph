@@ -1,24 +1,38 @@
 from __future__ import annotations
+import argparse
 import json
-
-from fastapi.testclient import TestClient
-from fastapi.routing import APIRoute
-from pydantic_settings import CliApp
-import uvicorn
-
-from bingraph.helpers import get_settings, Settings
-from .app import create_app
+import sys
 
 
 def main() -> None:
-    """
-    Main entry point for running the bingraph API server from the command-line.
+    """Print the package version or run the configured server/client command.
 
-    This function parses command-line arguments, configures the application settings based on the provided root
-    directory or environment variables, creates the FastAPI application, and launches the server using uvicorn.
-    Depending on 'debug' CLI argument, it allows service reloading on sources changes (dev mode).
+    Handle the standalone version query before loading application dependencies
+    or validating settings: inspecting an installed version needs no binary root,
+    server configuration or angr initialization. All other arguments retain the
+    existing Pydantic CLI parsing and application behavior.
     """
-    CliApp.run(Settings)
+    if sys.argv[1:] == ["--version"]:
+        from bingraph import __version__
+
+        print(f"bingraph {__version__}")
+        return
+
+    from fastapi.testclient import TestClient
+    from fastapi.routing import APIRoute
+    from pydantic_settings import CliApp, CliSettingsSource
+    import uvicorn
+
+    from bingraph.helpers import get_settings, Settings
+    from bingraph import __version__
+    from .app import create_app
+
+    parser = argparse.ArgumentParser(description=Settings.__doc__)
+    parser.add_argument(
+        "--version", action="version", version=f"bingraph {__version__}"
+    )
+    source = CliSettingsSource(Settings, root_parser=parser)
+    CliApp.run(Settings, cli_settings_source=source)
     settings = get_settings()
 
     if settings.server:

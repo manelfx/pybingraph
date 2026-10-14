@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.12"
 
 [[package]]
@@ -903,19 +903,19 @@ wheels = [
 
 [[package]]
 name = "pybingraph"
-version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "angr" },
     { name = "angr-utils" },
+    { name = "bitstring" },
     { name = "cxxfilt" },
     { name = "fastapi" },
     { name = "graphviz" },
     { name = "httpx2" },
     { name = "jinja2" },
     { name = "loguru" },
-    { name = "pyelftools" },
     { name = "pydantic-settings" },
+    { name = "pyelftools" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -929,16 +929,17 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "angr", specifier = ">=9.2.98" },
+    { name = "angr", specifier = "==9.3.0" },
     { name = "angr-utils", specifier = ">=0.5.0" },
+    { name = "bitstring", specifier = ">=4.4,<5" },
     { name = "cxxfilt", specifier = ">=0.3.0" },
     { name = "fastapi", specifier = ">=0.111.0" },
     { name = "graphviz", specifier = ">=0.20.3" },
     { name = "httpx2", specifier = ">=2.4.0" },
     { name = "jinja2", specifier = ">=3.1.4" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pyelftools", specifier = ">=0.33" },
     { name = "pydantic-settings", specifier = ">=2.14.1" },
+    { name = "pyelftools", specifier = ">=0.33" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2.2" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.21" },

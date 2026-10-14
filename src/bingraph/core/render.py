@@ -22,7 +22,7 @@ from bingraph.core.annotators.edges import ColorEdgesVex
 from bingraph.core.annotators.nodes import ColorSimprocedures
 from bingraph.core.comments import collect_custom_comments
 from bingraph.core.contents import NodeAsm, NodeHead
-from bingraph.core.outputs import DotOutput
+from bingraph.core.outputs import DotOutput, validate_text_cfg_format
 from bingraph.core.sources import CFGSource
 from bingraph.core.vis import Annotator, Vis
 from bingraph.helpers import CfgExits, CfgMode
@@ -84,14 +84,16 @@ def render_cfg(
 
     Obtain the strategy-specific CFG, require its requested function in the
     knowledge base, and render through plot_cfg in a temporary directory. Read
-    the resulting UTF-8 file exactly as generated; ``format`` can select SVG,
-    raw DOT or another supported textual output, not just an SVG image.
+    the resulting UTF-8 file exactly as generated. ``format`` accepts ``svg``,
+    ``dot``, ``raw`` or ``xdot``; binary formats are rejected before discovery
+    starts.
 
     The cache includes mode, comments, exit policy, layout, output format and
     demangling so one presentation cannot leak into another. Missing functions
     raise KeyError; analysis, rendering and file errors remain visible to the
     API/corpus caller. Temporary output is removed after the text is read.
     """
+    validate_text_cfg_format(format)
     # Obtain the CFG first. We still prefer its block when the lift succeeds,
     # because it carries richer metadata than a disassembly-only graph.
     cfg = get_cfg(project, func_addr, cfg_mode)

@@ -34,6 +34,21 @@ default_edge_attributes = {
     "fontsize": "8",
 }
 
+TEXT_CFG_FORMATS = ("svg", "dot", "raw", "xdot")
+
+
+def validate_text_cfg_format(format: str) -> None:
+    """Reject binary/unknown formats before analysis for string-returning APIs.
+
+    DotOutput can still write binary Graphviz files directly. The higher-level
+    renderer and JSON API return text, so their contract is deliberately narrower.
+    """
+
+    if format not in TEXT_CFG_FORMATS:
+        choices = ", ".join(TEXT_CFG_FORMATS)
+        raise ValueError(f"Unsupported CFG format {format!r}; choose {choices}")
+
+
 COMMENT_COLUMN_GAP = 8
 
 

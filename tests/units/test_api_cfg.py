@@ -6,12 +6,47 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 import pytest
 
+import bingraph
 import bingraph.api.app as app_module
 import bingraph.helpers.settings as settings_module
 from bingraph.helpers import Settings
 from bingraph.helpers.settings import GlobalSettings
 from bingraph.core import project as project_module
 from bingraph.core import render as render_module
+
+
+def test_openapi_reports_package_version_and_text_formats(monkeypatch, tmp_path):
+    settings = Settings.model_construct(root=tmp_path, server=None, client=None)
+    monkeypatch.setattr(settings_module, "_settings", settings)
+    schema = app_module.create_app().openapi()
+    assert schema["info"]["version"] == bingraph.__version__
+    parameter = next(
+        item
+        for item in schema["paths"]["/api/cfg"]["get"]["parameters"]
+        if item["name"] == "format"
+    )
+    assert parameter["schema"]["enum"] == ["svg", "dot", "raw", "xdot"]
+
+
+@pytest.mark.parametrize("format", ["png", "pdf", "unknown"])
+def test_nontext_formats_are_rejected_before_loading_or_analysis(
+    monkeypatch, tmp_path, format
+):
+    settings = Settings.model_construct(root=tmp_path, server=None, client=None)
+    monkeypatch.setattr(settings_module, "_settings", settings)
+
+    def unexpected(*args, **kwargs):
+        pytest.fail("Unsupported format reached binary loading or CFG analysis")
+
+    monkeypatch.setattr(app_module, "load_project", unexpected)
+    monkeypatch.setattr(render_module, "get_cfg", unexpected)
+    response = TestClient(app_module.create_app()).get(
+        "/api/cfg", params={"filepath": "missing", "function": "0x10", "format": format}
+    )
+    assert response.status_code == 400
+    assert "Unsupported CFG format" in response.json()["error"]
+    with pytest.raises(ValueError, match="Unsupported CFG format"):
+        render_module.render_cfg(object(), 0x10, False, False, "custom", "jump", format)
 
 
 def test_cfg_settings_and_cli_only_support_current_modes(tmp_path) -> None:

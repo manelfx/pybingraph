@@ -1,0 +1,167 @@
+"""Smoke-test distributable packages without relying on the source checkout.
+
+Rebuild the source archive into a wheel, then install both wheels independently
+without dependencies. Check frozen provenance, installed package metadata and
+the console entry point in isolated environments outside the repository. With
+``--runtime``, additionally install declared dependencies and exercise actual
+analysis and UI routes. This does not replace unit tests or the CFG golden corpus.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+from tempfile import TemporaryDirectory
+from zipfile import ZipFile
+
+
+def _uv(*args: str, cwd: Path) -> str:
+    """Run a uv command in the audit directory, preserving useful failure logs."""
+
+    result = subprocess.run(["uv", *args], cwd=cwd, text=True, capture_output=True)
+    if result.returncode:
+        raise RuntimeError(
+            f"uv {' '.join(args)} failed:\n{result.stdout}{result.stderr}"
+        )
+    return result.stdout.strip()
+
+
+def _one(directory: Path, pattern: str) -> Path:
+    """Reject missing or stale build outputs rather than picking an arbitrary file."""
+
+    matches = list(directory.glob(pattern))
+    if len(matches) != 1:
+        raise ValueError(
+            f"Expected exactly one {pattern} in {directory}; found {len(matches)}"
+        )
+    return matches[0].resolve()
+
+
+def _check_wheel_contents(wheel: Path) -> None:
+    """Ensure development tests, build scripts and playground binaries are absent."""
+
+    with ZipFile(wheel) as archive:
+        for name in archive.namelist():
+            parts = Path(name).parts
+            if any(part in {"tests", "scripts", "angr-binaries"} for part in parts):
+                raise ValueError(f"Unexpected development file in wheel: {name}")
+
+
+def _check_install(
+    wheel: Path, directory: Path, expected: dict[str, str], runtime: bool = False
+) -> None:
+    """Verify a non-editable installation's metadata, import and console version.
+
+    Normally skip dependencies: the version query must work without angr, a
+    binary root or application initialization. ``runtime`` exercises a complete
+    install too, catching incompatible dependency resolutions. Python ignores source
+    paths and user site packages, preventing an editable install from masking a
+    broken wheel. Each wheel gets its own environment to avoid installer caches
+    skipping a same-version reinstall.
+    """
+
+    environment = directory / "environment"
+    _uv("venv", "--python", sys.executable, str(environment), cwd=directory)
+    binaries = environment / ("Scripts" if os.name == "nt" else "bin")
+    python = binaries / ("python.exe" if os.name == "nt" else "python")
+    _uv(
+        "pip",
+        "install",
+        *(("--no-deps",) if not runtime else ()),
+        "--python",
+        str(python),
+        str(wheel),
+        cwd=directory,
+    )
+    query = (
+        "import json,bingraph;from importlib.metadata import version;"
+        "print(json.dumps({'version':bingraph.__version__,"
+        "'commit':bingraph.__commit__,'metadata_version':version('pybingraph')}))"
+    )
+    actual = json.loads(
+        _uv(
+            "run",
+            "--no-project",
+            "--python",
+            str(python),
+            "python",
+            "-I",
+            "-c",
+            query,
+            cwd=directory,
+        )
+    )
+    if actual != {**expected, "metadata_version": expected["version"]}:
+        raise ValueError(
+            f"Installed {wheel.name} has incorrect version/provenance: {actual}"
+        )
+    cli = binaries / ("bingraph.exe" if os.name == "nt" else "bingraph")
+    output = _uv(
+        "run",
+        "--no-project",
+        "--python",
+        str(python),
+        str(cli),
+        "--version",
+        cwd=directory,
+    )
+    if output != f"bingraph {expected['version']}":
+        raise ValueError(f"Installed console version disagrees: {output}")
+    if runtime:
+        script = Path(__file__).resolve().with_name("runtime.py")
+        _uv(
+            "run",
+            "--no-project",
+            "--python",
+            str(python),
+            "python",
+            "-I",
+            str(script),
+            "--expected-version",
+            expected["version"],
+            cwd=directory,
+        )
+
+
+def validate_distributions(
+    directory: Path, expected: dict[str, str], runtime: bool = False
+) -> None:
+    """Validate exactly one wheel and source archive against source provenance.
+
+    Build from the archive itself, not a Git checkout. The rebuilt wheel must
+    preserve the original commit and version. Temporary environments and rebuilt
+    files never touch the user's environment, source tree or golden artifacts.
+    """
+
+    wheel = _one(directory, "*.whl")
+    source = _one(directory, "*.tar.gz")
+    with TemporaryDirectory(prefix="bingraph-distributions-") as temporary:
+        audit = Path(temporary)
+        rebuilt = audit / "rebuilt"
+        _uv("build", str(source), "--wheel", "--out-dir", str(rebuilt), cwd=audit)
+        for index, candidate in enumerate((wheel, _one(rebuilt, "*.whl"))):
+            _check_wheel_contents(candidate)
+            install = audit / f"install-{index}"
+            install.mkdir()
+            _check_install(candidate, install, expected, runtime)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dist", type=Path, default=Path("dist"))
+    parser.add_argument("--provenance", type=Path, default=Path("version.json"))
+    parser.add_argument(
+        "--runtime",
+        action="store_true",
+        help="audit a full runtime installation (requires Clang and dot)",
+    )
+    args = parser.parse_args()
+    expected = json.loads(args.provenance.read_text())
+    validate_distributions(args.dist, expected, args.runtime)
+    print(
+        f"Validated Python distributions for {expected['version']} ({expected['commit']})"
+    )
