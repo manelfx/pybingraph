@@ -6,10 +6,30 @@
 [angr](https://angr.io/). It reads function symbols from a binary and renders
 per-function control-flow graphs (CFGs) as SVG or DOT.
 
+Supported binary formats include ELF executables, shared libraries and
+relocatable objects, and Windows PE executables and DLLs. The corpus covers
+x86/x86-64, ARM/Thumb/AArch64, MIPS, PowerPC, RISC-V and s390x. Instruction
+decoding and indirect-transfer proofs depend on the architecture and binary;
+not every format/architecture combination has the same analysis coverage.
+
 The default `custom` strategy constructs a function-bounded CFG directly from
 Capstone decoding and VEX control-flow proofs, without a `CFGFast` seed graph.
 It resolves proven indirect transfers, recovers ELF exception paths, and keeps
 unresolved targets and additionally discovered code explicit.
+
+## CFG Examples
+
+These are real custom-mode CFGs from the playground binaries. Comments are
+disabled for compact previews, matching the golden-test configuration; use
+`comments=true` in the browser to include annotations. Click a thumbnail to
+inspect the full-size SVG.
+
+| Example | Description | Preview |
+| --- | --- | --- |
+| **Resolved Switch Dispatch** | `func_0` in `x86_64/cfg_switches`. Red and green edges distinguish the two conditional outcomes; orange edges identify proven indirect-jump targets. Here the cases converge on a shared return block; the same branch colors also make loops and separate return paths visible in other CFGs. | [<img src="docs/images/cfg-switch-x86-64.svg" width="240" alt="x86-64 switch CFG with resolved jump-table targets">](docs/images/cfg-switch-x86-64.svg) |
+| **Exception Paths and Unresolved Control Flow** | `drop_in_place<ReferenceKind>` in `x86_64/fmt-rust`. Dotted gray edges show exception paths. Dashed orange edges keep unresolved targets and disconnected-code recovery hints explicit rather than claiming proven reachability. | [<img src="docs/images/cfg-unwind-rust.svg" width="240" alt="Rust CFG with exception paths, an unresolved jump and recovered regions">](docs/images/cfg-unwind-rust.svg) |
+| **Vectorized String Search** | `__strchr_evex` at `0x42b200` in `x86_64/langdetect_clang`. AVX-512 vector loads and comparisons, mask registers and a scanning loop remain visible in the disassembly. | [<img src="docs/images/cfg-simd-x86-64.svg" width="240" alt="x86-64 AVX-512 string-search CFG">](docs/images/cfg-simd-x86-64.svg) |
+| **RISC-V Control Flow** | `sodium_allocarray` at `0x3208` in `riscv/server_eapp.eapp_riscv`. RV64 compressed instructions, allocation-size guards, calls and return paths use the same CFG presentation. | [<img src="docs/images/cfg-riscv.svg" width="240" alt="RISC-V allocation CFG with compressed instructions and conditional branches">](docs/images/cfg-riscv.svg) |
 
 TODOs for this library are:
 - Render call graph (CG) of all functions in a binary.
