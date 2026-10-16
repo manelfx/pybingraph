@@ -1,9 +1,10 @@
 UV := uv run
+PYTHON_VERSIONS ?= 3.12 3.13 3.14 3.15
 
 # These are commands, not filesystem targets. Declaring them phony prevents
 # existing directories such as `tests/` from making Make skip their recipes.
-.PHONY: units format format-check lint typecheck check coverage goldens \
-	goldens-checkpoint goldens-promote goldens-symbols
+.PHONY: units format format-check lint typecheck check compatibility coverage goldens \
+	goldens-checkpoint goldens-promote goldens-symbols badges badges-check python-matrix
 
 # Run the default fast unit-test suite selected by pytest's `testpaths` setting.
 units:
@@ -27,7 +28,32 @@ typecheck:
 	$(UV) ty check src
 
 # Run the regular non-golden development checks without changing source files.
-check: format-check lint typecheck units
+check: badges-check format-check lint typecheck units
+
+# Generate only on request; validation is offline and never modifies the badge.
+badges:
+	$(UV) --no-project python scripts/badges.py $(PYTHON_VERSIONS)
+
+badges-check:
+	$(UV) --no-project python scripts/badges.py --check $(PYTHON_VERSIONS)
+
+# The packaging job already audits 3.12; export the remaining CI matrix as JSON.
+python-matrix:
+	@$(UV) --no-project python -c \
+	 'import json,sys; print(json.dumps({"python":sys.argv[1:]}))' \
+	 $(filter-out 3.12,$(PYTHON_VERSIONS))
+
+# Audit one wheel across interpreters without modifying .venv or build outputs.
+# Requires Clang and Graphviz; override PYTHON_VERSIONS to narrow the matrix.
+compatibility:
+	@set -eu; \
+	 audit=$$(mktemp -d "$${TMPDIR:-/tmp}/bingraph-compatibility.XXXXXX"); \
+	 trap 'rm -rf "$$audit"' EXIT HUP INT TERM; \
+	 $(UV) --no-project python src/bingraph/version.py --json > "$$audit/version.json"; \
+	 uv build --wheel --out-dir "$$audit"; \
+	 $(UV) --no-project python scripts/distributions.py \
+	   --dist "$$audit" --provenance "$$audit/version.json" \
+	   --python-versions $(PYTHON_VERSIONS)
 
 # Combine unit and curated golden coverage, then write a browsable report to
 # htmlcov/index.html. BINGRAPH_GOLDEN_CONFIGS remains configurable from the

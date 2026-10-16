@@ -23,6 +23,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      python-matrix: ${{ steps.compatibility.outputs.matrix }}
     env:
       RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
@@ -43,15 +45,33 @@ jobs:
             exit 1
           fi
           git merge-base --is-ancestor HEAD origin/main
+      - name: Check out pinned unit-test playground
+        uses: actions/checkout@v4
+        with:
+          repository: angr/binaries
+          # Match the fixture snapshot validated by our unit and golden suites.
+          ref: 1df916f58887818500d9b3a8276007ce61c3c14f
+          path: angr-binaries
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Install runtime audit tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends graphviz clang
+      - name: Install locked development dependencies
+        run: uv sync --locked --extra dev
+      - name: Run development checks
+        run: make check UV='uv run --no-sync'
+      - name: Select compatibility matrix
+        id: compatibility
+        run: |
+          matrix=$(make --silent python-matrix)
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
       - name: Build and validate distributions
         run: |
           uv run --no-project python src/bingraph/version.py --json > version.json
           uv build
           uv run --no-project python scripts/distributions.py
-      - name: Install runtime audit tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends graphviz clang
       - name: Validate complete installed runtime
         run: uv run --no-project python scripts/distributions.py --runtime
       - uses: actions/upload-artifact@v4
@@ -65,9 +85,34 @@ jobs:
           overwrite: true
           retention-days: 30
 
+  compatibility:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build.outputs.python-matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event.release.tag_name || inputs.release_tag) && format('refs/tags/{0}', github.event.release.tag_name || inputs.release_tag) || github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions-${{ github.sha }}
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install runtime audit tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends graphviz clang
+      - name: Validate installed wheel compatibility
+        run: uv run --no-project python scripts/distributions.py --python-versions '${{ matrix.python }}'
+
   attach:
     if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
-    needs: build
+    needs: [build, compatibility]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

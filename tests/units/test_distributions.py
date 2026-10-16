@@ -5,6 +5,7 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import sys
 import textwrap
 from zipfile import ZipFile
 
@@ -89,8 +90,9 @@ def test_wheel_rejects_undeclared_upstream_notice(checker, licensed_wheel):
         checker._check_wheel_contents(licensed_wheel(declared=("LICENSE",)))
 
 
+@pytest.mark.parametrize("python_version", [sys.executable, "3.14"])
 def test_complete_install_requests_dependencies_and_runtime_probe(
-    checker, tmp_path, monkeypatch
+    checker, tmp_path, monkeypatch, python_version
 ):
     expected = {"version": "0.1.10", "commit": "a" * 40}
     commands = []
@@ -102,11 +104,49 @@ def test_complete_install_requests_dependencies_and_runtime_probe(
         return "bingraph 0.1.10" if "--version" in args else ""
 
     monkeypatch.setattr(checker, "_uv", uv)
-    checker._check_install(tmp_path / "package.whl", tmp_path, expected, runtime=True)
+    checker._check_install(
+        tmp_path / "package.whl",
+        tmp_path,
+        expected,
+        runtime=True,
+        python_version=python_version,
+    )
+    assert commands[0][:3] == ("venv", "--python", python_version)
     installation = next(command for command in commands if command[0] == "pip")
     assert "--no-deps" not in installation
     assert "--expected-version" in commands[-1]
     assert any(argument.endswith("runtime.py") for argument in commands[-1])
+
+
+@pytest.mark.parametrize("failing_version", [None, "3.13"])
+def test_compatibility_reuses_wheel_and_checks_all_versions(
+    checker, licensed_wheel, monkeypatch, capsys, failing_version
+):
+    wheel = licensed_wheel()
+    expected = {"version": "0.1.10", "commit": "a" * 40}
+    installations = []
+
+    def check(candidate, directory, provenance, runtime, python_version):
+        assert candidate == wheel.resolve() and provenance == expected and runtime
+        assert directory.is_dir()
+        installations.append((directory, python_version))
+        if python_version == failing_version:
+            raise RuntimeError("native dependency unavailable")
+
+    monkeypatch.setattr(checker, "_check_install", check)
+    versions = ["3.12", "3.13", "3.14", "3.15"]
+    if failing_version:
+        with pytest.raises(ValueError, match="Python compatibility failed: 3.13"):
+            checker.validate_compatibility(wheel.parent, expected, versions)
+    else:
+        checker.validate_compatibility(wheel.parent, expected, versions)
+    assert [version for directory, version in installations] == versions
+    assert len({directory for directory, version in installations}) == len(versions)
+    assert all(not directory.exists() for directory, version in installations)
+    output = capsys.readouterr()
+    assert "PASS Python 3.15" in output.out
+    if failing_version:
+        assert "FAIL Python 3.13: native dependency unavailable" in output.err
 
 
 @pytest.mark.parametrize("field", ["version", "commit", "metadata_version", "cli"])

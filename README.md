@@ -2,6 +2,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/manelfx/pybingraph?label=latest%20release&color=blue)](https://github.com/manelfx/pybingraph/releases)
 [![Development version](https://manelfx.github.io/pybingraph/version.svg)](https://github.com/manelfx/pybingraph/tree/dev)
+[![Python versions](docs/images/python-versions.svg)](https://github.com/manelfx/pybingraph/actions/workflows/packages.yml)
 
 `pybingraph` is a binary-inspection service and library built on
 [angr](https://angr.io/). It reads function symbols from a binary and renders

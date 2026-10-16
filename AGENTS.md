@@ -27,6 +27,19 @@
 - Use the repository Makefile targets where they cover the requested check.
 - Run focused tests first; do not run the full golden corpus unless requested.
 
+Run `make compatibility` to smoke-test one wheel on the Makefile's
+`PYTHON_VERSIONS`, or select versions with
+`make compatibility PYTHON_VERSIONS="3.12 3.14"`. Clang and Graphviz are required.
+Checks use temporary environments and download missing Python interpreters
+without upgrading existing ones.
+On pushes and release runs, the Python packages workflow audits 3.12 during
+packaging and the same wheel on the remaining versions before attaching assets.
+It first runs `make check` on 3.12 with locked development dependencies and a
+pinned playground checkout; failures block packaging and release attachments.
+After changing `PYTHON_VERSIONS`, run `make badges` and commit the SVG with the
+Makefile. `make badges-check` validates it without writing; both `make check`
+and CI run that validation. CI's additional Python matrix uses the same list.
+
 ## Source Organization
 
 Paths below are relative to `src/bingraph/`. Update this section as part of the
