@@ -40,7 +40,6 @@ SHORT = DEMANGLED[:MAX_LABEL_LENGTH] + "..."
         ("_Z3foov", "foo()"),
         (MANGLED, DEMANGLED),
         ("_Z3foov@@VERSION", "foo()@@VERSION"),
-        ("_Z3foov.cold", "foo() (.cold)"),
         ("_ZN3foo3bar17h0123456789abcdefE", "foo::bar"),
         ("_ZN3foo3bar17h0123456789abcdefE.0", "foo::bar.0"),
         ("_ZN4test5$LT$A17h0123456789abcdefE", "test::<A"),
@@ -49,6 +48,12 @@ SHORT = DEMANGLED[:MAX_LABEL_LENGTH] + "..."
 )
 def test_demangle_uses_existing_cpp_and_rust_support(name, expected):
     assert demangle(name) == expected
+
+
+def test_demangle_accepts_native_cold_suffix_formatting():
+    # cxxfilt delegates to native __cxa_demangle implementations. macOS and GNU
+    # runtimes spell the same .cold suffix differently; both preserve its meaning.
+    assert demangle("_Z3foov.cold") in {"foo() (.cold)", "foo() [clone .cold]"}
 
 
 def test_demangle_setting_defaults_cli_and_environment(tmp_path, monkeypatch):

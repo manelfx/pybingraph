@@ -89,15 +89,17 @@ uv sync --extra dev
 
 ### Playground binaries
 
-The optional playground corpus is used by the golden CFG tests and the examples
-below. Fetch it with:
+The optional playground corpus is used by unit tests, golden CFG tests and the
+examples below. Fetch it with:
 
 ```bash
 ./scripts/fetch_playground.sh
 ```
 
 It is cloned into `./angr-binaries/`; the binaries themselves live under
-`./angr-binaries/tests/`.
+`./angr-binaries/tests/`. The helper also fetches pinned example fixtures from
+[angr-utils](https://github.com/axt/angr-utils/tree/master/examples/samples) into
+`tests/samples/` within that corpus. Existing samples are verified, not overwritten.
 
 ## Run Bingraph
 

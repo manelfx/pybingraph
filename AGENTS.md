@@ -34,8 +34,10 @@ Checks use temporary environments and download missing Python interpreters
 without upgrading existing ones.
 On pushes and release runs, the Python packages workflow audits 3.12 during
 packaging and the same wheel on the remaining versions before attaching assets.
-It first runs `make check` on 3.12 with locked development dependencies and a
-pinned playground checkout; failures block packaging and release attachments.
+It first runs `make check` followed by `make goldens-checkpoint` on 3.12 with
+locked development dependencies and a pinned playground checkout plus samples from
+`scripts/fetch_playground.sh`; failures block packaging and release attachments.
+Failed checkpoint candidates are uploaded for review; CI never promotes goldens.
 After changing `PYTHON_VERSIONS`, run `make badges` and commit the SVG with the
 Makefile. `make badges-check` validates it without writing; both `make check`
 and CI run that validation. CI's additional Python matrix uses the same list.

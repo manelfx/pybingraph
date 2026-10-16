@@ -54,6 +54,8 @@ jobs:
           path: angr-binaries
           fetch-depth: 1
           persist-credentials: false
+      - name: Fetch pinned supplemental samples
+        run: ./scripts/fetch_playground.sh
       - name: Install runtime audit tools
         run: |
           sudo apt-get update
@@ -62,6 +64,12 @@ jobs:
         run: uv sync --locked --extra dev
       - name: Run development checks
         run: make check UV='uv run --no-sync'
+      - name: Compare checkpoint goldens
+        id: checkpoints
+        env:
+          BINGRAPH_GOLDEN_CONFIGS: cfg_mode_custom
+          BINGRAPH_GOLDEN_MODE: compare
+        run: make goldens-checkpoint UV='uv run --no-sync'
       - name: Select compatibility matrix
         id: compatibility
         run: |
@@ -83,6 +91,14 @@ jobs:
             version.json
           if-no-files-found: error
           overwrite: true
+          retention-days: 30
+      - name: Upload failed checkpoint candidates
+        if: failure() && steps.checkpoints.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cfg-checkpoint-failures-${{ github.sha }}-${{ github.run_attempt }}
+          path: tests/_actual/cfg_mode_custom/
+          if-no-files-found: warn
           retention-days: 30
 
   compatibility:
