@@ -1,0 +1,30 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x42d7a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7a0)</TD><TD ><B>runtime.semasleep.func3</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7a0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rsp, qword ptr [r14 + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x42d7a4&#58;&nbsp;</TD><TD ALIGN="LEFT">jbe</TD><TD ALIGN="LEFT">0x42d7f7</TD></TR></TABLE> }>];
+"0x42d7a6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7a6)</TD><TD ><B>runtime.semasleep.func3+0x6</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7a6&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x42d7a7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbp, rsp</TD></TR><TR><TD ALIGN="LEFT">0x42d7aa&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">rsp, 0x18</TD></TR><TR><TD ALIGN="LEFT">0x42d7ae&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rdx + 8]</TD></TR><TR><TD ALIGN="LEFT">0x42d7b2&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 0x10], rax</TD></TR><TR><TD ALIGN="LEFT">0x42d7b7&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x4322e0</TD></TR></TABLE> }>];
+"0x42d7bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7bc)</TD><TD ><B>runtime.semasleep.func3+0x1c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7bc&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rip + 0x49f63]</TD></TR><TR><TD ALIGN="LEFT">0x42d7c3&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ebx, 0x30</TD></TR><TR><TD ALIGN="LEFT">0x42d7c8&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x432b60</TD></TR></TABLE> }>];
+"0x42d7cd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7cd)</TD><TD ><B>runtime.semasleep.func3+0x2d</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7cd&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x42d7d2&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x4328a0</TD></TR></TABLE> }>];
+"0x42d7d7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7d7)</TD><TD ><B>runtime.semasleep.func3+0x37</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7d7&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x432520</TD></TR></TABLE> }>];
+"0x42d7dc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7dc)</TD><TD ><B>runtime.semasleep.func3+0x3c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7dc&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD ALIGN="LEFT">dword ptr [rax]</TD></TR><TR><TD ALIGN="LEFT">0x42d7e0&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x432340</TD></TR></TABLE> }>];
+"0x42d7e5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7e5)</TD><TD ><B>runtime.semasleep.func3+0x45</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7e5&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rip + 0x47b9d]</TD></TR><TR><TD ALIGN="LEFT">0x42d7ec&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ebx, 0x1c</TD></TR><TR><TD ALIGN="LEFT">0x42d7f1&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x430840</TD></TR></TABLE> }>];
+"0x42d7f6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7f6)</TD><TD ><B>runtime.semasleep.func3+0x56</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7f6&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x42d7f7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7f7)</TD><TD ><B>runtime.semasleep.func3+0x57</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7f7&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x459d20</TD></TR></TABLE> }>];
+"0x42d7fc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x42d7fc)</TD><TD ><B>runtime.semasleep.func3+0x5c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42d7fc&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x42d7a0</TD></TR></TABLE> }>];
+subgraph entry_rank {
+rank=source;
+"0x42d7a0";
+}
+"0x42d7a0" -> "0x42d7a6" [color=red];
+"0x42d7a0" -> "0x42d7f7" [color=green];
+"0x42d7a6" -> "0x42d7bc" [color=gray, style=dashed];
+"0x42d7bc" -> "0x42d7cd" [color=gray, style=dashed];
+"0x42d7cd" -> "0x42d7d7" [color=gray, style=dashed];
+"0x42d7d7" -> "0x42d7dc" [color=gray, style=dashed];
+"0x42d7dc" -> "0x42d7e5" [color=gray, style=dashed];
+"0x42d7e5" -> "0x42d7f6" [color=gray, style=dashed];
+"0x42d7f6" -> "0x42d7f7" [color=blue, style=dashed];
+"0x42d7f7" -> "0x42d7fc" [color=gray, style=dashed];
+"0x42d7fc" -> "0x42d7a0" [color=blue];
+}

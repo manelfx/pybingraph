@@ -15,6 +15,8 @@ from bingraph.cfg.jumps.expressions import static_jump_target_rejection_reason
 from bingraph.cfg.models import FunctionBounds
 from bingraph.cfg.shared.facts import PredecessorFacts
 from bingraph.helpers.abi import entry_base_registers
+from bingraph.helpers.capstone import InsnSemantics, control_transfer_index
+from bingraph.helpers.disassembly import DecodedNode, decode_raw_capstone_insns
 from bingraph.helpers.vex import (
     STATIC_INTEGER_BYTES,
     _resolve_vex_expr,
@@ -173,6 +175,8 @@ def shared_register_targets(project: Project, node, facts: PredecessorFacts):
     loops can establish a unique target without finite-domain recursion.
     Calls additionally allow CLE-identified synthetic function targets, using
     the same validation as static-memory calls. No callee CFG is analyzed.
+    A constant NEXT also needs native indirect-jump evidence: VEX can fold a
+    register target, but a linear continuation is not a dispatch to resolve.
     This shares the table resolver's budget and leader/redecode rules.
     """
 
@@ -180,11 +184,26 @@ def shared_register_targets(project: Project, node, facts: PredecessorFacts):
     if vex is None or vex.jumpkind not in {"Ijk_Boring", "Ijk_Call"}:
         return None
     target = _resolve_vex_expr(vex.next, temporary_definitions(vex))
-    # VEX may fold a same-block register call into Const even though the
-    # decoder still classifies its machine instruction as indirect. Ordinary
-    # constant NEXT jumps, however, include linear fallthroughs, not dispatches.
     if isinstance(target, pyvex.expr.Const) and vex.jumpkind == "Ijk_Boring":
-        return None
+        # Inspect only this ambiguous folded form with the shared byte decoder
+        # and delay-slot-aware terminator finder, not another VEX lift/cache.
+        decoded = DecodedNode(decode_raw_capstone_insns(project, node.addr, node.size))
+        if not decoded.has_exact_coverage(node):
+            return None
+        insns = list(decoded.insns or ())
+        try:
+            index = control_transfer_index(project.arch.name, insns)
+        except RuntimeError:
+            return None
+        if index is None:
+            return None
+        semantic = InsnSemantics(insns[index])
+        if (
+            not semantic.is_jump()
+            or semantic.is_call()
+            or semantic.direct_target() is not None
+        ):
+            return None
     scalar = facts.value(node, vex.next)
     values = frozenset({scalar}) if scalar is not None else facts.values(node, vex.next)
     if not values or facts.exhausted:

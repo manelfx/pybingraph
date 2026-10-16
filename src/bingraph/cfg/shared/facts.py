@@ -171,7 +171,7 @@ class PredecessorFacts:
                         vex.extend(deepcopy(suffix))
                 except Exception:
                     vex = None
-            definitions = {
+            definitions: dict[int, tuple[int, Any]] = {
                 stmt.tmp: (index, stmt.data)
                 for index, stmt in enumerate(vex.statements if vex is not None else ())
                 if isinstance(stmt, pyvex.stmt.WrTmp)
@@ -546,7 +546,17 @@ class PredecessorFacts:
             result = frozenset({expr.con.value})
         elif (conversion := _vex_width_conversion(expr)) is not None:
             source, destination, signed = conversion
-            values = self.values(node, expr.args[0], before, depth + 1)
+            # Truncated full-register reads need only the consumed low bits;
+            # unknown high bytes must not hide a proven narrow reaching write.
+            values = (
+                self._masked_values(
+                    node, expr.args[0], (1 << destination) - 1, before, depth + 1
+                )
+                if destination < source
+                else self.values(node, expr.args[0], before, depth + 1)
+            )
+            if values is None and destination < source:
+                values = self.values(node, expr.args[0], before, depth + 1)
             result = (
                 None
                 if values is None
@@ -869,7 +879,7 @@ class PredecessorFacts:
             return None
         condition = self._guard_constant(node, expr.args[0], before)
         operation = self.value(node, expr.args[1], before)
-        data = x86_cc_data[arch]
+        data = x86_cc_data["AMD64" if arch == "AMD64" else "X86"]
         widths = {
             data["OpTypes"][f"G_CC_OP_SUB{suffix}"]: bits
             for suffix, bits in (("B", 8), ("W", 16), ("L", 32), ("Q", 64))
@@ -960,8 +970,8 @@ class PredecessorFacts:
     def _unsigned_operand(self, node, expr, before, depth=0):
         """Cache an unsigned operand's value-preserving normalized view.
 
-        Remove injective widening and masks that retain every source bit, not
-        arbitrary truncations. Return the expression with its read position;
+        Remove unsigned widening, lossless re-narrowing and masks that retain
+        every source bit, not arbitrary truncations. Keep the read position;
         this lets wider guard encodings match a narrow proven definition
         without asserting that unknown high bits of another value are zero.
         """
@@ -977,8 +987,8 @@ class PredecessorFacts:
     def _normalize_unsigned_operand(self, node, expr, before, depth):
         """Strip only wrappers proved redundant for the unsigned source width.
 
-        An unsigned widening is injective; a mask is redundant only if all
-        normalized source bits survive it. Keep other expressions intact so
+        Unsigned widening and re-narrowing are injective if all original bits
+        survive; masks must likewise retain them. Keep other expressions intact so
         callers cannot equate a lossy transformation with its original value.
         """
 
@@ -991,6 +1001,18 @@ class PredecessorFacts:
         if conversion is not None and conversion[2] == "U":
             if conversion[0] < conversion[1]:
                 return self._unsigned_operand(node, expr.args[0], before, depth + 1)
+        if conversion is not None and conversion[0] > conversion[1]:
+            value, position = self._definition(node, expr.args[0], before)
+            widening = _vex_width_conversion(value)
+            if (
+                widening is not None
+                and widening[2] == "U"
+                and widening[1] == conversion[0]
+                and widening[0] <= conversion[1]
+            ):
+                # Narrowing a zero extension preserves its source only when
+                # every original bit survives. Signed/lossy casts stay opaque.
+                return self._unsigned_operand(node, value.args[0], position, depth + 1)
         if isinstance(expr, pyvex.expr.Binop) and expr.op.startswith("Iop_And"):
             vex, _ = self._block(node)
             for value, mask in (expr.args, expr.args[::-1]):
@@ -1027,8 +1049,8 @@ class PredecessorFacts:
 
         Follow containing writes, explicit conversions and masks while keeping
         widths and endianness in the key. Constants are projected to the
-        requested view; an opaque expression is keyed by identity only when
-        its width already matches. Unknown or narrower sources decline.
+        requested view; opaque SSA expressions retain identity and consumed
+        width. Unknown or narrower sources decline.
         """
 
         if depth >= 32 or not self._step():
@@ -1068,7 +1090,10 @@ class PredecessorFacts:
                 for arg in expr.args
             ]
             return None if None in keys else ("and", bits, *keys)
-        return ("expression", id(expr), bits) if source_bits == bits else None
+        # Two explicit low views of the same SSA producer agree even when
+        # newer VEX computes that producer at a wider width. The view width
+        # remains part of the key; unknown high bits are never equated away.
+        return "expression", id(expr), bits
 
     def _same_guard_value(self, node, expr, before, other, other_before):
         """Match unsigned guard/query values without discarding unknown high bits.

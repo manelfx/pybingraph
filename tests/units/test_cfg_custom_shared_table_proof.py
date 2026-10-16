@@ -20,35 +20,6 @@ from bingraph.cfg.shared.proofs import (
 from bingraph.core.project import load_project
 
 
-@pytest.mark.parametrize(
-    "function,dispatcher",
-    [
-        (0x426490, 0x426583),
-        (0x4286D0, 0x4287B7),
-        (0x42A280, 0x42A347),
-        (0x42C6B0, 0x42C723),
-        (0x4354F0, 0x4355E3),
-        (0x4911C0, 0x4912D3),
-        (0x493810, 0x493917),
-        (0x4957E0, 0x4958C7),
-        (0x497190, 0x4972A3),
-    ],
-)
-def test_shared_affine_tables_prove_exact_targets(
-    function: int, dispatcher: int
-) -> None:
-    """Resolve ordered affine dispatches through shared finite-table facts."""
-
-    project = load_project(Path("angr-binaries/tests/x86_64/static"))
-    session = _BuildSession(project, KnowledgeBase(project), function)
-    session._decode_all_blocks()
-    session._discover_static_jump_targets()
-
-    assert len(session.static_targets[dispatcher]) == 15
-    assert session.stats.exact_jump_proofs_by_flavor == {"shared_finite_table": 1}
-    assert session.stats.shared_fact_budget_exhausted == 0
-
-
 def test_builder_records_rejections_inside_shared_queries(monkeypatch) -> None:
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
     session = _BuildSession(project, KnowledgeBase(project), 0x42C6B0)
@@ -416,90 +387,97 @@ def test_shared_finite_proof_recovers_masked_or_guarded_static_tables(
 
 
 @pytest.mark.parametrize(
-    "function,dispatchers,base,count,remaining_ujts",
+    "function,table_groups",
     [
-        (0x42DBC0, (0x42E09F, 0x42E11D, 0x42E5AF, 0x42E629), 0x4A2C70, 64, 0),
+        (
+            0x42DBC0,
+            ((0x4A2C70, 64, (0x42E09F, 0x42E11D, 0x42E5AF, 0x42E629)),),
+        ),
         (
             0x42F210,
-            (0x42F417, 0x431AE8, 0x431BB6, 0x431CA4),
-            0x4A2DB0,
-            64,
-            0,
-        ),
-        (0x42F210, (0x42F635, 0x431D64), 0x4A2DB0, 64, 0),
-        (
-            0x432280,
             (
-                0x432407,
-                0x432544,
-                0x4326C4,
-                0x432844,
-                0x4329C4,
-                0x432B44,
-                0x432CC4,
-                0x432E44,
-                0x432FC4,
-                0x433144,
-                0x4332C4,
-                0x433444,
-                0x4335C5,
-                0x433744,
-                0x4338C4,
-                0x433A44,
-                0x433CB1,
+                (
+                    0x4A2DB0,
+                    64,
+                    (0x42F417, 0x431AE8, 0x431BB6, 0x431CA4, 0x42F635, 0x431D64),
+                ),
             ),
-            0x4A31B0,
-            128,
-            0,
         ),
         (
             0x432280,
             (
-                0x432488,
-                0x432601,
-                0x432781,
-                0x432901,
-                0x432A81,
-                0x432C01,
-                0x432D81,
-                0x432F01,
-                0x433081,
-                0x433201,
-                0x433381,
-                0x433501,
-                0x433681,
-                0x433801,
-                0x433981,
-                0x433B01,
-                0x433E5F,
+                (
+                    0x4A31B0,
+                    128,
+                    (
+                        0x432407,
+                        0x432544,
+                        0x4326C4,
+                        0x432844,
+                        0x4329C4,
+                        0x432B44,
+                        0x432CC4,
+                        0x432E44,
+                        0x432FC4,
+                        0x433144,
+                        0x4332C4,
+                        0x433444,
+                        0x4335C5,
+                        0x433744,
+                        0x4338C4,
+                        0x433A44,
+                        0x433CB1,
+                    ),
+                ),
+                (
+                    0x4A2F70,
+                    128,
+                    (
+                        0x432488,
+                        0x432601,
+                        0x432781,
+                        0x432901,
+                        0x432A81,
+                        0x432C01,
+                        0x432D81,
+                        0x432F01,
+                        0x433081,
+                        0x433201,
+                        0x433381,
+                        0x433501,
+                        0x433681,
+                        0x433801,
+                        0x433981,
+                        0x433B01,
+                        0x433E5F,
+                    ),
+                ),
             ),
-            0x4A2F70,
-            128,
-            0,
         ),
     ],
 )
-def test_arithmetic_guard_proofs_resolve_all_memcpy_tail_rows(
-    function, dispatchers, base, count, remaining_ujts
-):
+def test_arithmetic_guard_proofs_resolve_all_memcpy_tail_rows(function, table_groups):
+    """Check every table and dispatcher after one CFG build per function."""
+
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
     cfg = build_custom_cfg(project, KnowledgeBase(project), function)
-    expected = {
-        base
-        + int.from_bytes(
-            project.loader.memory.load(base + 4 * index, 4), "little", signed=True
-        )
-        for index in range(count)
-    }
     nodes = {node.addr: node for node in cfg.graph if not node.is_simprocedure}
-    for address in dispatchers:
-        successors = tuple(cfg.graph.successors(nodes[address]))
-        assert all(not node.is_simprocedure for node in successors)
-        assert {node.addr for node in successors} == expected
-        assert all(
-            not cfg.graph.get_edge_data(nodes[address], target).get("candidate")
-            for target in successors
-        )
+    for base, count, dispatchers in table_groups:
+        expected = {
+            base
+            + int.from_bytes(
+                project.loader.memory.load(base + 4 * index, 4), "little", signed=True
+            )
+            for index in range(count)
+        }
+        for address in dispatchers:
+            successors = tuple(cfg.graph.successors(nodes[address]))
+            assert all(not node.is_simprocedure for node in successors), hex(address)
+            assert {node.addr for node in successors} == expected, hex(address)
+            assert all(
+                not cfg.graph.get_edge_data(nodes[address], target).get("candidate")
+                for target in successors
+            ), hex(address)
     unresolved = [
         source
         for source in cfg.graph
@@ -508,7 +486,7 @@ def test_arithmetic_guard_proofs_resolve_all_memcpy_tail_rows(
             for target in cfg.graph.successors(source)
         )
     ]
-    assert len(unresolved) == remaining_ujts
+    assert not unresolved
     assert cfg.custom_stats.shared_fact_budget_exhausted == 0
 
 
@@ -558,6 +536,68 @@ def test_folded_register_call_is_exact_but_linear_next_is_not_a_dispatch(jumpkin
     )
 
 
+@pytest.mark.parametrize("executable", [False, True])
+@pytest.mark.parametrize(
+    "code,indirect",
+    [
+        ("488d0519000000ffe0", True),  # lea rax, [rip+0x19]; jmp rax
+        ("e91b000000", False),  # jmp 0x400020
+        ("488d051900000090", False),  # lea rax, [rip+0x19]; nop
+    ],
+)
+def test_folded_constant_jump_requires_native_indirect_transfer(
+    code, indirect, executable
+):
+    """A constant VEX NEXT is not itself proof of an indirect jump."""
+
+    from angr import load_shellcode
+
+    raw = bytes.fromhex(code)
+    project = load_shellcode(raw, "amd64", load_address=0x400000)
+    use = node(0x400000)
+    use.block = project.factory.block(use.addr, size=len(raw))
+    use.size = len(raw)
+    facts = setup([use], [])
+    facts.project.loader.memory = project.loader.memory
+    facts.project.loader.find_object_containing = lambda address: SimpleNamespace(
+        find_section_containing=lambda address: SimpleNamespace(
+            is_executable=executable
+        )
+    )
+    assert isinstance(use.block.vex.next, pyvex.expr.Const)
+    assert shared_register_targets(facts.project, use, facts) == (
+        (0x400020,) if indirect and executable else None
+    )
+
+
+def test_go_reflectcall_resolves_all_locally_materialized_tail_targets():
+    """Reuse local constants for the Go dispatcher without table/ABI inference."""
+
+    project = load_project(
+        Path("angr-binaries/tests/x86_64/windows")
+        / "059ef54d0a97345369d236aafb051917c50680020a1bc532236072f4d341d9e3"
+    )
+    session = _BuildSession(project, KnowledgeBase(project), 0x459F40)
+    session._decode_all_blocks()
+    sources = {
+        addr
+        for addr, block in session.blocks.items()
+        if block.jumpkind == "Ijk_Boring" and not block.direct_targets
+    }
+    assert len(sources) == 28
+    session.build()
+    targets = [session.blocks[addr].direct_targets for addr in sources]
+    assert all(len(targets_at_source) == 1 for targets_at_source in targets)
+    names = {project.loader.find_symbol(target[0]).name for target in targets}
+    assert names == {f"runtime.call{1 << power}" for power in range(4, 31)} | {
+        "runtime.badreflectcall"
+    }
+    assert session.summary.discovered_instructions == 111
+    assert session.stats.unresolved_indirect_targets == 0
+    assert session.stats.output_anomaly_count == 0
+    assert session.stats.shared_fact_budget_exhausted == 0
+
+
 @pytest.mark.parametrize("failure", [None, "unknown", "alias", "budget", "callee"])
 def test_shared_call_uses_scalar_loop_facts_without_losing_safety(monkeypatch, failure):
     target = 0x500000
@@ -602,21 +642,25 @@ def test_shared_relro_load_resolves_register_call_to_memcpy() -> None:
 
 
 @pytest.mark.parametrize(
-    "function,source,table,count",
+    "function,table,dispatchers",
     [
-        (0x42F210, 0x42F352, 0x4A2DB0, 65),
-        (0x42F210, 0x42F576, 0x4A2DB0, 65),
-        (0x42F210, 0x42F506, 0x4A2DB0, 32),
-        (0x42F210, 0x42F726, 0x4A2DB0, 32),
-        (0x42DBC0, 0x42E319, 0x4A2C70, 32),
-        (0x42DBC0, 0x42DE10, 0x4A2C70, 32),
-        (0x42DBC0, 0x42E524, 0x4A2C70, 32),
-        (0x42DBC0, 0x42E00C, 0x4A2C70, 32),
+        (
+            0x42F210,
+            0x4A2DB0,
+            ((0x42F352, 65), (0x42F576, 65), (0x42F506, 32), (0x42F726, 32)),
+        ),
+        (
+            0x42DBC0,
+            0x4A2C70,
+            ((0x42E319, 32), (0x42DE10, 32), (0x42E524, 32), (0x42E00C, 32)),
+        ),
     ],
 )
 def test_lower_guards_independently_bound_every_memmove_and_memcmp_tail_row(
-    function, source, table, count
+    function, table, dispatchers
 ):
+    """Reuse decoding, but prove each dispatcher's domain with fresh facts."""
+
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
     session = _BuildSession(project, KnowledgeBase(project), function)
     session._decode_all_blocks()
@@ -624,18 +668,24 @@ def test_lower_guards_independently_bound_every_memmove_and_memcmp_tail_row(
     # Decoding supplies instructions, not legacy selector domains or dispatch
     # edges. Read the table only after the shared engine proves the row set.
     graph, nodes = session._analysis_graph()
-    facts = table_predecessor_facts(project, graph, session.bounds)
     rdx = project.arch.registers["rdx"][0]
-    assert facts.values(nodes[source], get(rdx), before=0) == frozenset(range(count))
-    expected = {
-        table
-        + int.from_bytes(
-            project.loader.memory.load(table + 4 * index, 4), "little", signed=True
+    for source, count in dispatchers:
+        # Do not let another dispatcher's caches or proof budget mask a failure.
+        facts = table_predecessor_facts(project, graph, session.bounds)
+        assert facts.values(nodes[source], get(rdx), before=0) == frozenset(
+            range(count)
+        ), hex(source)
+        expected = {
+            table
+            + int.from_bytes(
+                project.loader.memory.load(table + 4 * index, 4), "little", signed=True
+            )
+            for index in range(count)
+        }
+        assert set(shared_table_targets(project, nodes[source], facts)) == expected, (
+            hex(source)
         )
-        for index in range(count)
-    }
-    assert set(shared_table_targets(project, nodes[source], facts)) == expected
-    assert not facts.exhausted
+        assert not facts.exhausted, hex(source)
 
 
 @pytest.mark.parametrize(
@@ -691,6 +741,8 @@ def test_memmove_row_64_has_a_concrete_path_from_function_entry(
 def test_relational_guards_independently_bound_comparison_table_rows(
     function, source, table
 ):
+    """Check builder integration and independently prove the same exact rows."""
+
     project = load_project(Path("angr-binaries/tests/x86_64/static"))
     session = _BuildSession(project, KnowledgeBase(project), function)
     session._decode_all_blocks()
@@ -706,6 +758,10 @@ def test_relational_guards_independently_bound_comparison_table_rows(
         )
         for index in range(15)
     }
+    assert len(session.static_targets[source]) == 15
+    assert set(session.static_targets[source]) == expected
+    assert session.stats.exact_jump_proofs_by_flavor == {"shared_finite_table": 1}
+    assert session.stats.shared_fact_budget_exhausted == 0
     assert set(shared_table_targets(project, nodes[source], facts)) == expected
     assert not facts.exhausted
 

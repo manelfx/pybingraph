@@ -1,0 +1,34 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x460380" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x460380)</TD><TD ><B>runtime.(*boundsError).Error</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x460380&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rsp, qword ptr [r14 + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x460384&#58;&nbsp;</TD><TD ALIGN="LEFT">jbe</TD><TD ALIGN="LEFT">0x4603bf</TD></TR></TABLE> }>];
+"0x460386" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x460386)</TD><TD ><B>runtime.(*boundsError).Error+0x6</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x460386&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x460387&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbp, rsp</TD></TR><TR><TD ALIGN="LEFT">0x46038a&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">rsp, 0x18</TD></TR><TR><TD ALIGN="LEFT">0x46038e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r12, qword ptr [r14 + 0x20]</TD></TR><TR><TD ALIGN="LEFT">0x460392&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">r12, r12</TD></TR><TR><TD ALIGN="LEFT">0x460395&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x4603d0</TD></TR></TABLE> }>];
+"0x460397" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x460397)</TD><TD ><B>runtime.(*boundsError).Error+0x17</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x460397&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">rax, rax</TD></TR><TR><TD ALIGN="LEFT">0x46039a&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x4603b9</TD></TR></TABLE> }>];
+"0x46039c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x46039c)</TD><TD ><B>runtime.(*boundsError).Error+0x1c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46039c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdx, qword ptr [rax]</TD></TR><TR><TD ALIGN="LEFT">0x46039f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, qword ptr [rax + 8]</TD></TR><TR><TD ALIGN="LEFT">0x4603a3&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">ecx, byte ptr [rax + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x4603a7&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">edi, byte ptr [rax + 0x11]</TD></TR><TR><TD ALIGN="LEFT">0x4603ab&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, rdx</TD></TR><TR><TD ALIGN="LEFT">0x4603ae&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x407380</TD></TR></TABLE> }>];
+"0x4603b3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4603b3)</TD><TD ><B>runtime.(*boundsError).Error+0x33</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4603b3&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x18</TD></TR><TR><TD ALIGN="LEFT">0x4603b7&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x4603b8&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x4603b9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4603b9)</TD><TD ><B>runtime.(*boundsError).Error+0x39</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4603b9&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x408500</TD></TR></TABLE> }>];
+"0x4603be" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4603be)</TD><TD ><B>runtime.(*boundsError).Error+0x3e</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4603be&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x4603bf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4603bf)</TD><TD ><B>runtime.(*boundsError).Error+0x3f</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4603bf&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 8], rax</TD></TR><TR><TD ALIGN="LEFT">0x4603c4&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x459da0</TD></TR></TABLE> }>];
+"0x4603c9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4603c9)</TD><TD ><B>runtime.(*boundsError).Error+0x49</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4603c9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 8]</TD></TR><TR><TD ALIGN="LEFT">0x4603ce&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x460380</TD></TR></TABLE> }>];
+"0x4603d0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4603d0)</TD><TD ><B>runtime.(*boundsError).Error+0x50</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4603d0&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">r13, [rsp + 0x28]</TD></TR><TR><TD ALIGN="LEFT">0x4603d5&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">qword ptr [r12], r13</TD></TR><TR><TD ALIGN="LEFT">0x4603d9&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x460397</TD></TR></TABLE> }>];
+"0x4603db" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4603db)</TD><TD ><B>runtime.(*boundsError).Error+0x5b</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4603db&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [r12], rsp</TD></TR><TR><TD ALIGN="LEFT">0x4603df&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x4603e0&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x460397</TD></TR></TABLE> }>];
+subgraph entry_rank {
+rank=source;
+"0x460380";
+}
+"0x460380" -> "0x460386" [color=red];
+"0x460380" -> "0x4603bf" [color=green];
+"0x460386" -> "0x460397" [color=red];
+"0x460386" -> "0x4603d0" [color=green];
+"0x460397" -> "0x46039c" [color=red];
+"0x460397" -> "0x4603b9" [color=green];
+"0x46039c" -> "0x4603b3" [color=gray, style=dashed];
+"0x4603b9" -> "0x4603be" [color=gray, style=dashed];
+"0x4603be" -> "0x4603bf" [color=blue, style=dashed];
+"0x4603bf" -> "0x4603c9" [color=gray, style=dashed];
+"0x4603c9" -> "0x460380" [color=blue];
+"0x4603d0" -> "0x460397" [color=green];
+"0x4603d0" -> "0x4603db" [color=red];
+"0x4603db" -> "0x460397" [color=blue];
+}

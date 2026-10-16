@@ -1,0 +1,32 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x439e60" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439e60)</TD><TD ><B>runtime.wakeNetPoller</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439e60&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rsp, qword ptr [r14 + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x439e64&#58;&nbsp;</TD><TD ALIGN="LEFT">jbe</TD><TD ALIGN="LEFT">0x439e98</TD></TR></TABLE> }>];
+"0x439e66" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439e66)</TD><TD ><B>runtime.wakeNetPoller+0x6</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439e66&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x439e67&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbp, rsp</TD></TR><TR><TD ALIGN="LEFT">0x439e6a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [rip + 0xa5b17]</TD></TR><TR><TD ALIGN="LEFT">0x439e71&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">rcx, rcx</TD></TR><TR><TD ALIGN="LEFT">0x439e74&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x439e91</TD></TR></TABLE> }>];
+"0x439e76" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439e76)</TD><TD ><B>runtime.wakeNetPoller+0x16</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439e76&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x439e77&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [rip + 0xa5b12]</TD></TR><TR><TD ALIGN="LEFT">0x439e7e&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x439e80&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">rcx, rcx</TD></TR><TR><TD ALIGN="LEFT">0x439e83&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x439e8a</TD></TR></TABLE> }>];
+"0x439e85" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439e85)</TD><TD ><B>runtime.wakeNetPoller+0x25</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439e85&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rcx, rax</TD></TR><TR><TD ALIGN="LEFT">0x439e88&#58;&nbsp;</TD><TD ALIGN="LEFT">jle</TD><TD ALIGN="LEFT">0x439e96</TD></TR></TABLE> }>];
+"0x439e8a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439e8a)</TD><TD ><B>runtime.wakeNetPoller+0x2a</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439e8a&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x42bba0</TD></TR></TABLE> }>];
+"0x439e8f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439e8f)</TD><TD ><B>runtime.wakeNetPoller+0x2f</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439e8f&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x439e96</TD></TR></TABLE> }>];
+"0x439e91" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439e91)</TD><TD ><B>runtime.wakeNetPoller+0x31</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439e91&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x437de0</TD></TR></TABLE> }>];
+"0x439e96" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439e96)</TD><TD ><B>runtime.wakeNetPoller+0x36</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439e96&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x439e97&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x439e98" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439e98)</TD><TD ><B>runtime.wakeNetPoller+0x38</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439e98&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 8], rax</TD></TR><TR><TD ALIGN="LEFT">0x439e9d&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD ALIGN="LEFT">dword ptr [rax]</TD></TR><TR><TD ALIGN="LEFT">0x439ea0&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x459da0</TD></TR></TABLE> }>];
+"0x439ea5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x439ea5)</TD><TD ><B>runtime.wakeNetPoller+0x45</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x439ea5&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 8]</TD></TR><TR><TD ALIGN="LEFT">0x439eaa&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x439e60</TD></TR></TABLE> }>];
+subgraph entry_rank {
+rank=source;
+"0x439e60";
+}
+"0x439e60" -> "0x439e66" [color=red];
+"0x439e60" -> "0x439e98" [color=green];
+"0x439e66" -> "0x439e76" [color=red];
+"0x439e66" -> "0x439e91" [color=green];
+"0x439e76" -> "0x439e85" [color=red];
+"0x439e76" -> "0x439e8a" [color=green];
+"0x439e85" -> "0x439e8a" [color=red];
+"0x439e85" -> "0x439e96" [color=green];
+"0x439e8a" -> "0x439e8f" [color=gray, style=dashed];
+"0x439e8f" -> "0x439e96" [color=blue];
+"0x439e91" -> "0x439e96" [color=gray, style=dashed];
+"0x439e98" -> "0x439ea5" [color=gray, style=dashed];
+"0x439ea5" -> "0x439e60" [color=blue];
+}

@@ -34,6 +34,19 @@ from bingraph.cfg.jumps.x86 import (
 )
 from bingraph.cfg.models import BlockSpec, FunctionBounds, StaticJumpTable
 from bingraph.core.project import load_project
+from bingraph.helpers.vex import _vex_get_key
+
+
+@pytest.mark.parametrize("arch", [archinfo.ArchAMD64(), archinfo.ArchS390X()])
+def test_truncated_register_reads_keep_view_width_and_endianness(arch):
+    """A wider GET's low slice is a narrow read, not a known widened value."""
+
+    offset = arch.registers["rax" if arch.name == "AMD64" else "r2"][0]
+    vex = SimpleNamespace(arch=arch, tyenv=pyvex.IRTypeEnv(arch, []))
+    view = pyvex.expr.Unop("Iop_64to16", [pyvex.expr.Get(offset, "Ity_I64")])
+    expected_offset = offset + (6 if arch.register_endness == "Iend_BE" else 0)
+    assert _vex_get_key(view, {}, vex) == (expected_offset, 16)
+    assert _vex_get_key(pyvex.expr.Unop("Iop_16Uto64", [view]), {}, vex) is None
 
 
 @pytest.mark.parametrize(
@@ -646,6 +659,45 @@ def test_guarded_jump_table_bound_accepts_unsigned_strict_less_than() -> None:
     assert _vex_guarded_index_upper_bound(vex, 0x1006, (32, 64)) == 31
 
 
+@pytest.mark.parametrize(
+    "code,addr,target,register,expected",
+    [
+        ("ec1c0050037f", 0x800066EA, 0x8000678A, "r1_32", 3),
+        ("ec22fcb4077f", 0x80068C66, 0x80068C6C, "r2_32", 7),
+    ],
+)
+def test_high_mask_zero_guards_preserve_unsigned_bounds(
+    code, addr, target, register, expected
+):
+    """VEX can lower a power-of-two range to EQ/NE of the upper-bit mask."""
+
+    arch = archinfo.ArchS390X()
+    vex = pyvex.lift(bytes.fromhex(code), addr, arch)
+    offset, size = arch.registers[register]
+    assert _vex_guarded_index_upper_bound(vex, target, (offset, size * 8)) == expected
+
+
+@pytest.mark.parametrize("mask", [0, 15, 0xFFFFFFFFFFFFFFFA])
+def test_arbitrary_mask_zero_tests_do_not_prove_upper_bounds(mask):
+    """Only a contiguous upper-bit mask makes zero equivalent to a range."""
+
+    guard = pyvex.expr.Binop(
+        "Iop_CmpEQ64",
+        [
+            pyvex.expr.Binop(
+                "Iop_And64",
+                [
+                    pyvex.expr.Get(16, "Ity_I64"),
+                    pyvex.expr.Const(pyvex.const.U64(mask)),
+                ],
+            ),
+            pyvex.expr.Const(pyvex.const.U64(0)),
+        ],
+    )
+    comparison = guards_module._vex_unsigned_guard_comparison(guard, {})
+    assert comparison.op == "Iop_CmpEQ64"
+
+
 def test_guarded_jump_table_bound_tracks_a_narrowed_register_view() -> None:
     """Match a 32-bit guard against the 64-bit register used to index a table."""
 
@@ -725,14 +777,15 @@ def test_guarded_table_bound_tracks_a_right_shifted_index_value() -> None:
     assert _vex_guarded_index_upper_bound(vex, 0x100E, (rdi_offset, 64)) == 40
 
 
-def test_static_table_accepts_a_guarded_stack_selector() -> None:
+@pytest.mark.parametrize("limit", [7, 12])
+def test_static_table_accepts_a_guarded_stack_selector(limit) -> None:
     """Recover an x86 switch table indexed by one guarded stack argument."""
 
     # push ebp; mov ebp, esp; sub esp, 16; cmp dword ptr [ebp + 8], 12;
     # ja default. The selector therefore needs the prologue's ebp assignment
     # normalized before it can match the dispatcher's stack load.
     predecessor_vex = pyvex.lift(
-        bytes.fromhex("5589e583ec10837d080c7755"), 0x1000, archinfo.ArchX86()
+        bytes.fromhex(f"5589e583ec10837d08{limit:02x}7755"), 0x1000, archinfo.ArchX86()
     )
     # mov eax, [ebp + 8]; shl eax, 2; add eax, table; mov eax, [eax]; jmp eax
     dispatcher_vex = pyvex.lift(
@@ -758,7 +811,7 @@ def test_static_table_accepts_a_guarded_stack_selector() -> None:
     assert reason is None
     assert plan is not None
     assert plan.base_addr == 0x8048770
-    assert plan.entry_indices == tuple(range(13))
+    assert plan.entry_indices == tuple(range(limit + 1))
 
     unguarded_graph = nx.DiGraph()
     unguarded_graph.add_node(dispatcher)

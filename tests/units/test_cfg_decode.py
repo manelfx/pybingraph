@@ -101,6 +101,8 @@ def test_static_integer_reads_keep_zero_distinct_from_unknown():
     ("name", "expected"),
     [
         ("abort", True),
+        ("runtime.abort", True),
+        ("runtime.abortHandler", False),
         ("_Unwind_Resume", True),
         ("__assert_fail", True),
         ("__libc_assert_fail", True),

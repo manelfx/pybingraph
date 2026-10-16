@@ -1298,12 +1298,15 @@ class _BuildSession:
         source = self._leaf(_UNRESOLVABLE_ENTRY_ADDR, "UnresolvableEntrySource")
         for address in sorted(self.recovered_roots):
             target = self.nodes[address]
-            add_successor_edge(
-                self.graph, source, target, "Ijk_Boring", unresolved_indirect=True
+            # The Rust-backed graph returns snapshots: store all attributes
+            # when adding the edge instead of mutating get_edge_data's result.
+            self.graph.add_edge(
+                source,
+                target,
+                jumpkind="Ijk_Boring",
+                unresolved_indirect=True,
+                recovered_entry=True,
             )
-            edge = self.graph.get_edge_data(source, target)
-            assert edge is not None
-            edge["recovered_entry"] = True
 
     def _summarize_output(self) -> None:
         """Count stabilized display coverage and graph shape after construction.

@@ -29,6 +29,7 @@ def repository(tmp_path, monkeypatch):
     git(root, "config", "user.email", "version@example.invalid")
     git(root, "config", "commit.gpgsign", "false")
     git(root, "commit", "--allow-empty", "-m", "Baseline")
+    monkeypatch.setattr(version, "BASE_VERSION", (0, 1, 0))
     monkeypatch.setattr(version, "BASE_COMMIT", git(root, "rev-parse", "HEAD"))
     return root
 

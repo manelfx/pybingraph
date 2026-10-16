@@ -7,8 +7,7 @@ from angr.knowledge_plugins.xrefs import XRef, XRefType
 from cle.backends.symbol import SymbolType
 import pyvex
 
-# angr installs this native module dynamically, without an importable type stub.
-from angr.rustylib import SegmentList  # ty: ignore[unresolved-import]
+from angr.rustylib import SegmentList
 from loguru import logger
 
 from bingraph.cfg.models import CustomCFG

@@ -1225,6 +1225,31 @@ def test_custom_suppresses_fakeret_after_malloc_assert() -> None:
     )
 
 
+def test_custom_suppresses_fakeret_after_go_runtime_abort() -> None:
+    """Drop abort continuations, not a neighbouring real conditional target."""
+
+    project = project_module.load_project(
+        Path("angr-binaries/tests/x86_64/windows")
+        / "059ef54d0a97345369d236aafb051917c50680020a1bc532236072f4d341d9e3"
+    )
+    cfg = build_custom_cfg(project, KnowledgeBase(project), 0x459A00)
+    nodes = {node.addr: node for node in cfg.graph.nodes() if not node.is_simprocedure}
+    callers = [
+        source for source, target in cfg.graph.edges() if target.addr == 0x45BAE0
+    ]
+    assert target_is_known_nonreturning(project, 0x45BAE0)
+    assert not target_is_known_nonreturning(project, 0x45BAE1)
+    assert len(callers) == 2
+    assert all(
+        [target.addr for target in cfg.graph.successors(source)] == [0x45BAE0]
+        for source in callers
+    )
+    assert 0x459AF3 in nodes
+    assert all(0x459B54 not in node.instruction_addrs for node in nodes.values())
+    assert cfg.custom_stats.decoder_nonreturning_calls == 2
+    assert cfg.custom_stats.output_anomaly_count == 0
+
+
 def test_custom_resolves_returning_static_memory_call_targets() -> None:
     """Keep exact returning calls made through constant GOT slots."""
 

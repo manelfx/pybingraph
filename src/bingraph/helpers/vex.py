@@ -78,12 +78,25 @@ def _vex_const_value(expr, definitions: dict[int, Any]) -> int | None:
 
 
 def _vex_get_key(expr, definitions: dict[int, Any], vex) -> tuple[int, int] | None:
-    """Return ``(register_offset, bits)`` for a VEX register read expression."""
+    """Identify a register read or an explicitly truncated low register view.
+
+    Newer VEX reads a full register before narrowing it instead of emitting a
+    narrow GET. Preserve that view's width and register endianness; no unknown
+    high bits are treated as zero. Extensions and arithmetic are not raw reads.
+    """
 
     expr = _resolve_vex_expr(expr, definitions)
+    bits = expr.result_size(vex.tyenv) if expr is not None else 0
+    while (conversion := _vex_width_conversion(expr)) is not None:
+        if conversion[0] <= conversion[1] or bits < 8 or bits % 8:
+            return None
+        expr = _resolve_vex_expr(expr.args[0], definitions)
     if not isinstance(expr, pyvex.expr.Get):
         return None
-    return expr.offset, expr.result_size(vex.tyenv)
+    offset = expr.offset
+    if getattr(getattr(vex, "arch", None), "register_endness", None) == "Iend_BE":
+        offset += (expr.result_size(vex.tyenv) - bits) // 8
+    return offset, bits
 
 
 def _vex_add_terms(expr, definitions: dict[int, Any]) -> list[Any] | None:

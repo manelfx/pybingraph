@@ -52,6 +52,7 @@ def _library_family(name: str) -> str:
 _LINKED_NONRETURNING_RUNTIME_SYMBOLS = frozenset(
     {
         "abort",
+        "runtime.abort",
         "_Unwind_Resume",
         "__assert_fail",
         "__libc_assert_fail",

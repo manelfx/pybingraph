@@ -36,6 +36,9 @@ def _execute_relative_instruction_addrs(vex: Any) -> frozenset[int]:
             and instruction_addr is not None
         ):
             execute_relative.add(instruction_addr)
+    # Newer VEX can end the block with this jumpkind instead of an Exit.
+    if vex.jumpkind == "Ijk_InvalICache" and instruction_addr is not None:
+        execute_relative.add(instruction_addr)
     return frozenset(execute_relative)
 
 

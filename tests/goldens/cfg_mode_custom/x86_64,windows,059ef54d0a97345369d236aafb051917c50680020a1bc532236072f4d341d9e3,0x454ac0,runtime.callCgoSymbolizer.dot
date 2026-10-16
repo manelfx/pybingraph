@@ -1,0 +1,29 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x454ac0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x454ac0)</TD><TD ><B>runtime.callCgoSymbolizer</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x454ac0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rsp, qword ptr [r14 + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x454ac4&#58;&nbsp;</TD><TD ALIGN="LEFT">jbe</TD><TD ALIGN="LEFT">0x454b14</TD></TR></TABLE> }>];
+"0x454ac6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x454ac6)</TD><TD ><B>runtime.callCgoSymbolizer+0x6</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x454ac6&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x454ac7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbp, rsp</TD></TR><TR><TD ALIGN="LEFT">0x454aca&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">rsp, 0x10</TD></TR><TR><TD ALIGN="LEFT">0x454ace&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [rip + 0x10e934]</TD></TR><TR><TD ALIGN="LEFT">0x454ad4&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">ecx, ecx</TD></TR><TR><TD ALIGN="LEFT">0x454ad6&#58;&nbsp;</TD><TD ALIGN="LEFT">ja</TD><TD ALIGN="LEFT">0x454ae9</TD></TR></TABLE> }>];
+"0x454ad8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x454ad8)</TD><TD ><B>runtime.callCgoSymbolizer+0x18</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x454ad8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [r14 + 0x30]</TD></TR><TR><TD ALIGN="LEFT">0x454adc&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, r14</TD></TR><TR><TD ALIGN="LEFT">0x454adf&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x454ae0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">qword ptr [rcx + 0x90], rsi</TD></TR><TR><TD ALIGN="LEFT">0x454ae7&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x454af2</TD></TR></TABLE> }>];
+"0x454ae9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x454ae9)</TD><TD ><B>runtime.callCgoSymbolizer+0x29</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x454ae9&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rcx, [rip + 0x23bd0]</TD></TR><TR><TD ALIGN="LEFT">0x454af0&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x454af9</TD></TR></TABLE> }>];
+"0x454af2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x454af2)</TD><TD ><B>runtime.callCgoSymbolizer+0x32</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x454af2&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rcx, [rip + 0x23bdf]</TD></TR></TABLE> }>];
+"0x454af9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x454af9)</TD><TD ><B>runtime.callCgoSymbolizer+0x39</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x454af9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, qword ptr [rcx]</TD></TR><TR><TD ALIGN="LEFT">0x454afc&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, qword ptr [rip + 0x89d05]</TD></TR><TR><TD ALIGN="LEFT">0x454b03&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, rax</TD></TR><TR><TD ALIGN="LEFT">0x454b06&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdx, rcx</TD></TR><TR><TD ALIGN="LEFT">0x454b09&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, rdi</TD></TR><TR><TD ALIGN="LEFT">0x454b0c&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">rsi</TD></TR></TABLE> }>];
+"0x454b0e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x454b0e)</TD><TD ><B>runtime.callCgoSymbolizer+0x4e</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x454b0e&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x10</TD></TR><TR><TD ALIGN="LEFT">0x454b12&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x454b13&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x454b14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x454b14)</TD><TD ><B>runtime.callCgoSymbolizer+0x54</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x454b14&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 8], rax</TD></TR><TR><TD ALIGN="LEFT">0x454b19&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x459da0</TD></TR></TABLE> }>];
+"0x454b1e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x454b1e)</TD><TD ><B>runtime.callCgoSymbolizer+0x5e</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x454b1e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 8]</TD></TR><TR><TD ALIGN="LEFT">0x454b23&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x454ac0</TD></TR></TABLE> }>];
+subgraph entry_rank {
+rank=source;
+"0x454ac0";
+}
+"0x454ac0" -> "0x454ac6" [color=red];
+"0x454ac0" -> "0x454b14" [color=green];
+"0x454ac6" -> "0x454ad8" [color=red];
+"0x454ac6" -> "0x454ae9" [color=green];
+"0x454ad8" -> "0x454ae9" [color=red];
+"0x454ad8" -> "0x454af2" [color=green];
+"0x454ae9" -> "0x454af9" [color=blue];
+"0x454af2" -> "0x454af9" [color=blue, style=dashed];
+"0x454af9" -> "0x454b0e" [color=gray, style=dashed];
+"0x454b14" -> "0x454b1e" [color=gray, style=dashed];
+"0x454b1e" -> "0x454ac0" [color=blue];
+}

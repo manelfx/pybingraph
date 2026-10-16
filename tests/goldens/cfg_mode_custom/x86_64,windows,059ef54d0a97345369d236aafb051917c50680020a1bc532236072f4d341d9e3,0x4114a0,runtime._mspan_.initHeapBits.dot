@@ -1,0 +1,33 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4114a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114a0)</TD><TD ><B>runtime.(*mspan).initHeapBits</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114a0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rsp, qword ptr [r14 + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x4114a4&#58;&nbsp;</TD><TD ALIGN="LEFT">jbe</TD><TD ALIGN="LEFT">0x4114e1</TD></TR></TABLE> }>];
+"0x4114a6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114a6)</TD><TD ><B>runtime.(*mspan).initHeapBits+0x6</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114a6&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x4114a7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbp, rsp</TD></TR><TR><TD ALIGN="LEFT">0x4114aa&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">rsp, 0x10</TD></TR><TR><TD ALIGN="LEFT">0x4114ae&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">ecx, byte ptr [rax + 0x62]</TD></TR><TR><TD ALIGN="LEFT">0x4114b2&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">cl, 1</TD></TR><TR><TD ALIGN="LEFT">0x4114b5&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x4114c2</TD></TR></TABLE> }>];
+"0x4114b7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114b7)</TD><TD ><B>runtime.(*mspan).initHeapBits+0x17</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114b7&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">qword ptr [rax + 0x68], 0x200</TD></TR><TR><TD ALIGN="LEFT">0x4114bf&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x4114c0&#58;&nbsp;</TD><TD ALIGN="LEFT">jbe</TD><TD ALIGN="LEFT">0x4114c8</TD></TR></TABLE> }>];
+"0x4114c2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114c2)</TD><TD ><B>runtime.(*mspan).initHeapBits+0x22</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114c2&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">byte ptr [rax + 0x65], 0</TD></TR><TR><TD ALIGN="LEFT">0x4114c6&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x4114db</TD></TR></TABLE> }>];
+"0x4114c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114c8)</TD><TD ><B>runtime.(*mspan).initHeapBits+0x28</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114c8&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x411500</TD></TR></TABLE> }>];
+"0x4114cd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114cd)</TD><TD ><B>runtime.(*mspan).initHeapBits+0x2d</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114cd&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">rbx, rbx</TD></TR><TR><TD ALIGN="LEFT">0x4114d0&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x4114db</TD></TR></TABLE> }>];
+"0x4114d2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114d2)</TD><TD ><B>runtime.(*mspan).initHeapBits+0x32</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114d2&#58;&nbsp;</TD><TD ALIGN="LEFT">shl</TD><TD ALIGN="LEFT">rbx, 3</TD></TR><TR><TD ALIGN="LEFT">0x4114d6&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x45c6a0</TD></TR></TABLE> }>];
+"0x4114db" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114db)</TD><TD ><B>runtime.(*mspan).initHeapBits+0x3b</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114db&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x10</TD></TR><TR><TD ALIGN="LEFT">0x4114df&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x4114e0&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x4114e1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114e1)</TD><TD ><B>runtime.(*mspan).initHeapBits+0x41</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114e1&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 8], rax</TD></TR><TR><TD ALIGN="LEFT">0x4114e6&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [rsp + 0x10], bl</TD></TR><TR><TD ALIGN="LEFT">0x4114ea&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x459da0</TD></TR></TABLE> }>];
+"0x4114ef" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x4114ef)</TD><TD ><B>runtime.(*mspan).initHeapBits+0x4f</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4114ef&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 8]</TD></TR><TR><TD ALIGN="LEFT">0x4114f4&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">ebx, byte ptr [rsp + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x4114f9&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x4114a0</TD></TR></TABLE> }>];
+subgraph entry_rank {
+rank=source;
+"0x4114a0";
+}
+"0x4114a0" -> "0x4114a6" [color=red];
+"0x4114a0" -> "0x4114e1" [color=green];
+"0x4114a6" -> "0x4114b7" [color=red];
+"0x4114a6" -> "0x4114c2" [color=green];
+"0x4114b7" -> "0x4114c2" [color=red];
+"0x4114b7" -> "0x4114c8" [color=green];
+"0x4114c2" -> "0x4114c8" [color=red];
+"0x4114c2" -> "0x4114db" [color=green];
+"0x4114c8" -> "0x4114cd" [color=gray, style=dashed];
+"0x4114cd" -> "0x4114d2" [color=red];
+"0x4114cd" -> "0x4114db" [color=green];
+"0x4114d2" -> "0x4114db" [color=gray, style=dashed];
+"0x4114e1" -> "0x4114ef" [color=gray, style=dashed];
+"0x4114ef" -> "0x4114a0" [color=blue];
+}

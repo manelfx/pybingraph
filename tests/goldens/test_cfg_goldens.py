@@ -141,6 +141,7 @@ DEFAULT_CONFIGS = [
 # remains the responsibility of BINGRAPH_GOLDEN_CONFIGS.
 CHECKPOINT_ARTIFACTS = frozenset(
     {
+        "aarch64,ld-linux-aarch64.so.1,0x40fbe4,_dl_tls_setup.dot",
         "armel,lwip_udpecho_bm.elf,0x705,__udivmoddi4.dot",
         "armel,lwip_udpecho_bm.elf,0x39f1,tcp_alloc.dot",
         "armel,lwip_udpecho_bm.elf,0x5f65,dhcp_bind.dot",
@@ -152,6 +153,12 @@ CHECKPOINT_ARTIFACTS = frozenset(
         "armel,libc-2.31.so,0x47a4e9,alarm.dot",
         "armel,libc.so.6,0x47e114,__mempcpy_small.dot",
         "armel,Nucleo_read_hyperterminal.elf,0x80080d1,__aeabi_ddiv.dot",
+        # Thumb local labels and saved-LR return provenance.
+        "armel,p2im_drone.elf,0x80052b5,Reset_Handler.dot",
+        "armel,RTOSDemo.axf.issue_685,0xa5c5,memcpy.dot",
+        # Compact TBB proofs and data-triggered redecoding/false-return removal.
+        "armhf,amp_challenge_07.gcc.dyn.unstripped,0x401d29,set_state.dot",
+        "armhf,amp_challenge_07.gcc.dyn.unstripped,0x40259d,digest_message.dot",
         "i386,bronze_ropchain,0x8049930,plural_eval.dot",
         "i386,bronze_ropchain,0x80572f0,_IO_list_lock.dot",
         "i386,bronze_ropchain,0x805ec40,__memset_sse2.dot",
@@ -163,6 +170,7 @@ CHECKPOINT_ARTIFACTS = frozenset(
         "i386,bronze_ropchain,0x809cc70,_dl_mcount.dot",
         "i386,bronze_ropchain,0x80a7db0,execute_stack_op.dot",
         "mips,dir,0x40f6f4,hash_initialize.dot",
+        "mips64,ld.so.1,0x41abd8,_dl_sysdep_start.dot",
         "mipsel,mips_syscall_demo,0x401390,__libc_setup_tls.dot",
         "mipsel,mips_syscall_demo,0x420240,__gconv_db_freemem.dot",
         "mipsel,btrfs-tools_btrfs-calc-size,0x4162c8,btrfs_find_block_group.isra.14.dot",
@@ -183,11 +191,15 @@ CHECKPOINT_ARTIFACTS = frozenset(
         "s390x,test-instr_s390x,0x8001d140,__gconv.dot",
         "s390x,test-instr_s390x,0x800555f8,_IO_vfscanf.dot",
         "s390x,libc.so.6,0x48ee08,__libc_mallopt.dot",
+        # ABI-preserved targets across calls, plus an exact tail jump.
+        "x86_64,1cbbf108f44c8f4babde546d26425ca5340dccf878d306b90eb0fbec2f83ab51,0x413630,_ZN6crypto5aesni27setup_working_key_aesni_12817h0ef13418063d66e2E.llvm.2871019984846552087.dot",
         "x86_64,cvs,0x485f00,vasnprintf.dot",
         "x86_64,calc,0x403c51,__wait.dot",
         "x86_64,decompiler,clientloop.o,0x405f00,client_loop.dot",
         "x86_64,elf_with_static_libc_ubuntu_2004,0x445970,__memset_avx512_no_vzeroupper.dot",
         "x86_64,elf_with_static_libc_ubuntu_2004,0x48ef40,execute_stack_op.dot",
+        # LSDA cleanup edges combined with disconnected recovery.
+        "x86_64,fmt-rust,0x4b1040,_ZN4core3ptr67drop_in_place_LT_fluent_bundle..resolver..errors..ReferenceKind_GT_17h36e09c834ef9ee07E.dot",
         "x86_64,langdetect_clang,0x408ce0,msort_with_tmp.part.0.dot",
         "x86_64,langdetect_clang,0x420c40,__memcpy_avx512_unaligned_erms.dot",
         "x86_64,langdetect_clang,0x423590,__memset_avx512_no_vzeroupper.dot",
@@ -200,7 +212,11 @@ CHECKPOINT_ARTIFACTS = frozenset(
         "x86_64,rust_hello_world,0x4207f0,_ZN3std3env11current_exe17hfb9bee2aecec296fE.dot",
         "x86_64,libc.so.6,0x4370d0,sigwait.dot",
         "x86_64,static,0x40dc00,abort.dot",
+        # The corpus's only shared finite-register proof fallback.
+        "x86_64,static,0x42f210,__memmove_ssse3.dot",
         "x86_64,veritesting_skm,0x4018a0,lexer_get_next_token.dot",
+        # Go/PE register jumps whose targets VEX constant-folds.
+        "x86_64,windows,059ef54d0a97345369d236aafb051917c50680020a1bc532236072f4d341d9e3,0x459f40,runtime.reflectcall.dot",
     }
 )
 

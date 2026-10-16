@@ -280,7 +280,17 @@ def _vex_table_index(
         )
         if values is not None:
             return None, values
-    register = _vex_index_key(expr, definitions, vex, allow_full_width=allow_full_width)
+    view = _resolve_vex_expr(expr, definitions)
+    while (conversion := _vex_width_conversion(view)) is not None and (
+        conversion[2] == "U" and conversion[0] < conversion[1]
+    ):
+        view = _resolve_vex_expr(view.args[0], definitions)
+    # The address consumes the narrowed value, not unknown high register bits.
+    register = _vex_get_key(view, definitions, vex)
+    if register is None or (register[1] > 8 and not allow_full_width):
+        register = _vex_index_key(
+            expr, definitions, vex, allow_full_width=allow_full_width
+        )
     if register is not None:
         return register, None
     if not allow_inline_index_values:

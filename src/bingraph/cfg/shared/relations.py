@@ -11,9 +11,8 @@ from math import prod
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
-import claripy
 import pyvex
-from angr import sim_options
+from angr import claripy, sim_options
 from angr.engines.vex.claripy.datalayer import ClaripyDataMixin
 from angr.errors import SimError
 
@@ -44,6 +43,7 @@ class RelationalValues(ClaripyDataMixin):
         self.state = SimpleNamespace(options={sim_options.EXTENDED_IROP_SUPPORT})
         self.terms = {}
         self.atoms = {}
+        self.symbols = {}
         self.reads = {}
         self.answers = {}
         self.active = set()
@@ -168,7 +168,8 @@ class RelationalValues(ClaripyDataMixin):
         # establish alias relationships through the existing _written_view.
         name = f"joint_get_{expr.offset}_{bits}"
         self.reads[name] = expr.offset, bits
-        return claripy.BVS(name, bits, explicit_name=True)
+        self.symbols[name] = claripy.BVS(name, bits, explicit_name=True)
+        return self.symbols[name]
 
     def _handle_vex_expr_Load(self, expr):
         """Admit memory only when scalar facts establish its exact integer value.
@@ -209,7 +210,10 @@ class RelationalValues(ClaripyDataMixin):
             name = f"joint_atom_{id(node)}_{before}_{id(expr)}"
             self.atoms[name] = domain
             vex, _ = self.facts._block(node)
-            return claripy.BVS(name, expr.result_size(vex.tyenv), explicit_name=True)
+            self.symbols[name] = claripy.BVS(
+                name, expr.result_size(vex.tyenv), explicit_name=True
+            )
+            return self.symbols[name]
         return super()._handle_vex_expr_Op(expr)
 
     def _handle_vex_expr_CCall(self, expr):
@@ -247,16 +251,22 @@ class RelationalValues(ClaripyDataMixin):
 
         key = term, node, position
         if key not in self._substitutions:
-            replacements = {}
-            for name in term.variables & self.reads.keys():
+            replacements = []
+            for name in sorted(term.variables & self.reads.keys()):
                 offset, bits = self.reads[name]
                 value = self._term(
                     node, pyvex.expr.Get(offset, f"Ity_I{bits}"), position
                 )
                 if value is None:
                     return None
-                replacements[claripy.BVS(name, bits, explicit_name=True).hash()] = value
-            self._substitutions[key] = claripy.replace_dict(term, replacements)
+                # Fresh intermediate symbols make the native single-replacement
+                # API simultaneous: a replacement may itself read another root.
+                marker = claripy.BVS("joint_substitution", bits)
+                term = term.replace(self.symbols[name], marker)
+                replacements.append((marker, value))
+            for marker, value in replacements:
+                term = term.replace(marker, value)
+            self._substitutions[key] = term
         return self._substitutions[key]
 
     def _guards(self, node, position):
@@ -353,24 +363,38 @@ class RelationalValues(ClaripyDataMixin):
         # Domains are already finite: concrete Claripy evaluation avoids SMT
         # state creation, timeouts and repeated model enumeration. Angr still
         # owns every VEX operation and flag helper used to build these DAGs.
-        atoms = {leaf.args[0]: leaf for leaf in query.leaf_asts() if leaf.op == "BVS"}
         predicate = claripy.And(
             *(guard for guard in guards if guard.variables <= set(names))
         )
+
+        def evaluate(term):
+            """Apply concrete atom assignments through angr's native AST API.
+
+            Replacements contain no symbols, so sequential substitution cannot
+            capture another atom. Unknown results decline proof, not invoke SMT.
+            """
+
+            for atom, value in replacements:
+                term = term.replace(atom, value)
+            return term.concrete_value
+
         result = set()
         for assignment in product(*(sorted(self.atoms[name]) for name in names)):
             if not self.facts._step():
                 return None
-            replacements: dict[int, claripy.ast.Base] = {
-                atoms[name].hash(): claripy.BVV(value, atoms[name].length)
+            replacements = [
+                (self.symbols[name], claripy.BVV(value, self.symbols[name].length))
                 for name, value in zip(names, assignment, strict=True)
-            }
+            ]
             try:
-                if claripy.backends.concrete.eval(
-                    claripy.replace_dict(predicate, replacements), 1
-                )[0]:
-                    value = claripy.replace_dict(query, replacements)
-                    result.add(claripy.backends.concrete.eval(value, 1)[0])
+                allowed = evaluate(predicate)
+                if allowed is None:
+                    return None
+                if allowed:
+                    value = evaluate(query)
+                    if value is None:
+                        return None
+                    result.add(value)
             except claripy.ClaripyError:
                 return None
         return frozenset(result)

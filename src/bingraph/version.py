@@ -15,9 +15,9 @@ from pathlib import Path
 import re
 import subprocess
 
-BASE_VERSION = (0, 1, 0)
-# Revision zero belongs to the initial repository commit, not a moving HEAD.
-BASE_COMMIT = "20a527b571f5106041af56629fece29df5524f34"
+BASE_VERSION = (0, 2, 0)
+# Revision zero belongs to this fixed version baseline, not a moving HEAD.
+BASE_COMMIT = "5129b28ec26160fa47f2b712f05c2ecb84d3802c"
 
 
 def get_version_info(root: Path | None = None) -> tuple[str, str]:

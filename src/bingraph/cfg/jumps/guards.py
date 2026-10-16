@@ -139,27 +139,57 @@ def _vex_guarded_expression_upper_bound(
 
 
 def _vex_unsigned_guard_comparison(guard, definitions: dict[int, Any]):
-    """Unwrap VEX's nonzero test around an unsigned branch comparison."""
+    """Normalize Boolean wrappers and VEX's power-of-two range shortcut.
+
+    Testing ``value >> n`` or ``value & ~((1 << n) - 1)`` for zero is exactly
+    ``value < 2**n``. Preserve EQ/NE polarity when VEX replaces the comparison.
+    """
 
     guard = _resolve_vex_expr(guard, definitions)
     while isinstance(guard, pyvex.expr.Unop):
         guard = _resolve_vex_expr(guard.args[0], definitions)
-    if not isinstance(guard, pyvex.expr.Binop) or not guard.op.startswith("Iop_CmpNE"):
-        return guard
-
-    left, right = guard.args
-    left_value = _vex_const_value(left, definitions)
-    right_value = _vex_const_value(right, definitions)
-    if left_value == 0 and right_value is None:
-        condition = right
-    elif right_value == 0 and left_value is None:
-        condition = left
-    else:
-        return guard
-    condition = _resolve_vex_expr(condition, definitions)
-    while isinstance(condition, pyvex.expr.Unop):
-        condition = _resolve_vex_expr(condition.args[0], definitions)
-    return condition
+    if isinstance(guard, pyvex.expr.Binop) and guard.op.startswith("Iop_CmpNE"):
+        for condition, zero in (guard.args, guard.args[::-1]):
+            if _vex_const_value(zero, definitions) == 0:
+                condition = _resolve_vex_expr(condition, definitions)
+                while isinstance(condition, pyvex.expr.Unop):
+                    condition = _resolve_vex_expr(condition.args[0], definitions)
+                if isinstance(condition, pyvex.expr.Binop) and condition.op.startswith(
+                    "Iop_Cmp"
+                ):
+                    guard = condition
+                break
+    if isinstance(guard, pyvex.expr.Binop) and guard.op.startswith(
+        ("Iop_CmpEQ", "Iop_CmpNE")
+    ):
+        for tested, zero in (guard.args, guard.args[::-1]):
+            tested = _resolve_vex_expr(tested, definitions)
+            if _vex_const_value(zero, definitions) == 0 and isinstance(
+                tested, pyvex.expr.Binop
+            ):
+                bits = tested.result_size(None)
+                constant = _vex_const_value(tested.args[1], definitions)
+                limit = None
+                if (
+                    tested.op.startswith("Iop_Shr")
+                    and constant is not None
+                    and 0 < constant < bits
+                ):
+                    limit = 1 << constant
+                elif tested.op.startswith("Iop_And") and constant:
+                    # Only a contiguous high-bit mask is a range test. Sparse
+                    # masks or low-bit tests cannot bound unknown upper bits.
+                    candidate = ((1 << bits) - 1) ^ constant
+                    if candidate & (candidate + 1) == 0:
+                        limit = candidate + 1
+                if limit is not None:
+                    bound = pyvex.expr.Const(getattr(pyvex.const, f"U{bits}")(limit))
+                    nonzero = "CmpNE" in guard.op
+                    return pyvex.expr.Binop(
+                        f"Iop_Cmp{'LE' if nonzero else 'LT'}{bits}U",
+                        [bound, tested.args[0]] if nonzero else [tested.args[0], bound],
+                    )
+    return guard
 
 
 def _vex_guard_upper_bound(
@@ -283,9 +313,7 @@ def _vex_guard_expression_upper_bound(
 ) -> int | None:
     """Return an unsigned guard bound for one exact non-register selector."""
 
-    guard = _resolve_vex_expr(guard, definitions)
-    while isinstance(guard, pyvex.expr.Unop):
-        guard = _resolve_vex_expr(guard.args[0], definitions)
+    guard = _vex_unsigned_guard_comparison(guard, definitions)
     if not isinstance(guard, pyvex.expr.Binop) or not guard.op.endswith("U"):
         return None
 
@@ -425,7 +453,10 @@ def _vex_guard_matches_index_register(
     unknown high bits of another, wider selector value.
     """
 
-    if _vex_index_key(expr, definitions, vex, allow_full_width=True) == index_key:
+    if (
+        _vex_get_key(expr, definitions, vex) == index_key
+        or _vex_index_key(expr, definitions, vex, allow_full_width=True) == index_key
+    ):
         return True
 
     resolved_expr = _resolve_vex_expr(expr, definitions)
@@ -439,7 +470,15 @@ def _vex_guard_matches_index_register(
     guard_source = _vex_low_bits_source(
         resolved_expr, definitions, vex.tyenv, guard_bits
     )
-    low_view_key = _vex_get_key(guard_source, definitions, vex)
+    low_view_key = _vex_get_key(resolved_expr, definitions, vex) or _vex_get_key(
+        guard_source, definitions, vex
+    )
+    if (
+        low_view_key is not None
+        and guard_bits == index_key[1]
+        and index_key in (_vex_low_register_view_keys(low_view_key, guard_bits, vex))
+    ):
+        return True
     low_views = _vex_low_register_view_keys(index_key, guard_bits, vex)
     later_alias_write = False
     for stmt in reversed(preceding_statements):
@@ -481,6 +520,10 @@ def _vex_guard_matches_index_register(
         value_source = _vex_low_bits_source(value, definitions, vex.tyenv, guard_bits)
         if value_source is not guard_source and value_source != guard_source:
             return False
+        if not later_alias_write and guard_bits == index_key[1]:
+            # A narrow selector needs equality only in its consumed view,
+            # even if VEX computed the containing PUT at a wider width.
+            return True
         if _vex_is_zero_extension_from(value, definitions, guard_bits, index_key[1]):
             return True
         return _vex_is_right_shift_narrowed_value(

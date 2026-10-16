@@ -1,0 +1,35 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x41ce80" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41ce80)</TD><TD ><B>runtime.bgscavenge</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41ce80&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rsp, qword ptr [r14 + 0x10]</TD></TR><TR><TD ALIGN="LEFT">0x41ce84&#58;&nbsp;</TD><TD ALIGN="LEFT">jbe</TD><TD ALIGN="LEFT">0x41cef6</TD></TR></TABLE> }>];
+"0x41ce86" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41ce86)</TD><TD ><B>runtime.bgscavenge+0x6</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41ce86&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR><TR><TD ALIGN="LEFT">0x41ce87&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbp, rsp</TD></TR><TR><TD ALIGN="LEFT">0x41ce8a&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">rsp, 0x10</TD></TR><TR><TD ALIGN="LEFT">0x41ce8e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 0x20], rax</TD></TR><TR><TD ALIGN="LEFT">0x41ce93&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rip + 0xc1ca6]</TD></TR><TR><TD ALIGN="LEFT">0x41ce9a&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x41c6e0</TD></TR></TABLE> }>];
+"0x41ce9f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41ce9f)</TD><TD ><B>runtime.bgscavenge+0x1f</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41ce9f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 0x20]</TD></TR><TR><TD ALIGN="LEFT">0x41cea4&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rbx, [rip + 0x6f04d]</TD></TR><TR><TD ALIGN="LEFT">0x41ceab&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x4049c0</TD></TR></TABLE> }>];
+"0x41ceb0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41ceb0)</TD><TD ><B>runtime.bgscavenge+0x30</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41ceb0&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rip + 0xc1c89]</TD></TR><TR><TD ALIGN="LEFT">0x41ceb7&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x41c8e0</TD></TR></TABLE> }>];
+"0x41cebc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41cebc)</TD><TD ><B>runtime.bgscavenge+0x3c</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41cebc&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rip + 0xc1c7d]</TD></TR><TR><TD ALIGN="LEFT">0x41cec3&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x41ccc0</TD></TR></TABLE> }>];
+"0x41cec8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41cec8)</TD><TD ><B>runtime.bgscavenge+0x48</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41cec8&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">rax, rax</TD></TR><TR><TD ALIGN="LEFT">0x41cecb&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x41cedb</TD></TR></TABLE> }>];
+"0x41cecd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41cecd)</TD><TD ><B>runtime.bgscavenge+0x4d</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41cecd&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rip + 0xc1c6c]</TD></TR><TR><TD ALIGN="LEFT">0x41ced4&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x41c8e0</TD></TR></TABLE> }>];
+"0x41ced9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41ced9)</TD><TD ><B>runtime.bgscavenge+0x59</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41ced9&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x41cebc</TD></TR></TABLE> }>];
+"0x41cedb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41cedb)</TD><TD ><B>runtime.bgscavenge+0x5b</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41cedb&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR><TR><TD ALIGN="LEFT">0x41cedc&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rcx, [rip + 0xd852d]</TD></TR><TR><TD ALIGN="LEFT">0x41cee3&#58;&nbsp;</TD><TD ALIGN="LEFT">lock xadd</TD><TD ALIGN="LEFT">qword ptr [rcx], rax</TD></TR><TR><TD ALIGN="LEFT">0x41cee8&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rip + 0xc1c51]</TD></TR><TR><TD ALIGN="LEFT">0x41ceef&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x41c9e0</TD></TR></TABLE> }>];
+"0x41cef4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41cef4)</TD><TD ><B>runtime.bgscavenge+0x74</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41cef4&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x41cebc</TD></TR></TABLE> }>];
+"0x41cef6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41cef6)</TD><TD ><B>runtime.bgscavenge+0x76</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41cef6&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 8], rax</TD></TR><TR><TD ALIGN="LEFT">0x41cefb&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD ALIGN="LEFT">dword ptr [rax + rax]</TD></TR><TR><TD ALIGN="LEFT">0x41cf00&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x459da0</TD></TR></TABLE> }>];
+"0x41cf05" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD >(0x41cf05)</TD><TD ><B>runtime.bgscavenge+0x85</B></TD><TD></TD></TR></TABLE> | <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41cf05&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 8]</TD></TR><TR><TD ALIGN="LEFT">0x41cf0a&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x41ce80</TD></TR></TABLE> }>];
+subgraph entry_rank {
+rank=source;
+"0x41ce80";
+}
+"0x41ce80" -> "0x41ce86" [color=red];
+"0x41ce80" -> "0x41cef6" [color=green];
+"0x41ce86" -> "0x41ce9f" [color=gray, style=dashed];
+"0x41ce9f" -> "0x41ceb0" [color=gray, style=dashed];
+"0x41ceb0" -> "0x41cebc" [color=gray, style=dashed];
+"0x41cebc" -> "0x41cec8" [color=gray, style=dashed];
+"0x41cec8" -> "0x41cecd" [color=red];
+"0x41cec8" -> "0x41cedb" [color=green];
+"0x41cecd" -> "0x41ced9" [color=gray, style=dashed];
+"0x41ced9" -> "0x41cebc" [color=blue];
+"0x41cedb" -> "0x41cef4" [color=gray, style=dashed];
+"0x41cef4" -> "0x41cebc" [color=blue];
+"0x41cef6" -> "0x41cf05" [color=gray, style=dashed];
+"0x41cf05" -> "0x41ce80" [color=blue];
+}

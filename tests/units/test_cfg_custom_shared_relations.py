@@ -1,5 +1,6 @@
 """Bounded relational facts, copied definitions, and lazy-flag semantics."""
 
+from angr import claripy
 from angr.engines.vex.claripy.ccall import data as x86_cc_data
 import archinfo
 import pyvex
@@ -171,6 +172,43 @@ def test_relational_cache_does_not_repeat_a_completed_query():
     steps = facts.steps
     assert facts._relations.values(use, expr, 0) == frozenset(range(15))
     assert facts.steps == steps
+
+
+def test_register_root_substitution_is_simultaneous(monkeypatch):
+    """A transported root must not rewrite the value inserted for another root."""
+
+    use = node(0x400000)
+    relations = setup([use], [])._relations
+    left = relations._term(use, get(RBX), 0)
+    right = relations._term(use, get(RAX), 0)
+    monkeypatch.setattr(
+        relations,
+        "_term",
+        lambda _node, expr, _before: right + 1 if expr.offset == RBX else left + 2,
+    )
+    result = relations._substitute(left - right, use, 0)
+    assert (
+        result.replace(left, claripy.BVV(3, 64))
+        .replace(right, claripy.BVV(7, 64))
+        .concrete_value
+        == 3
+    )
+    assert result.variables == left.variables | right.variables
+
+
+@pytest.mark.parametrize("allowed", [False, True])
+def test_concrete_evaluation_preserves_wrapping_without_a_solver(monkeypatch, allowed):
+    """Use native concrete values, including false guards and atom-free terms."""
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("Bounded relational evaluation must not create a solver")
+
+    monkeypatch.setattr(claripy, "Solver", forbidden)
+    monkeypatch.setattr(claripy, "SolverConcrete", forbidden)
+    relations = setup([node(0x400000)], [])._relations
+    assert relations._evaluate(claripy.BVV(255, 8) + 1, [claripy.BoolV(allowed)]) == (
+        frozenset({0}) if allowed else frozenset()
+    )
 
 
 @pytest.mark.parametrize("bits,mask", [(32, 31), (64, 31)])

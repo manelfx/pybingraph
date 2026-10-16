@@ -368,6 +368,10 @@ def test_byte_constants_masks_and_immutable_reads_still_prove_domains():
     entry = node(0x400000, pyvex.stmt.Put(const(7, 8), RBX))
     facts = setup([entry], [])
     assert facts.values(entry, get(RBX, 8)) == frozenset({7})
+    assert facts.values(entry, pyvex.expr.Unop("Iop_64to8", [get(RBX)])) == frozenset(
+        {7}
+    )
+    assert facts.values(entry, get(RBX)) is None
     assert facts.values(
         entry, pyvex.expr.Load("Iend_LE", "Ity_I8", const(0x500000))
     ) == frozenset({37})
@@ -403,14 +407,24 @@ def test_matching_byte_guard_still_proves_a_domain():
 
 @pytest.mark.parametrize("inverted", [False, True])
 @pytest.mark.parametrize("reversed_test", [False, True])
-def test_widened_byte_guard_preserves_boolean_polarity(inverted, reversed_test):
+@pytest.mark.parametrize("comparison_bits", [32, 64])
+def test_widened_byte_guard_preserves_boolean_polarity(
+    inverted, reversed_test, comparison_bits
+):
     byte = pyvex.expr.RdTmp(0)
     wide = pyvex.expr.Unop("Iop_8Uto64", [byte])
+    if comparison_bits == 32:
+        wide = pyvex.expr.Unop("Iop_64to32", [wide])
     comparison = pyvex.expr.Binop(
-        "Iop_CmpLE64U",
+        f"Iop_CmpLE{comparison_bits}U",
         [
-            pyvex.expr.Binop("Iop_And64", [wide, const(255)]),
-            pyvex.expr.Binop("Iop_And64", [const(12), const(255)]),
+            pyvex.expr.Binop(
+                f"Iop_And{comparison_bits}", [wide, const(255, comparison_bits)]
+            ),
+            pyvex.expr.Binop(
+                f"Iop_And{comparison_bits}",
+                [const(12, comparison_bits), const(255, comparison_bits)],
+            ),
         ],
     )
     boolean = pyvex.expr.Unop("Iop_1Uto32", [comparison])
@@ -437,6 +451,28 @@ def test_widened_byte_guard_preserves_boolean_polarity(inverted, reversed_test):
     assert facts.values(use, get(RBX, 8)) == frozenset(range(13))
     # No inference about the unknown upper register bytes is allowed.
     assert facts.values(use, get(RBX)) is None
+
+
+@pytest.mark.parametrize("conversion,bits", [("Iop_16Sto64", 32), ("Iop_16Uto64", 8)])
+def test_unsigned_guard_normalization_retains_lossy_or_signed_casts(conversion, bits):
+    """A truncated or signed input cannot bound the original unsigned word."""
+
+    word = get(RBX, 16)
+    wide = pyvex.expr.Unop(conversion, [word])
+    cast = pyvex.expr.Unop(f"Iop_64to{bits}", [wide])
+    entry = node(
+        0x400000,
+        pyvex.stmt.Exit(
+            pyvex.expr.Binop(f"Iop_CmpLE{bits}U", [cast, const(12, bits)]),
+            pyvex.const.U64(0x400020),
+            "Ijk_Boring",
+            ARCH.ip_offset,
+        ),
+    )
+    entry.block.vex.next = const(0x400030)
+    use = node(0x400020)
+    facts = setup([entry, use], [(entry, use)])
+    assert facts.values(use, word) is None
 
 
 @pytest.mark.parametrize("arch", [ARCH, archinfo.ArchS390X()])
