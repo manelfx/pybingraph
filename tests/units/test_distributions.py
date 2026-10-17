@@ -180,9 +180,11 @@ def test_install_check_rejects_provenance_or_console_drift(
         ("none", True, False),
     ],
 )
+@pytest.mark.parametrize("draft", [False, True])
 def test_release_upload_preserves_existing_assets(
-    tmp_path, monkeypatch, existing, immutable, allowed
+    tmp_path, monkeypatch, existing, immutable, allowed, draft
 ):
+    """Draft-aware lookup must preserve raw REST digest and immutable checks."""
     workflow = Path(__file__).resolve().parents[2] / ".github/workflows/packages.yml"
     script = workflow.read_text().split("uv run --no-project python - <<'PY'\n", 1)[1]
     script = textwrap.dedent(script.rsplit("          PY", 1)[0])
@@ -204,11 +206,31 @@ def test_release_upload_preserves_existing_assets(
             for path in files
         ]
     )
-    (tmp_path / "release.json").write_text(
-        json.dumps({"assets": assets, "immutable": immutable})
-    )
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("RELEASE_TAG", "v0.1.10")
+    monkeypatch.setenv("GH_REPO", "owner/repository")
+    lookups = []
+
+    def lookup(command, *, text):
+        assert text
+        lookups.append(command)
+        if len(lookups) == 1:
+            assert command == [
+                "gh",
+                "release",
+                "view",
+                "v0.1.10",
+                "--json",
+                "databaseId",
+                "--jq",
+                ".databaseId",
+            ]
+            return "123\n"
+        # Do not query releases/tags: it cannot find the draft preparation case.
+        assert command == ["gh", "api", "repos/owner/repository/releases/123"]
+        return json.dumps({"assets": assets, "immutable": immutable, "draft": draft})
+
+    monkeypatch.setattr(subprocess, "check_output", lookup)
     calls = []
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: calls.append(args))
     if allowed:
@@ -218,6 +240,30 @@ def test_release_upload_preserves_existing_assets(
         with pytest.raises(SystemExit, match="refusing to overwrite|draft"):
             exec(compile(script, str(workflow), "exec"), {})
         assert not calls
+    assert len(lookups) == 2
+
+
+@pytest.mark.parametrize("failed_command", ["release", "api"])
+def test_release_lookup_failure_prevents_upload(tmp_path, monkeypatch, failed_command):
+    """Missing releases and API errors must never fall through to uploads."""
+    workflow = Path(__file__).resolve().parents[2] / ".github/workflows/packages.yml"
+    script = workflow.read_text().split("uv run --no-project python - <<'PY'\n", 1)[1]
+    script = textwrap.dedent(script.rsplit("          PY", 1)[0])
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("RELEASE_TAG", "v0.1.10")
+    monkeypatch.setenv("GH_REPO", "owner/repository")
+
+    def lookup(command, *, text):
+        if command[1] == failed_command:
+            raise subprocess.CalledProcessError(1, command)
+        return "123\n"
+
+    monkeypatch.setattr(subprocess, "check_output", lookup)
+    uploads = []
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: uploads.append(args))
+    with pytest.raises(subprocess.CalledProcessError):
+        exec(compile(script, str(workflow), "exec"), {})
+    assert not uploads
 
 
 @pytest.mark.parametrize("index", ["pypi", "testpypi"])

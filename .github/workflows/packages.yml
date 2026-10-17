@@ -155,7 +155,6 @@ jobs:
           python-version: '3.12'
       - name: Attach files without replacing existing assets
         run: |
-          gh api "repos/$GH_REPO/releases/tags/$RELEASE_TAG" > release.json
           uv run --no-project python - <<'PY'
           import hashlib
           import json
@@ -163,7 +162,16 @@ jobs:
           from pathlib import Path
           import subprocess
 
-          release = json.loads(Path("release.json").read_text())
+          # The REST by-tag endpoint excludes drafts. Let gh find either kind,
+          # then fetch raw REST metadata to retain asset digests and immutability.
+          release_id = subprocess.check_output(
+              ["gh", "release", "view", os.environ["RELEASE_TAG"],
+               "--json", "databaseId", "--jq", ".databaseId"], text=True,
+          ).strip()
+          release = json.loads(subprocess.check_output(
+              ["gh", "api", f"repos/{os.environ['GH_REPO']}/releases/{release_id}"],
+              text=True,
+          ))
           assets = {asset["name"]: asset for asset in release["assets"]}
           files = [*Path("dist").glob("*.whl"), *Path("dist").glob("*.tar.gz")]
           if len(files) != 2:
