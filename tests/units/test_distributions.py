@@ -2,11 +2,13 @@
 
 import hashlib
 import importlib.util
+from io import BytesIO
 import json
 from pathlib import Path
 import subprocess
 import sys
 import textwrap
+from urllib.error import HTTPError, URLError
 from zipfile import ZipFile
 
 import pytest
@@ -216,3 +218,114 @@ def test_release_upload_preserves_existing_assets(
         with pytest.raises(SystemExit, match="refusing to overwrite|draft"):
             exec(compile(script, str(workflow), "exec"), {})
         assert not calls
+
+
+@pytest.mark.parametrize("index", ["pypi", "testpypi"])
+@pytest.mark.parametrize("existing", ["missing", "partial", "identical", "different"])
+def test_index_staging_preserves_original_files(
+    checker, tmp_path, monkeypatch, index, existing
+):
+    """Retries copy only missing original bytes, never rebuild or hide conflicts."""
+
+    dist, output = tmp_path / "dist", tmp_path / "upload"
+    dist.mkdir()
+    files = [dist / "package.whl", dist / "package.tar.gz"]
+    for path in files:
+        path.write_bytes(b"original distribution bytes")
+    # A conflict in the SECOND file must prevent staging the missing first file.
+    indexed = (
+        files[:1]
+        if existing == "partial"
+        else files[1:]
+        if existing == "different"
+        else files
+    )
+    release = {
+        "urls": [
+            {
+                "filename": path.name,
+                "digests": {
+                    "sha256": "different"
+                    if existing == "different"
+                    else hashlib.sha256(path.read_bytes()).hexdigest()
+                },
+            }
+            for path in indexed
+        ]
+    }
+
+    def request(url, timeout):
+        host = "pypi.org" if index == "pypi" else "test.pypi.org"
+        assert url == f"https://{host}/pypi/pybingraph/0.2.4/json" and timeout == 30
+        if existing == "missing":
+            raise HTTPError(url, 404, "Not found", None, None)
+        return BytesIO(json.dumps(release).encode())
+
+    monkeypatch.setattr(checker, "urlopen", request)
+    if existing == "different":
+        with pytest.raises(ValueError, match="file differs"):
+            checker.stage_publication(dist, {"version": "0.2.4"}, index, output)
+        assert not output.exists()
+    else:
+        checker.stage_publication(dist, {"version": "0.2.4"}, index, output)
+        expected = {"missing": files, "partial": files[1:], "identical": []}[existing]
+        assert sorted(path.name for path in output.iterdir()) == sorted(
+            path.name for path in expected
+        )
+        for path in expected:
+            assert (output / path.name).read_bytes() == path.read_bytes()
+
+
+@pytest.mark.parametrize("failure", [403, 503, "network"])
+def test_index_staging_does_not_treat_network_errors_as_missing(
+    checker, tmp_path, monkeypatch, failure
+):
+    (tmp_path / "package.whl").touch()
+    (tmp_path / "package.tar.gz").touch()
+    output = tmp_path / "upload"
+
+    def request(url, timeout):
+        if failure == "network":
+            raise URLError("Disconnected")
+        raise HTTPError(url, failure, "Index unavailable", None, None)
+
+    monkeypatch.setattr(checker, "urlopen", request)
+    with pytest.raises(URLError):
+        checker.stage_publication(tmp_path, {"version": "0.2.4"}, "pypi", output)
+    assert not output.exists()
+
+
+def test_index_staging_refuses_stale_output(checker, tmp_path):
+    with pytest.raises(ValueError, match="new directory"):
+        checker.stage_publication(tmp_path, {"version": "0.2.4"}, "pypi", tmp_path)
+
+
+def test_index_upload_jobs_are_separate_and_gated():
+    """Index credentials cannot reach ordinary branch builds or wrong-index trials."""
+
+    import yaml
+
+    workflow = Path(__file__).resolve().parents[2] / ".github/workflows/packages.yml"
+    jobs = yaml.safe_load(workflow.read_text())["jobs"]
+    production, trial = jobs["publish-pypi"], jobs["publish-testpypi"]
+    assert (
+        production["if"]
+        == "github.event_name == 'release' && github.event.release.prerelease == false"
+    )
+    assert production["needs"] == ["build", "attach"]
+    assert trial["if"] == "github.event_name == 'workflow_dispatch' && inputs.test_pypi"
+    assert trial["needs"] == ["build", "compatibility", "container"]
+    for name, job in jobs.items():
+        if name not in {"publish-pypi", "publish-testpypi"}:
+            assert "id-token" not in job.get("permissions", {})
+    for index, job in (("pypi", production), ("testpypi", trial)):
+        assert job["environment"]["name"] == index
+        assert job["permissions"]["id-token"] == "write"
+        publish = job["steps"][-1]
+        assert publish["if"] == "hashFiles('upload/*') != ''"
+        assert publish["with"]["packages-dir"] == "upload/"
+        assert "skip-existing" not in publish["with"]
+    assert "repository-url" not in production["steps"][-1]["with"]
+    assert (
+        trial["steps"][-1]["with"]["repository-url"] == "https://test.pypi.org/legacy/"
+    )

@@ -155,6 +155,21 @@ including `BINGRAPH_GOLDEN_MIN_BBS` and `BINGRAPH_GOLDEN_LIMIT`.
   in its package settings so customers can pull without authenticating.
   Preserve version image tags; differing existing images fail instead of being
   replaced. Refresh the pinned Docker base digest deliberately when updating it.
+- PyPI publishing uses Trusted Publishing (OIDC), never stored API tokens.
+  Register `pybingraph` on PyPI/TestPyPI with owner `manelfx`, repository
+  `pybingraph`, workflow `packages.yml`, and environments `pypi`/`testpypi`.
+  Keep manual approval on the `pypi` GitHub environment; allow self-review for
+  a sole maintainer. Restrict `pypi` to `v*` tags and `testpypi` to the `dev` and
+  `main` branches. Only published stable releases upload to PyPI, after the existing
+  validation and attachment gates; development pushes and drafts never do.
+  Trial uploads use the Python packages workflow's manual `test_pypi` checkbox
+  (or `gh workflow run packages.yml --ref dev -F test_pypi=true`); leave
+  `release_tag` empty to avoid touching release assets. TestPyPI needs its own
+  account and publisher. Verify the trial before approving production.
+  Both jobs upload the existing audited distributions without rebuilding them.
+  The staging check skips identical indexed files, rejects differing hashes,
+  and fails on index errors other than 404; do not enable `skip-existing` on the
+  upload action. Publishing retries must preserve existing files.
 
 Before release, run `make check`, applicable goldens, and packaging audits using
 an empty build output directory. The runtime audit requires Clang and Graphviz;

@@ -9,6 +9,7 @@ authors = [
     { name = "Manel Fernandez", email = "manel.fernandez@gmail.com" }
 ]
 requires-python = ">=3.12"
+keywords = ["angr", "binary-analysis", "control-flow-graph", "disassembly"]
 dependencies = [
     # Keep the release on the IR stack validated by our unit and golden corpuses.
     "angr==10.0.4",
@@ -26,6 +27,12 @@ dependencies = [
     #"streamlit>=1.35.0",
     "uvicorn[standard]>=0.54.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/manelfx/pybingraph"
+Repository = "https://github.com/manelfx/pybingraph"
+Issues = "https://github.com/manelfx/pybingraph/issues"
+Changelog = "https://github.com/manelfx/pybingraph/releases"
 
 [project.optional-dependencies]
 dev = [

@@ -2,7 +2,7 @@
 
 [![Latest release](https://img.shields.io/github/v/release/manelfx/pybingraph?label=latest%20release&color=blue)](https://github.com/manelfx/pybingraph/releases)
 [![Development version](https://manelfx.github.io/pybingraph/version.svg)](https://github.com/manelfx/pybingraph/tree/dev)
-[![Python versions](docs/images/python-versions.svg)](https://github.com/manelfx/pybingraph/actions/workflows/packages.yml)
+[![Python versions](https://raw.githubusercontent.com/manelfx/pybingraph/dev/docs/images/python-versions.svg)](https://github.com/manelfx/pybingraph/actions/workflows/packages.yml)
 
 `pybingraph` is a binary-inspection service and library built on
 [angr](https://angr.io/). It reads function symbols from a binary and renders
@@ -28,10 +28,10 @@ inspect the full-size SVG.
 
 | Example | Description | Preview |
 | --- | --- | --- |
-| **Resolved Switch Dispatch** | `func_0` in `x86_64/cfg_switches`. Red and green edges distinguish the two conditional outcomes; orange edges identify proven indirect-jump targets. Here the cases converge on a shared return block; the same branch colors also make loops and separate return paths visible in other CFGs. | [<img src="docs/images/cfg-switch-x86-64.svg" width="240" alt="x86-64 switch CFG with resolved jump-table targets">](docs/images/cfg-switch-x86-64.svg) |
-| **Exception Paths and Unresolved Control Flow** | `drop_in_place<ReferenceKind>` in `x86_64/fmt-rust`. Dotted gray edges show exception paths. Dashed orange edges keep unresolved targets and disconnected-code recovery hints explicit rather than claiming proven reachability. | [<img src="docs/images/cfg-unwind-rust.svg" width="240" alt="Rust CFG with exception paths, an unresolved jump and recovered regions">](docs/images/cfg-unwind-rust.svg) |
-| **Vectorized String Search** | `__strchr_evex` at `0x42b200` in `x86_64/langdetect_clang`. AVX-512 vector loads and comparisons, mask registers and a scanning loop remain visible in the disassembly. | [<img src="docs/images/cfg-simd-x86-64.svg" width="240" alt="x86-64 AVX-512 string-search CFG">](docs/images/cfg-simd-x86-64.svg) |
-| **RISC-V Control Flow** | `sodium_allocarray` at `0x3208` in `riscv/server_eapp.eapp_riscv`. RV64 compressed instructions, allocation-size guards, calls and return paths use the same CFG presentation. | [<img src="docs/images/cfg-riscv.svg" width="240" alt="RISC-V allocation CFG with compressed instructions and conditional branches">](docs/images/cfg-riscv.svg) |
+| **Resolved Switch Dispatch** | `func_0` in `x86_64/cfg_switches`. Red and green edges distinguish the two conditional outcomes; orange edges identify proven indirect-jump targets. Here the cases converge on a shared return block; the same branch colors also make loops and separate return paths visible in other CFGs. | [<img src="https://raw.githubusercontent.com/manelfx/pybingraph/main/docs/images/cfg-switch-x86-64.svg" width="240" alt="x86-64 switch CFG with resolved jump-table targets">](https://github.com/manelfx/pybingraph/blob/main/docs/images/cfg-switch-x86-64.svg) |
+| **Exception Paths and Unresolved Control Flow** | `drop_in_place<ReferenceKind>` in `x86_64/fmt-rust`. Dotted gray edges show exception paths. Dashed orange edges keep unresolved targets and disconnected-code recovery hints explicit rather than claiming proven reachability. | [<img src="https://raw.githubusercontent.com/manelfx/pybingraph/main/docs/images/cfg-unwind-rust.svg" width="240" alt="Rust CFG with exception paths, an unresolved jump and recovered regions">](https://github.com/manelfx/pybingraph/blob/main/docs/images/cfg-unwind-rust.svg) |
+| **Vectorized String Search** | `__strchr_evex` at `0x42b200` in `x86_64/langdetect_clang`. AVX-512 vector loads and comparisons, mask registers and a scanning loop remain visible in the disassembly. | [<img src="https://raw.githubusercontent.com/manelfx/pybingraph/main/docs/images/cfg-simd-x86-64.svg" width="240" alt="x86-64 AVX-512 string-search CFG">](https://github.com/manelfx/pybingraph/blob/main/docs/images/cfg-simd-x86-64.svg) |
+| **RISC-V Control Flow** | `sodium_allocarray` at `0x3208` in `riscv/server_eapp.eapp_riscv`. RV64 compressed instructions, allocation-size guards, calls and return paths use the same CFG presentation. | [<img src="https://raw.githubusercontent.com/manelfx/pybingraph/main/docs/images/cfg-riscv.svg" width="240" alt="RISC-V allocation CFG with compressed instructions and conditional branches">](https://github.com/manelfx/pybingraph/blob/main/docs/images/cfg-riscv.svg) |
 
 TODOs for this library are:
 - Render call graph (CG) of all functions in a binary.
@@ -84,12 +84,12 @@ be exposed directly to an untrusted network.
 
 ### Install a release
 
-Download the wheel (`.whl`) from a GitHub release. In the directory containing
-that file, create an environment and install it with its Python dependencies:
+Published releases can be installed from [PyPI](https://pypi.org/project/pybingraph/)
+with their Python dependencies:
 
 ```bash
 uv venv --python 3.12
-uv pip install ./pybingraph-*.whl
+uv pip install pybingraph
 ```
 
 On macOS/Linux, activate that environment and run the installed command:
@@ -102,6 +102,8 @@ bingraph --root /path/to/your/binaries server
 
 No repository checkout is required. Install the Graphviz `dot` executable
 separately; wheels do not bundle system tools or the optional playground corpus.
+Alternatively, download a wheel (`.whl`) from a GitHub release and install it
+with `uv pip install ./pybingraph-*.whl` in the environment above.
 
 ### Work from a checkout
 
@@ -234,7 +236,7 @@ instruction counts.
 
 ## Development
 
-The [Makefile](Makefile) wraps the standard development commands:
+The [Makefile](https://github.com/manelfx/pybingraph/blob/main/Makefile) wraps the standard development commands:
 
 ```bash
 make                 # fast unit tests
@@ -257,9 +259,9 @@ terminal summary, and writes a browsable report to `htmlcov/index.html`.
 
 ## License
 
-pybingraph's original code is licensed under the [BSD 2-Clause License](LICENSE).
+pybingraph's original code is licensed under the [BSD 2-Clause License](https://github.com/manelfx/pybingraph/blob/main/LICENSE).
 Copied or adapted code retains the upstream copyright and license notices in
-[NOTICE](NOTICE). Dependencies, playground binaries and their disassembly
+[NOTICE](https://github.com/manelfx/pybingraph/blob/main/NOTICE). Dependencies, playground binaries and their disassembly
 examples remain subject to their respective upstream terms.
 
 ## Troubleshooting

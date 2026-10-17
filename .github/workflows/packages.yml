@@ -11,6 +11,10 @@ on:
         description: 'Existing release tag to attach files to (leave empty for build-only)'
         type: string
         default: ''
+      test_pypi:
+        description: 'Upload validated distributions to TestPyPI only'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -280,3 +284,69 @@ jobs:
           if [ "$latest" = "$RELEASE_TAG" ]; then
             docker buildx imagetools create --tag "$IMAGE:latest" "$IMAGE:$VERSION"
           fi
+
+  publish-pypi:
+    # Never publish on a branch push or while preparing a draft release.
+    if: github.event_name == 'release' && github.event.release.prerelease == false
+    needs: [build, attach]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pybingraph
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      # Only the stdlib staging checker runs here; builds/tests have no OIDC grant.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions-${{ github.sha }}
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: '3.12'
+      - name: Verify existing PyPI files and stage missing originals
+        run: uv run --no-project python scripts/distributions.py --index pypi
+      - name: Publish to PyPI with Trusted Publishing
+        if: hashFiles('upload/*') != ''
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        with:
+          packages-dir: upload/
+          attestations: true
+
+  publish-testpypi:
+    # Explicit opt-in; never upload each dev commit or send trial files to PyPI.
+    if: github.event_name == 'workflow_dispatch' && inputs.test_pypi
+    needs: [build, compatibility, container]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/pybingraph
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions-${{ github.sha }}
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: '3.12'
+      - name: Verify existing TestPyPI files and stage missing originals
+        run: uv run --no-project python scripts/distributions.py --index testpypi
+      - name: Publish to TestPyPI with Trusted Publishing
+        if: hashFiles('upload/*') != ''
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: upload/
+          attestations: true

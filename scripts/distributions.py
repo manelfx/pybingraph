@@ -7,18 +7,24 @@ the console entry point in isolated environments outside the repository. With
 analysis and UI routes. This does not replace unit tests or the CFG golden corpus.
 ``--python-versions`` audits the original wheel's complete runtime across selected
 interpreters, without rebuilding it or changing the development environment.
+``--index`` only stages missing files for an authenticated publisher, after
+checking public index hashes; it never uploads or obtains credentials itself.
 """
 
 from __future__ import annotations
 
 import argparse
 from email.parser import Parser
+import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
+from urllib.error import HTTPError
+from urllib.request import urlopen
 from zipfile import ZipFile
 
 
@@ -215,6 +221,47 @@ def validate_compatibility(
         raise ValueError(f"Python compatibility failed: {', '.join(failures)}")
 
 
+def stage_publication(
+    directory: Path, expected: dict[str, str], index: str, output: Path
+) -> None:
+    """Stage original, missing distributions without replacing an indexed file.
+
+    Validate every existing filename's SHA-256 before creating output. Identical
+    uploads are omitted, including on retries after a partially successful
+    release. A differing file, invalid response or non-404 HTTP error fails
+    closed. The publisher must not use skip-existing: a concurrent conflicting
+    upload should fail too, rather than bypass this check. No rebuilding occurs.
+    """
+
+    if output.exists():
+        raise ValueError("Publication output must be a new directory")
+    host = {"pypi": "pypi.org", "testpypi": "test.pypi.org"}[index]
+    files = [_one(directory, "*.whl"), _one(directory, "*.tar.gz")]
+    try:
+        with urlopen(
+            f"https://{host}/pypi/pybingraph/{expected['version']}/json", timeout=30
+        ) as response:
+            release = json.load(response)
+    except HTTPError as error:
+        if error.code != 404:
+            raise
+        release = {"urls": []}
+    existing = {file["filename"]: file["digests"]["sha256"] for file in release["urls"]}
+    pending = []
+    for path in files:
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        if path.name in existing:
+            if existing[path.name] != digest:
+                raise ValueError(f"Existing {index} file differs: {path.name}")
+            print(f"Already published with identical hash: {path.name}")
+        else:
+            pending.append(path)
+    output.mkdir(parents=True)
+    for path in pending:
+        shutil.copy2(path, output / path.name)
+    print(f"Staged {len(pending)} original distributions for {index}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dist", type=Path, default=Path("dist"))
@@ -230,12 +277,19 @@ if __name__ == "__main__":
         nargs="+",
         help="audit the existing wheel on these Python versions (requires Clang and dot)",
     )
+    mode.add_argument(
+        "--index", choices=("pypi", "testpypi"), help="stage missing index uploads only"
+    )
+    parser.add_argument("--upload-dir", type=Path, default=Path("upload"))
     args = parser.parse_args()
     expected = json.loads(args.provenance.read_text())
-    if args.python_versions:
+    if args.index:
+        stage_publication(args.dist, expected, args.index, args.upload_dir)
+    elif args.python_versions:
         validate_compatibility(args.dist, expected, args.python_versions)
     else:
         validate_distributions(args.dist, expected, args.runtime)
-    print(
-        f"Validated Python distributions for {expected['version']} ({expected['commit']})"
-    )
+    if not args.index:
+        print(
+            f"Validated Python distributions for {expected['version']} ({expected['commit']})"
+        )
