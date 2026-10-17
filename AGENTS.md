@@ -144,6 +144,17 @@ including `BINGRAPH_GOLDEN_MIN_BBS` and `BINGRAPH_GOLDEN_LIMIT`.
   pin and `bitstring<5` safeguard; dependency upgrades need unit/golden validation.
 - Preserve `LICENSE` and upstream attributions in `NOTICE`; both must accompany
   wheels and source distributions.
+- `make image` builds and HTTP-smoke-tests a local native image (`IMAGE=...`
+  overrides its name; `IMAGE_PLATFORM=linux/amd64` selects a different platform),
+  using a temporary wheel and hash-locked runtime export.
+  Docker and host Clang are required; the image needs neither Git nor Clang.
+  The packages workflow tests native AMD64/ARM64 images after Python validation.
+  Draft release runs validate images; only published releases push to GHCR and
+  create version/SHA tags after both platforms pass. `latest` tracks GitHub's
+  latest stable release. After first publication, make the GHCR package public
+  in its package settings so customers can pull without authenticating.
+  Preserve version image tags; differing existing images fail instead of being
+  replaced. Refresh the pinned Docker base digest deliberately when updating it.
 
 Before release, run `make check`, applicable goldens, and packaging audits using
 an empty build output directory. The runtime audit requires Clang and Graphviz;

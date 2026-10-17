@@ -40,6 +40,9 @@ TODOs for this library are:
 
 ## Requirements
 
+For the container option below, only Docker is required on the host. A native
+Python installation requires:
+
 - Python 3.12 or later
 - [uv](https://docs.astral.sh/uv/)
 - The Graphviz `dot` executable for rendered image formats
@@ -51,6 +54,33 @@ brew install graphviz
 ```
 
 ## Setup
+
+### Run with Docker
+
+Release images are published to [GitHub Container Registry](https://github.com/manelfx/pybingraph/pkgs/container/pybingraph)
+for Linux AMD64 and ARM64. Docker chooses the appropriate platform automatically.
+They include Python, runtime dependencies and Graphviz, but no playground binaries.
+
+```bash
+docker run --rm --name bingraph \
+  -p 127.0.0.1:9000:8000 \
+  --mount type=bind,src=/absolute/path/to/binaries,dst=/binaries,readonly \
+  ghcr.io/manelfx/pybingraph:latest
+```
+
+Replace the host directory with your binary directory and `9000` with the local
+port you want. Open `http://127.0.0.1:9000/docs` for interactive API documentation,
+or `/symtab?filepath=your-binary` for the symbol table. Paths remain relative to
+the mounted directory. The image runs as a non-root user; mounted files and their
+parent directories must be readable/searchable by that user.
+
+Use a numeric release tag instead of `latest` to select a specific version.
+`docker run --rm ghcr.io/manelfx/pybingraph:latest --version` reports its version.
+Configure global settings with environment flags such as
+`-e BINGRAPH_DEMANGLE=true` or `-e BINGRAPH_COMMENTS=false` before the image name.
+The server listens on `0.0.0.0:8000` **inside** the container; the example publishes
+it only on the host's loopback interface. It has no authentication and should not
+be exposed directly to an untrusted network.
 
 ### Install a release
 

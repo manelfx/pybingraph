@@ -25,6 +25,8 @@ jobs:
     timeout-minutes: 15
     outputs:
       python-matrix: ${{ steps.compatibility.outputs.matrix }}
+      version: ${{ steps.distributions.outputs.version }}
+      commit: ${{ steps.distributions.outputs.commit }}
     env:
       RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
@@ -76,8 +78,11 @@ jobs:
           matrix=$(make --silent python-matrix)
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
       - name: Build and validate distributions
+        id: distributions
         run: |
           uv run --no-project python src/bingraph/version.py --json > version.json
+          echo "version=$(uv run --no-project python src/bingraph/version.py)" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           uv build
           uv run --no-project python scripts/distributions.py
       - name: Validate complete installed runtime
@@ -128,7 +133,7 @@ jobs:
 
   attach:
     if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
-    needs: [build, compatibility]
+    needs: [build, compatibility, container]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -174,3 +179,104 @@ jobs:
           for path in pending:
               subprocess.run(["gh", "release", "upload", os.environ["RELEASE_TAG"], str(path)], check=True)
           PY
+
+  container:
+    needs: [build, compatibility]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    env:
+      # Intermediate per-platform tags never become customer release tags until
+      # BOTH native builds and HTTP smoke tests have succeeded.
+      IMAGE: ghcr.io/${{ github.repository }}
+      COMMIT: ${{ needs.build.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.commit }}
+          # uv export may evaluate the project's Git-derived version metadata.
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions-${{ github.sha }}
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: '3.12'
+      - name: Install fixture compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang
+      - name: Build container from the audited wheel and locked dependencies
+        run: uv run --no-project python scripts/container.py build --platform linux/${{ matrix.arch }}
+      - name: Audit non-root server with read-only inputs
+        run: uv run --no-project python scripts/container.py check
+      - name: Authenticate to GHCR
+        if: github.event_name == 'release'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push tested platform image
+        if: github.event_name == 'release'
+        run: |
+          IMAGE=${IMAGE,,}
+          docker tag pybingraph:local "$IMAGE:sha-$COMMIT-${{ matrix.arch }}"
+          docker push "$IMAGE:sha-$COMMIT-${{ matrix.arch }}"
+
+  publish-container:
+    if: github.event_name == 'release'
+    needs: [build, container, attach]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      IMAGE: ghcr.io/${{ github.repository }}
+      VERSION: ${{ needs.build.outputs.version }}
+      COMMIT: ${{ needs.build.outputs.commit }}
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish the tested multi-platform release
+        run: |
+          IMAGE=${IMAGE,,}
+          docker buildx imagetools create --tag "$IMAGE:sha-$COMMIT" \
+            "$IMAGE:sha-$COMMIT-amd64" "$IMAGE:sha-$COMMIT-arm64"
+          digest=$(docker buildx imagetools inspect "$IMAGE:sha-$COMMIT" --format '{{.Manifest.Digest}}')
+          # Never silently replace an existing version with different image bytes.
+          if existing=$(docker buildx imagetools inspect "$IMAGE:$VERSION" --format '{{.Manifest.Digest}}' 2> registry-error.log); then
+            test "$existing" = "$digest" || { echo 'Existing image differs; refusing overwrite' >&2; exit 1; }
+          elif grep -qiE 'manifest unknown|no such manifest|: not found' registry-error.log; then
+            docker buildx imagetools create --tag "$IMAGE:$VERSION" "$IMAGE@$digest"
+          else
+            # Authentication/network failures are not evidence that a tag is absent.
+            cat registry-error.log >&2
+            exit 1
+          fi
+      - name: Update latest only for GitHub's current stable release
+        if: github.event.release.prerelease == false
+        run: |
+          IMAGE=${IMAGE,,}
+          # A rerun of an older release, or a prerelease, must not move latest.
+          latest=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)
+          if [ "$latest" = "$RELEASE_TAG" ]; then
+            docker buildx imagetools create --tag "$IMAGE:latest" "$IMAGE:$VERSION"
+          fi

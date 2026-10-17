@@ -1,10 +1,12 @@
 UV := uv run
 PYTHON_VERSIONS ?= 3.12 3.13 3.14 3.15
+IMAGE ?= pybingraph:local
+IMAGE_PLATFORM ?=
 
 # These are commands, not filesystem targets. Declaring them phony prevents
 # existing directories such as `tests/` from making Make skip their recipes.
 .PHONY: units format format-check lint typecheck check compatibility coverage goldens \
-	goldens-checkpoint goldens-promote goldens-symbols badges badges-check python-matrix
+	goldens-checkpoint goldens-promote goldens-symbols badges badges-check python-matrix image
 
 # Run the default fast unit-test suite selected by pytest's `testpaths` setting.
 units:
@@ -42,6 +44,20 @@ python-matrix:
 	@$(UV) --no-project python -c \
 	 'import json,sys; print(json.dumps({"python":sys.argv[1:]}))' \
 	 $(filter-out 3.12,$(PYTHON_VERSIONS))
+
+# Build and smoke-test a native container from a fresh wheel. Requires Docker
+# and host Clang; leaves only the named image, not dist/ or a staging directory.
+image:
+	@set -eu; \
+	 audit=$$(mktemp -d "$${TMPDIR:-/tmp}/bingraph-image.XXXXXX"); \
+	 trap 'rm -rf "$$audit"' EXIT HUP INT TERM; \
+	 $(UV) --no-project python src/bingraph/version.py --json > "$$audit/version.json"; \
+	 uv build --wheel --out-dir "$$audit"; \
+	 $(UV) --no-project python scripts/container.py build --image "$(IMAGE)" \
+	   --dist "$$audit" --provenance "$$audit/version.json" \
+	   $(if $(IMAGE_PLATFORM),--platform "$(IMAGE_PLATFORM)",); \
+	 $(UV) --no-project python scripts/container.py check --image "$(IMAGE)" \
+	   --provenance "$$audit/version.json"
 
 # Audit one wheel across interpreters without modifying .venv or build outputs.
 # Requires Clang and Graphviz; override PYTHON_VERSIONS to narrow the matrix.
