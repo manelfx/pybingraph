@@ -1,0 +1,37 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x120006ffc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120006ffc&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 0x10($fp)</TD></TR></TABLE> }>];
+"0x120007000" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120007000&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v1, ($v0)</TD></TR></TABLE> }>];
+"0x120007004" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120007004&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $zero, -0x11</TD></TR></TABLE> }>];
+"0x120007008" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120007008&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">$v0, $v1, $v0</TD></TR></TABLE> }>];
+"0x12000700c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000700c&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$v1, $v0</TD></TR></TABLE> }>];
+"0x120007010" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120007010&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 0x10($fp)</TD></TR></TABLE> }>];
+"0x120007014" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120007014&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$v1, ($v0)</TD></TR></TABLE> }>];
+"0x120007018" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120007018&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 0x10($fp)</TD></TR></TABLE> }>];
+"0x12000701c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000701c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v1, ($fp)</TD></TR></TABLE> }>];
+"0x120007020" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120007020&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$v1, 0x90($v0)</TD></TR></TABLE> }>];
+"0x120007024" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120007024&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$v0, $zero</TD></TR></TABLE> }>];
+"0x120007028" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120007028&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x120007050</TD></TR></TABLE> }>];
+"0x12000702c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000702c&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x120006ffc" -> "0x120007000" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x120006ffc" -> "0x120007004" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x120007000" -> "0x120007004" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x120007000" -> "0x120007008" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x120007000" -> "0x12000700c" [style=dotted, label=v1, tooltip="WAW: v1"];
+"0x120007004" -> "0x120007008" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x120007008" -> "0x12000700c" [style=solid, label=v0, tooltip="RAW: v0; WAR: v1"];
+"0x120007008" -> "0x120007010" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x12000700c" -> "0x120007010" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x12000700c" -> "0x120007014" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x12000700c" -> "0x12000701c" [style=dotted, label=v1, tooltip="WAW: v1"];
+"0x120007010" -> "0x120007014" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x120007010" -> "0x120007018" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x120007014" -> "0x120007018" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x120007014" -> "0x12000701c" [style=dashed, label=v1, tooltip="WAR: v1"];
+"0x120007018" -> "0x120007020" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x120007018" -> "0x120007024" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x12000701c" -> "0x120007020" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x120007020" -> "0x120007024" [style=dashed, label=v0, tooltip="WAR: v0"];
+}

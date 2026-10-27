@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x468874" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x468874&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dword ptr [rsp + 4], edx</TD></TR></TABLE> }>];
+"0x468878" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x468878&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [rdi + rdx*4], ebx</TD></TR></TABLE> }>];
+"0x46887b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46887b&#58;&nbsp;</TD><TD ALIGN="LEFT">setge</TD><TD ALIGN="LEFT">cl</TD></TR></TABLE> }>];
+"0x46887e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46887e&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r9d, edx</TD></TR></TABLE> }>];
+"0x468881" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x468881&#58;&nbsp;</TD><TD ALIGN="LEFT">setle</TD><TD ALIGN="LEFT">al</TD></TR></TABLE> }>];
+"0x468884" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x468884&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">cl, al</TD></TR></TABLE> }>];
+"0x468886" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x468886&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x468893</TD></TR></TABLE> }>];
+"0x468874" -> "0x46887b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x468874" -> "0x46887e" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x46887b" -> "0x46887e" [style=dashed, label=flags, tooltip="WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x46887b" -> "0x468884" [style=solid, label=cl, tooltip="RAW: cl"];
+"0x46887e" -> "0x468881" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x46887e" -> "0x468884" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x468881" -> "0x468884" [style=solid, label=al, tooltip="RAW: al; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x468884" -> "0x468886" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

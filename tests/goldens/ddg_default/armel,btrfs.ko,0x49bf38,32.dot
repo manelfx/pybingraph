@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x49bf38" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x49bf38&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r1, r4, &#35;0x1b0</TD></TR></TABLE> }>];
+"0x49bf3c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x49bf3c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrd</TD><TD ALIGN="LEFT">r2, r3, [r1]</TD></TR></TABLE> }>];
+"0x49bf40" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x49bf40&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r2, r2, &#35;1</TD></TR></TABLE> }>];
+"0x49bf44" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x49bf44&#58;&nbsp;</TD><TD ALIGN="LEFT">adc</TD><TD ALIGN="LEFT">r3, r3, &#35;0</TD></TR></TABLE> }>];
+"0x49bf48" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x49bf48&#58;&nbsp;</TD><TD ALIGN="LEFT">strd</TD><TD ALIGN="LEFT">r2, r3, [r1]</TD></TR></TABLE> }>];
+"0x49bf4c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x49bf4c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r0, [pc, &#35;0x70]</TD></TR></TABLE> }>];
+"0x49bf50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x49bf50&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r1, [pc, &#35;0x68]</TD></TR></TABLE> }>];
+"0x49bf54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x49bf54&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x5000a0</TD></TR></TABLE> }>];
+"0x49bf38" -> "0x49bf3c" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x49bf38" -> "0x49bf48" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x49bf38" -> "0x49bf50" [style=dotted, label=r1, tooltip="WAW: r1"];
+"0x49bf3c" -> "0x49bf40" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
+"0x49bf3c" -> "0x49bf44" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x49bf3c" -> "0x49bf48" [style=dashed, label="[r4+0x1b0], [r4+0x1b4]", tooltip="WAR: mem[entry_r4+0x1b0]:4, mem[entry_r4+0x1b4]:4"];
+"0x49bf3c" -> "0x49bf50" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x49bf40" -> "0x49bf44" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x49bf40" -> "0x49bf48" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x49bf44" -> "0x49bf48" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x49bf48" -> "0x49bf50" [style=dashed, label=r1, tooltip="WAR: r1"];
+}

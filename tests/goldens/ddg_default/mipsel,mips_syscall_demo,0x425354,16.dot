@@ -1,0 +1,9 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x425354" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x425354&#58;&nbsp;</TD><TD ALIGN="LEFT">subu</TD><TD ALIGN="LEFT">$t2, $s2, $s5</TD></TR></TABLE> }>];
+"0x425358" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x425358&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a3, $zero, -0x40</TD></TR></TABLE> }>];
+"0x42535c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42535c&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x42536c</TD></TR></TABLE> }>];
+"0x425360" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x425360&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a2, $zero, 0x80</TD></TR></TABLE> }>];
+}

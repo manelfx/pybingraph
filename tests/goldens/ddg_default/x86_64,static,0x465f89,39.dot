@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x465f89" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f89&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [rsp - 0xc], esi</TD></TR></TABLE> }>];
+"0x465f8d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f8d&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">r9, [rdx - 4]</TD></TR></TABLE> }>];
+"0x465f91" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f91&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">ecx, ecx</TD></TR></TABLE> }>];
+"0x465f93" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f93&#58;&nbsp;</TD><TD ALIGN="LEFT">movd</TD><TD ALIGN="LEFT">xmm1, dword ptr [rsp - 0xc]</TD></TR></TABLE> }>];
+"0x465f99" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f99&#58;&nbsp;</TD><TD ALIGN="LEFT">shr</TD><TD ALIGN="LEFT">r9, 2</TD></TR></TABLE> }>];
+"0x465f9d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f9d&#58;&nbsp;</TD><TD ALIGN="LEFT">pshufd</TD><TD ALIGN="LEFT">xmm0, xmm1, 0</TD></TR></TABLE> }>];
+"0x465fa2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465fa2&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r9, 1</TD></TR></TABLE> }>];
+"0x465fa6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465fa6&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD ALIGN="LEFT">word ptr cs&#58;[rax + rax]</TD></TR></TABLE> }>];
+"0x465f89" -> "0x465f93" [style=solid, label="[rsp-0xc]", tooltip="RAW: mem[entry_rsp-0xc]:4"];
+"0x465f8d" -> "0x465f99" [style=solid, label=r9, tooltip="RAW: r9; WAW: r9"];
+"0x465f91" -> "0x465f99" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x465f93" -> "0x465f9d" [style=solid, label=xmm1, tooltip="RAW: xmm1"];
+"0x465f99" -> "0x465fa2" [style=solid, label=r9, tooltip="RAW: r9; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r9"];
+}

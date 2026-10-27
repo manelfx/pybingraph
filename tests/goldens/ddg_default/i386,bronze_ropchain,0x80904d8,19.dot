@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80904d8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80904d8&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">esp, 4</TD></TR></TABLE> }>];
+"0x80904db" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80904db&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [esp + 0x10]</TD></TR></TABLE> }>];
+"0x80904df" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80904df&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">edx</TD></TR></TABLE> }>];
+"0x80904e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80904e0&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">ebp</TD></TR></TABLE> }>];
+"0x80904e1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80904e1&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">ecx</TD></TR></TABLE> }>];
+"0x80904e2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80904e2&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0x1c], ecx</TD></TR></TABLE> }>];
+"0x80904e6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80904e6&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x806b2f0</TD></TR></TABLE> }>];
+"0x80904d8" -> "0x80904db" [style=solid, label=esp, tooltip="RAW: esp"];
+"0x80904d8" -> "0x80904df" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x80904db" -> "0x80904df" [style=solid, label=edx, tooltip="RAW: edx; WAR: esp"];
+"0x80904db" -> "0x80904e2" [style=dashed, label="[esp+0xc]", tooltip="WAR: mem[entry_esp+0xc]:4"];
+"0x80904df" -> "0x80904e0" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x80904e0" -> "0x80904e1" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x80904e1" -> "0x80904e2" [style=solid, label=esp, tooltip="RAW: esp"];
+"0x80904e1" -> "0x80904e6" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x80904e2" -> "0x80904e6" [style=dashed, label=esp, tooltip="WAR: esp"];
+}

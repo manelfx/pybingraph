@@ -1,0 +1,36 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x808caa0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808caa0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, 0xcccccccd</TD></TR></TABLE> }>];
+"0x808caa5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808caa5&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">esi, 4</TD></TR></TABLE> }>];
+"0x808caa8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808caa8&#58;&nbsp;</TD><TD ALIGN="LEFT">mul</TD><TD ALIGN="LEFT">ecx</TD></TR></TABLE> }>];
+"0x808caaa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808caaa&#58;&nbsp;</TD><TD ALIGN="LEFT">shr</TD><TD ALIGN="LEFT">edx, 3</TD></TR></TABLE> }>];
+"0x808caad" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808caad&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">eax, [edx + edx*4]</TD></TR></TABLE> }>];
+"0x808cab0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808cab0&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">eax, eax</TD></TR></TABLE> }>];
+"0x808cab2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808cab2&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">ecx, eax</TD></TR></TABLE> }>];
+"0x808cab4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808cab4&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">edx, edx</TD></TR></TABLE> }>];
+"0x808cab6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808cab6&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [edi + ecx*4]</TD></TR></TABLE> }>];
+"0x808cab9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808cab9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, edx</TD></TR></TABLE> }>];
+"0x808cabb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808cabb&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esi], eax</TD></TR></TABLE> }>];
+"0x808cabd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808cabd&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x808caa0</TD></TR></TABLE> }>];
+"0x808caa0" -> "0x808caa8" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x808caa5" -> "0x808caa8" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x808caa5" -> "0x808cabb" [style=solid, label=esi, tooltip="RAW: esi"];
+"0x808caa8" -> "0x808caaa" [style=solid, label=edx, tooltip="RAW: edx; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, edx"];
+"0x808caa8" -> "0x808caad" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x808caa8" -> "0x808cab2" [style=dashed, label=ecx, tooltip="WAR: ecx"];
+"0x808caaa" -> "0x808caad" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x808caaa" -> "0x808cab0" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x808caaa" -> "0x808cab4" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x808caaa" -> "0x808cab9" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x808caad" -> "0x808cab0" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x808cab0" -> "0x808cab2" [style=solid, label=eax, tooltip="RAW: eax; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x808cab0" -> "0x808cab6" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x808cab2" -> "0x808cab4" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x808cab2" -> "0x808cab6" [style=solid, label=ecx, tooltip="RAW: ecx; WAR: eax"];
+"0x808cab2" -> "0x808cab9" [style=dotted, label=ecx, tooltip="WAW: ecx"];
+"0x808cab4" -> "0x808cabd" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x808cab6" -> "0x808cab9" [style=dashed, label=ecx, tooltip="WAR: ecx"];
+"0x808cab6" -> "0x808cabb" [style=solid, label=eax, tooltip="RAW: eax"];
+}

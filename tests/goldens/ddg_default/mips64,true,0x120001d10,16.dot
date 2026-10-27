@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x120001d10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001d10&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 8($fp)</TD></TR></TABLE> }>];
+"0x120001d14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001d14&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, ($v0)</TD></TR></TABLE> }>];
+"0x120001d18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001d18&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">$v0, 0x120001d48</TD></TR></TABLE> }>];
+"0x120001d1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001d1c&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x120001d10" -> "0x120001d14" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x120001d14" -> "0x120001d18" [style=solid, label=v0, tooltip="RAW: v0"];
+}

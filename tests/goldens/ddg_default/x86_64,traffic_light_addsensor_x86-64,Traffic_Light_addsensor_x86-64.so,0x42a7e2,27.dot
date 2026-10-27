@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x42a7e2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42a7e2&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rbp - 0x1a8]</TD></TR></TABLE> }>];
+"0x42a7e9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42a7e9&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">edx, byte ptr [rax + 0x20e]</TD></TR></TABLE> }>];
+"0x42a7f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42a7f0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rbp - 0x1a8]</TD></TR></TABLE> }>];
+"0x42a7f7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42a7f7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [rax + 0x3a0], dl</TD></TR></TABLE> }>];
+"0x42a7e2" -> "0x42a7e9" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x42a7e2" -> "0x42a7f0" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x42a7e9" -> "0x42a7f0" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x42a7e9" -> "0x42a7f7" [style=solid, label=dl, tooltip="RAW: dl"];
+"0x42a7f0" -> "0x42a7f7" [style=solid, label=rax, tooltip="RAW: rax"];
+}

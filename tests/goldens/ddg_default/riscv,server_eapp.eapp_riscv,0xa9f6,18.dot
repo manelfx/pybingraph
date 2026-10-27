@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xa9f6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xa9f6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">ra, 0x158(sp)</TD></TR></TABLE> }>];
+"0xa9f8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xa9f8&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s0, 0x150(sp)</TD></TR></TABLE> }>];
+"0xa9fa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xa9fa&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s1, 0x148(sp)</TD></TR></TABLE> }>];
+"0xa9fc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xa9fc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s2, 0x140(sp)</TD></TR></TABLE> }>];
+"0xa9fe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xa9fe&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s3, 0x138(sp)</TD></TR></TABLE> }>];
+"0xaa00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xaa00&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s4, 0x130(sp)</TD></TR></TABLE> }>];
+"0xaa02" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xaa02&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s5, 0x128(sp)</TD></TR></TABLE> }>];
+"0xaa04" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xaa04&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, 0x160</TD></TR></TABLE> }>];
+"0xaa06" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xaa06&#58;&nbsp;</TD><TD ALIGN="LEFT">c.jr</TD><TD ALIGN="LEFT">ra</TD></TR></TABLE> }>];
+"0xa9f6" -> "0xaa04" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xa9f6" -> "0xaa06" [style=solid, label=ra, tooltip="RAW: ra"];
+"0xa9f8" -> "0xaa04" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xa9fa" -> "0xaa04" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xa9fc" -> "0xaa04" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xa9fe" -> "0xaa04" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xaa00" -> "0xaa04" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xaa02" -> "0xaa04" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x401e4a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e4a&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0x10</TD></TR></TABLE> }>];
+"0x401e4d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e4d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp - 0xc], eax</TD></TR></TABLE> }>];
+"0x401e50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e50&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dword ptr [ebp - 0xc], 0xfffffc70</TD></TR></TABLE> }>];
+"0x401e57" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e57&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x401e79</TD></TR></TABLE> }>];
+"0x401e4a" -> "0x401e50" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x401e4d" -> "0x401e50" [style=solid, label="[ebp-0xc]", tooltip="RAW: mem[entry_ebp-0xc]:4"];
+"0x401e50" -> "0x401e57" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

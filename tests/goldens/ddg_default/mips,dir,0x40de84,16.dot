@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40de84" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40de84&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a0, $a0, 1</TD></TR></TABLE> }>];
+"0x40de88" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40de88&#58;&nbsp;</TD><TD ALIGN="LEFT">lb</TD><TD ALIGN="LEFT">$v1, ($a0)</TD></TR></TABLE> }>];
+"0x40de8c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40de8c&#58;&nbsp;</TD><TD ALIGN="LEFT">bnez</TD><TD ALIGN="LEFT">$v1, 0x40de7c</TD></TR></TABLE> }>];
+"0x40de90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40de90&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a1, $zero, 1</TD></TR></TABLE> }>];
+"0x40de84" -> "0x40de88" [style=solid, label=a0, tooltip="RAW: a0"];
+"0x40de88" -> "0x40de8c" [style=solid, label=v1, tooltip="RAW: v1"];
+}

@@ -1,0 +1,10 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1001f224" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1001f224&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r21, 0</TD></TR></TABLE> }>];
+"0x1001f228" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1001f228&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r23, 0</TD></TR></TABLE> }>];
+"0x1001f22c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1001f22c&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r22, 0</TD></TR></TABLE> }>];
+"0x1001f230" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1001f230&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r10, 0</TD></TR></TABLE> }>];
+"0x1001f234" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1001f234&#58;&nbsp;</TD><TD ALIGN="LEFT">lwsync</TD><TD></TD></TR></TABLE> }>];
+}

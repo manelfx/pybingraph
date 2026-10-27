@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x41d67e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41d67e&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rdx, 2</TD></TR></TABLE> }>];
+"0x41d682" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41d682&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">r14d, r14d</TD></TR></TABLE> }>];
+"0x41d685" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41d685&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r12d, 0</TD></TR></TABLE> }>];
+"0x41d68b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41d68b&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">al, 0x44</TD></TR></TABLE> }>];
+"0x41d68d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41d68d&#58;&nbsp;</TD><TD ALIGN="LEFT">cmove</TD><TD ALIGN="LEFT">r12, rdx</TD></TR></TABLE> }>];
+"0x41d67e" -> "0x41d682" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x41d67e" -> "0x41d68d" [style=solid, label=rdx, tooltip="RAW: rdx"];
+"0x41d682" -> "0x41d68b" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x41d685" -> "0x41d68d" [style=solid, label=r12, tooltip="RAW: r12; WAW: r12"];
+"0x41d68b" -> "0x41d68d" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

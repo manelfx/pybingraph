@@ -1,0 +1,33 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40133e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40133e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp - 0x10]</TD></TR></TABLE> }>];
+"0x401341" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401341&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">edx, [eax + 1]</TD></TR></TABLE> }>];
+"0x401344" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401344&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x10], edx</TD></TR></TABLE> }>];
+"0x401347" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401347&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [ebp - 0xc]</TD></TR></TABLE> }>];
+"0x40134a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40134a&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">ecx, [edx + 1]</TD></TR></TABLE> }>];
+"0x40134d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40134d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp - 0xc], ecx</TD></TR></TABLE> }>];
+"0x401350" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401350&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [ebp + 8]</TD></TR></TABLE> }>];
+"0x401353" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401353&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">edx, ecx</TD></TR></TABLE> }>];
+"0x401355" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401355&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [eax]</TD></TR></TABLE> }>];
+"0x401358" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401358&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [edx], al</TD></TR></TABLE> }>];
+"0x40135a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40135a&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x4014dc</TD></TR></TABLE> }>];
+"0x40133e" -> "0x401341" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x40133e" -> "0x401344" [style=dashed, label="[ebp-0x10]", tooltip="WAR: mem[entry_ebp-0x10]:4"];
+"0x40133e" -> "0x401355" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x401341" -> "0x401344" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x401341" -> "0x401347" [style=dotted, label=edx, tooltip="WAW: edx"];
+"0x401341" -> "0x401355" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x401344" -> "0x401347" [style=dashed, label=edx, tooltip="WAR: edx"];
+"0x401347" -> "0x40134a" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x401347" -> "0x40134d" [style=dashed, label="[ebp-0xc]", tooltip="WAR: mem[entry_ebp-0xc]:4"];
+"0x401347" -> "0x401353" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x40134a" -> "0x40134d" [style=solid, label=ecx, tooltip="RAW: ecx"];
+"0x40134a" -> "0x401350" [style=dotted, label=ecx, tooltip="WAW: ecx"];
+"0x40134a" -> "0x401353" [style=dashed, label=edx, tooltip="WAR: edx"];
+"0x40134d" -> "0x401350" [style=dashed, label=ecx, tooltip="WAR: ecx"];
+"0x401350" -> "0x401353" [style=solid, label=ecx, tooltip="RAW: ecx"];
+"0x401353" -> "0x401358" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x401355" -> "0x401358" [style=solid, label=al, tooltip="RAW: al"];
+}

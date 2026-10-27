@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8fb9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8fb9&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [r3, &#35;0xc]</TD></TR></TABLE> }>];
+"0x8fbb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8fbb&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [r5, &#35;0x74]</TD></TR></TABLE> }>];
+"0x8fbd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8fbd&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r4, [r2, &#35;0xc]</TD></TR></TABLE> }>];
+"0x8fbf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8fbf&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [r4, &#35;4]</TD></TR></TABLE> }>];
+"0x8fc1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8fc1&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r2, r3</TD></TR></TABLE> }>];
+"0x8fc3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8fc3&#58;&nbsp;</TD><TD ALIGN="LEFT">bhi</TD><TD ALIGN="LEFT">&#35;0x900f</TD></TR></TABLE> }>];
+"0x8fb9" -> "0x8fbb" [style=dashed, label=r3, tooltip="WAR: r3"];
+"0x8fb9" -> "0x8fbb" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8fb9" -> "0x8fbd" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x8fb9" -> "0x8fbf" [style=dotted, label=r2, tooltip="WAW: r2"];
+"0x8fbb" -> "0x8fbd" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8fbb" -> "0x8fc1" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x8fbd" -> "0x8fbf" [style=solid, label=r4, tooltip="RAW: r4; WAR: r2; WAW: itstate"];
+"0x8fbf" -> "0x8fc1" [style=solid, label=r2, tooltip="RAW: r2; WAW: itstate"];
+"0x8fc1" -> "0x8fc3" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+}

@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x476b3b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x476b3b&#58;&nbsp;</TD><TD ALIGN="LEFT">vpcmpeqq</TD><TD ALIGN="LEFT">xmm8, xmm5, xmmword ptr [rsp + 0x350]</TD></TR></TABLE> }>];
+"0x476b45" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x476b45&#58;&nbsp;</TD><TD ALIGN="LEFT">vpmovmskb</TD><TD ALIGN="LEFT">esi, xmm8</TD></TR></TABLE> }>];
+"0x476b4a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x476b4a&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">esi, 0xffff</TD></TR></TABLE> }>];
+"0x476b50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x476b50&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x476b5d</TD></TR></TABLE> }>];
+"0x476b3b" -> "0x476b45" [style=solid, label=xmm8, tooltip="RAW: xmm8"];
+"0x476b45" -> "0x476b4a" [style=solid, label=esi, tooltip="RAW: esi"];
+"0x476b4a" -> "0x476b50" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

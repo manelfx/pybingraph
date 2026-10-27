@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4133c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4133c4&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll32</TD><TD ALIGN="LEFT">$a0, $v1, 0</TD></TR></TABLE> }>];
+"0x4133c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4133c8&#58;&nbsp;</TD><TD ALIGN="LEFT">dsrl32</TD><TD ALIGN="LEFT">$a0, $a0, 0</TD></TR></TABLE> }>];
+"0x4133cc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4133cc&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$a0, $a0, 0x60</TD></TR></TABLE> }>];
+"0x4133d0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4133d0&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll</TD><TD ALIGN="LEFT">$a0, $a0, 4</TD></TR></TABLE> }>];
+"0x4133d4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4133d4&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$a0, $s7, $a0</TD></TR></TABLE> }>];
+"0x4133d8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4133d8&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$v1, 0x20($fp)</TD></TR></TABLE> }>];
+"0x4133dc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4133dc&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$a1, 0x18($fp)</TD></TR></TABLE> }>];
+"0x4133e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4133e0&#58;&nbsp;</TD><TD ALIGN="LEFT">jalr</TD><TD ALIGN="LEFT">$t9</TD></TR></TABLE> }>];
+"0x4133e4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4133e4&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$a0, $a0, 8</TD></TR></TABLE> }>];
+"0x4133c4" -> "0x4133c8" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x4133c8" -> "0x4133cc" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x4133cc" -> "0x4133d0" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x4133d0" -> "0x4133d4" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x4133d4" -> "0x4133e4" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+}

@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8093647" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8093647&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0x10</TD></TR></TABLE> }>];
+"0x809364a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x809364a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [esp + 0xc]</TD></TR></TABLE> }>];
+"0x809364e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x809364e&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0x10</TD></TR></TABLE> }>];
+"0x8093651" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8093651&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">ebx</TD></TR></TABLE> }>];
+"0x8093652" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8093652&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">esi</TD></TR></TABLE> }>];
+"0x8093653" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8093653&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">edi</TD></TR></TABLE> }>];
+"0x8093654" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8093654&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x8093647" -> "0x809364a" [style=solid, label=esp, tooltip="RAW: esp"];
+"0x8093647" -> "0x809364e" [style=solid, label=esp, tooltip="RAW: esp; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, esp"];
+"0x809364a" -> "0x809364e" [style=dashed, label=esp, tooltip="WAR: esp"];
+"0x809364e" -> "0x8093651" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x8093651" -> "0x8093652" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x8093652" -> "0x8093653" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x8093653" -> "0x8093654" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+}

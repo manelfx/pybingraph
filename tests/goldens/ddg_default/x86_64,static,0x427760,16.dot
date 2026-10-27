@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x427760" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x427760&#58;&nbsp;</TD><TD ALIGN="LEFT">pcmpeqb</TD><TD ALIGN="LEFT">xmm0, xmm3</TD></TR></TABLE> }>];
+"0x427764" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x427764&#58;&nbsp;</TD><TD ALIGN="LEFT">pmovmskb</TD><TD ALIGN="LEFT">edx, xmm0</TD></TR></TABLE> }>];
+"0x427768" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x427768&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">edx, 0xff00</TD></TR></TABLE> }>];
+"0x42776e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42776e&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x427780</TD></TR></TABLE> }>];
+"0x427760" -> "0x427764" [style=solid, label=xmm0, tooltip="RAW: xmm0"];
+"0x427764" -> "0x427768" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x427768" -> "0x42776e" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

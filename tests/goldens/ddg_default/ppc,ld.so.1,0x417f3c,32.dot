@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x417f3c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f3c&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r0, 0x24(r1)</TD></TR></TABLE> }>];
+"0x417f40" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f40&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r29, 0x14(r1)</TD></TR></TABLE> }>];
+"0x417f44" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f44&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r3, r9</TD></TR></TABLE> }>];
+"0x417f48" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f48&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r30, 0x18(r1)</TD></TR></TABLE> }>];
+"0x417f4c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f4c&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r31, 0x1c(r1)</TD></TR></TABLE> }>];
+"0x417f50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f50&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r1, r1, 0x20</TD></TR></TABLE> }>];
+"0x417f54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f54&#58;&nbsp;</TD><TD ALIGN="LEFT">mtlr</TD><TD ALIGN="LEFT">r0</TD></TR></TABLE> }>];
+"0x417f58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f58&#58;&nbsp;</TD><TD ALIGN="LEFT">blr</TD><TD></TD></TR></TABLE> }>];
+"0x417f3c" -> "0x417f50" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x417f3c" -> "0x417f54" [style=solid, label=gpr0, tooltip="RAW: gpr0"];
+"0x417f40" -> "0x417f50" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x417f48" -> "0x417f50" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x417f4c" -> "0x417f50" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x417f54" -> "0x417f58" [style=solid, label=lr, tooltip="RAW: lr"];
+}

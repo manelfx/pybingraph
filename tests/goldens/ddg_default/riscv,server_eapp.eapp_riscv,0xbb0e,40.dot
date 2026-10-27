@@ -1,0 +1,29 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xbb0e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb0e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.lui</TD><TD ALIGN="LEFT">s2, 1</TD></TR></TABLE> }>];
+"0xbb10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb10&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a5, s2, -0x40</TD></TR></TABLE> }>];
+"0xbb14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb14&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi4spn</TD><TD ALIGN="LEFT">a3, sp, 0x20</TD></TR></TABLE> }>];
+"0xbb16" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb16&#58;&nbsp;</TD><TD ALIGN="LEFT">c.lui</TD><TD ALIGN="LEFT">s1, 0xfffff</TD></TR></TABLE> }>];
+"0xbb18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb18&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a5, a3</TD></TR></TABLE> }>];
+"0xbb1a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb1a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a5, s1</TD></TR></TABLE> }>];
+"0xbb1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb1c&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">a5, 0x87(a5)</TD></TR></TABLE> }>];
+"0xbb20" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb20&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a0, s7</TD></TR></TABLE> }>];
+"0xbb22" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb22&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s11, s7, 0x28</TD></TR></TABLE> }>];
+"0xbb26" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb26&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addw</TD><TD ALIGN="LEFT">a5, a4</TD></TR></TABLE> }>];
+"0xbb28" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb28&#58;&nbsp;</TD><TD ALIGN="LEFT">slliw</TD><TD ALIGN="LEFT">a2, a5, 0x18</TD></TR></TABLE> }>];
+"0xbb2c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb2c&#58;&nbsp;</TD><TD ALIGN="LEFT">sraiw</TD><TD ALIGN="LEFT">a2, a2, 0x18</TD></TR></TABLE> }>];
+"0xbb30" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb30&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">a2, 0x18(sp)</TD></TR></TABLE> }>];
+"0xbb32" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xbb32&#58;&nbsp;</TD><TD ALIGN="LEFT">jal</TD><TD ALIGN="LEFT">-0x23de</TD></TR></TABLE> }>];
+"0xbb0e" -> "0xbb10" [style=solid, label=s2, tooltip="RAW: s2"];
+"0xbb10" -> "0xbb18" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0xbb14" -> "0xbb18" [style=solid, label=a3, tooltip="RAW: a3"];
+"0xbb16" -> "0xbb1a" [style=solid, label=s1, tooltip="RAW: s1"];
+"0xbb18" -> "0xbb1a" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0xbb1a" -> "0xbb1c" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0xbb1c" -> "0xbb26" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0xbb26" -> "0xbb28" [style=solid, label=a5, tooltip="RAW: a5"];
+"0xbb28" -> "0xbb2c" [style=solid, label=a2, tooltip="RAW: a2; WAW: a2"];
+"0xbb2c" -> "0xbb30" [style=solid, label=a2, tooltip="RAW: a2"];
+}

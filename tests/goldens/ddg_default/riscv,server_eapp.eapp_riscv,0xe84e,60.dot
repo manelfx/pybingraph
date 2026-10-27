@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xe84e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe84e&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a5, zero, 0x101</TD></TR></TABLE> }>];
+"0xe852" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe852&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">a6, 0(sp)</TD></TR></TABLE> }>];
+"0xe856" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe856&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">a3, 1(sp)</TD></TR></TABLE> }>];
+"0xe85a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe85a&#58;&nbsp;</TD><TD ALIGN="LEFT">sh</TD><TD ALIGN="LEFT">a5, 2(sp)</TD></TR></TABLE> }>];
+"0xe85e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe85e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.swsp</TD><TD ALIGN="LEFT">zero, 4(sp)</TD></TR></TABLE> }>];
+"0xe860" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe860&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">zero, 0x40(sp)</TD></TR></TABLE> }>];
+"0xe862" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe862&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">zero, 8(sp)</TD></TR></TABLE> }>];
+"0xe864" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe864&#58;&nbsp;</TD><TD ALIGN="LEFT">sh</TD><TD ALIGN="LEFT">zero, 0x10(sp)</TD></TR></TABLE> }>];
+"0xe868" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe868&#58;&nbsp;</TD><TD ALIGN="LEFT">sh</TD><TD ALIGN="LEFT">zero, 0x12(sp)</TD></TR></TABLE> }>];
+"0xe86c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe86c&#58;&nbsp;</TD><TD ALIGN="LEFT">sh</TD><TD ALIGN="LEFT">zero, 0x14(sp)</TD></TR></TABLE> }>];
+"0xe870" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe870&#58;&nbsp;</TD><TD ALIGN="LEFT">sh</TD><TD ALIGN="LEFT">zero, 0x16(sp)</TD></TR></TABLE> }>];
+"0xe874" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe874&#58;&nbsp;</TD><TD ALIGN="LEFT">sh</TD><TD ALIGN="LEFT">zero, 0x18(sp)</TD></TR></TABLE> }>];
+"0xe878" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe878&#58;&nbsp;</TD><TD ALIGN="LEFT">sh</TD><TD ALIGN="LEFT">zero, 0x1a(sp)</TD></TR></TABLE> }>];
+"0xe87c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe87c&#58;&nbsp;</TD><TD ALIGN="LEFT">sh</TD><TD ALIGN="LEFT">zero, 0x1c(sp)</TD></TR></TABLE> }>];
+"0xe880" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe880&#58;&nbsp;</TD><TD ALIGN="LEFT">sh</TD><TD ALIGN="LEFT">zero, 0x1e(sp)</TD></TR></TABLE> }>];
+"0xe884" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe884&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s3, a0</TD></TR></TABLE> }>];
+"0xe886" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe886&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a1, a4</TD></TR></TABLE> }>];
+"0xe888" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe888&#58;&nbsp;</TD><TD ALIGN="LEFT">c.beqz</TD><TD ALIGN="LEFT">a4, 0x64</TD></TR></TABLE> }>];
+"0xe84e" -> "0xe85a" [style=solid, label=a5, tooltip="RAW: a5"];
+}

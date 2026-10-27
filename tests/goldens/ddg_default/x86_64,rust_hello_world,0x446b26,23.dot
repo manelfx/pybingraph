@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x446b26" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x446b26&#58;&nbsp;</TD><TD ALIGN="LEFT">orpd</TD><TD ALIGN="LEFT">xmm1, xmm3</TD></TR></TABLE> }>];
+"0x446b2a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x446b2a&#58;&nbsp;</TD><TD ALIGN="LEFT">pshufd</TD><TD ALIGN="LEFT">xmm0, xmm1, 0xee</TD></TR></TABLE> }>];
+"0x446b2f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x446b2f&#58;&nbsp;</TD><TD ALIGN="LEFT">por</TD><TD ALIGN="LEFT">xmm0, xmm1</TD></TR></TABLE> }>];
+"0x446b33" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x446b33&#58;&nbsp;</TD><TD ALIGN="LEFT">movq</TD><TD ALIGN="LEFT">rcx, xmm0</TD></TR></TABLE> }>];
+"0x446b38" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x446b38&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rbp, rdx</TD></TR></TABLE> }>];
+"0x446b3b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x446b3b&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x446b41</TD></TR></TABLE> }>];
+"0x446b26" -> "0x446b2a" [style=solid, label=xmm1, tooltip="RAW: xmm1"];
+"0x446b26" -> "0x446b2f" [style=solid, label=xmm1, tooltip="RAW: xmm1"];
+"0x446b2a" -> "0x446b2f" [style=solid, label=xmm0, tooltip="RAW: xmm0; WAW: xmm0"];
+"0x446b2f" -> "0x446b33" [style=solid, label=xmm0lq, tooltip="RAW: xmm0lq"];
+"0x446b38" -> "0x446b3b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

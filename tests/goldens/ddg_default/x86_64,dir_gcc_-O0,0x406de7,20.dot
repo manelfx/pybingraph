@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x406de7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x406de7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [rbp - 0x390], eax</TD></TR></TABLE> }>];
+"0x406ded" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x406ded&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [rip + 0x21d941]</TD></TR></TABLE> }>];
+"0x406df3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x406df3&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">eax, dword ptr [rbp - 0x390]</TD></TR></TABLE> }>];
+"0x406df9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x406df9&#58;&nbsp;</TD><TD ALIGN="LEFT">jge</TD><TD ALIGN="LEFT">0x406e07</TD></TR></TABLE> }>];
+"0x406de7" -> "0x406ded" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x406de7" -> "0x406df3" [style=solid, label="[rbp-0x390]", tooltip="RAW: mem[entry_rbp-0x390]:4"];
+"0x406ded" -> "0x406df3" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x406df3" -> "0x406df9" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

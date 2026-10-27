@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8048340" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048340&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [edi + 0x1f08], edx</TD></TR></TABLE> }>];
+"0x8048346" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048346&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0x3c</TD></TR></TABLE> }>];
+"0x8048349" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048349&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">ebx</TD></TR></TABLE> }>];
+"0x804834a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804834a&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">esi</TD></TR></TABLE> }>];
+"0x804834b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804834b&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">edi</TD></TR></TABLE> }>];
+"0x804834c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804834c&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">ebp</TD></TR></TABLE> }>];
+"0x804834d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804834d&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x8048340" -> "0x804834b" [style=dashed, label=edi, tooltip="WAR: edi"];
+"0x8048346" -> "0x8048349" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x8048349" -> "0x804834a" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x804834a" -> "0x804834b" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x804834b" -> "0x804834c" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x804834c" -> "0x804834d" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+}

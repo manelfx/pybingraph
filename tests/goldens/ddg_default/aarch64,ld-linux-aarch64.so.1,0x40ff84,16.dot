@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40ff84" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ff84&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">x2, [x19, &#35;0x10]</TD></TR></TABLE> }>];
+"0x40ff88" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ff88&#58;&nbsp;</TD><TD ALIGN="LEFT">cmn</TD><TD ALIGN="LEFT">x2, &#35;1</TD></TR></TABLE> }>];
+"0x40ff8c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ff8c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">x0, x2</TD></TR></TABLE> }>];
+"0x40ff90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ff90&#58;&nbsp;</TD><TD ALIGN="LEFT">b.eq</TD><TD ALIGN="LEFT">&#35;0x40ff9c</TD></TR></TABLE> }>];
+"0x40ff84" -> "0x40ff88" [style=solid, label=x2, tooltip="RAW: x2"];
+"0x40ff84" -> "0x40ff8c" [style=solid, label=x2, tooltip="RAW: x2"];
+"0x40ff88" -> "0x40ff90" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

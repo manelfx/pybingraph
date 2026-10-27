@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x2738" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2738&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">a1, 0(a5)</TD></TR></TABLE> }>];
+"0x273c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x273c&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">a2, 0x20(a5)</TD></TR></TABLE> }>];
+"0x2740" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2740&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a5, 1</TD></TR></TABLE> }>];
+"0x2742" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2742&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">a1, 0(a3)</TD></TR></TABLE> }>];
+"0x2746" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2746&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">a2, 0(a4)</TD></TR></TABLE> }>];
+"0x274a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x274a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a3, 1</TD></TR></TABLE> }>];
+"0x274c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x274c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a4, 1</TD></TR></TABLE> }>];
+"0x274e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x274e&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">a5, a0, -0x16</TD></TR></TABLE> }>];
+"0x2738" -> "0x2740" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x2738" -> "0x2742" [style=solid, label=a1, tooltip="RAW: a1"];
+"0x273c" -> "0x2740" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x273c" -> "0x2746" [style=solid, label=a2, tooltip="RAW: a2"];
+"0x2740" -> "0x274e" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x2742" -> "0x274a" [style=dashed, label=a3, tooltip="WAR: a3"];
+"0x2746" -> "0x274c" [style=dashed, label=a4, tooltip="WAR: a4"];
+}

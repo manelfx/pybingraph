@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8006e09" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006e09&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r4, r0</TD></TR></TABLE> }>];
+"0x8006e0b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006e0b&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r5, r1</TD></TR></TABLE> }>];
+"0x8006e0d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006e0d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r2, r0</TD></TR></TABLE> }>];
+"0x8006e0f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006e0f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, r1</TD></TR></TABLE> }>];
+"0x8006e11" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006e11&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r8</TD></TR></TABLE> }>];
+"0x8006e13" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006e13&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, sb</TD></TR></TABLE> }>];
+"0x8006e15" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006e15&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x80004d1</TD></TR></TABLE> }>];
+"0x8006e09" -> "0x8006e0b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8006e09" -> "0x8006e11" [style=dashed, label=r0, tooltip="WAR: r0"];
+"0x8006e0b" -> "0x8006e0d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8006e0b" -> "0x8006e13" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x8006e0d" -> "0x8006e0f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8006e0d" -> "0x8006e11" [style=dashed, label=r0, tooltip="WAR: r0"];
+"0x8006e0f" -> "0x8006e11" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8006e0f" -> "0x8006e13" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x8006e11" -> "0x8006e13" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8006e13" -> "0x8006e15" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

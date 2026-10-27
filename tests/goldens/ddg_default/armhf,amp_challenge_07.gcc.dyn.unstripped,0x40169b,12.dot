@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40169b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40169b&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrd</TD><TD ALIGN="LEFT">r0, r1, [lr, &#35;8]</TD></TR></TABLE> }>];
+"0x40169f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40169f&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, r1</TD></TR></TABLE> }>];
+"0x4016a1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4016a1&#58;&nbsp;</TD><TD ALIGN="LEFT">it</TD><TD ALIGN="LEFT">eq</TD></TR></TABLE> }>];
+"0x4016a3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4016a3&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpeq</TD><TD ALIGN="LEFT">r2, r0</TD></TR></TABLE> }>];
+"0x4016a5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4016a5&#58;&nbsp;</TD><TD ALIGN="LEFT">bhs</TD><TD ALIGN="LEFT">&#35;0x4016df</TD></TR></TABLE> }>];
+"0x40169b" -> "0x40169f" [style=solid, label=r1, tooltip="RAW: r1; WAW: itstate"];
+"0x40169b" -> "0x4016a3" [style=solid, label=r0, tooltip="RAW: r0"];
+"0x40169f" -> "0x4016a1" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x40169f" -> "0x4016a3" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4016a1" -> "0x4016a3" [style=solid, label=itstate, tooltip="RAW: itstate; WAW: itstate"];
+"0x4016a3" -> "0x4016a5" [style=solid, label="flags, itstate", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate; WAW: itstate"];
+}

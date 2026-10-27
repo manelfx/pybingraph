@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x401960" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401960&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp - 8]</TD></TR></TABLE> }>];
+"0x401963" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401963&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [eax]</TD></TR></TABLE> }>];
+"0x401965" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401965&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x10], eax</TD></TR></TABLE> }>];
+"0x401968" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401968&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp - 0x10]</TD></TR></TABLE> }>];
+"0x40196b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40196b&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [eax]</TD></TR></TABLE> }>];
+"0x40196d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40196d&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dword ptr [ebp + 0xc], eax</TD></TR></TABLE> }>];
+"0x401970" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401970&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x401983</TD></TR></TABLE> }>];
+"0x401960" -> "0x401963" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x401963" -> "0x401965" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x401963" -> "0x401968" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x401965" -> "0x401968" [style=solid, label="[ebp-0x10]", tooltip="RAW: mem[entry_ebp-0x10]:4; WAR: eax"];
+"0x401968" -> "0x40196b" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x40196b" -> "0x40196d" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x40196d" -> "0x401970" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -1,0 +1,36 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x3ab0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ab0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">ra, 0xe8(sp)</TD></TR></TABLE> }>];
+"0x3ab2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ab2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s0, 0xe0(sp)</TD></TR></TABLE> }>];
+"0x3ab4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ab4&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a5, 1</TD></TR></TABLE> }>];
+"0x3ab6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ab6&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">a5, 0(s4)</TD></TR></TABLE> }>];
+"0x3aba" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3aba&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s1, 0xd8(sp)</TD></TR></TABLE> }>];
+"0x3abc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3abc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s2, 0xd0(sp)</TD></TR></TABLE> }>];
+"0x3abe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3abe&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s3, 0xc8(sp)</TD></TR></TABLE> }>];
+"0x3ac0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ac0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s4, 0xc0(sp)</TD></TR></TABLE> }>];
+"0x3ac2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ac2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s5, 0xb8(sp)</TD></TR></TABLE> }>];
+"0x3ac4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ac4&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s6, 0xb0(sp)</TD></TR></TABLE> }>];
+"0x3ac6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ac6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s7, 0xa8(sp)</TD></TR></TABLE> }>];
+"0x3ac8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ac8&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s8, 0xa0(sp)</TD></TR></TABLE> }>];
+"0x3aca" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3aca&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s9, 0x98(sp)</TD></TR></TABLE> }>];
+"0x3acc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3acc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s10, 0x90(sp)</TD></TR></TABLE> }>];
+"0x3ace" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ace&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, 0xf0</TD></TR></TABLE> }>];
+"0x3ad0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ad0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.jr</TD><TD ALIGN="LEFT">ra</TD></TR></TABLE> }>];
+"0x3ab0" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3ab0" -> "0x3ad0" [style=solid, label=ra, tooltip="RAW: ra"];
+"0x3ab2" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3ab4" -> "0x3ab6" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x3ab6" -> "0x3ac0" [style=dashed, label=s4, tooltip="WAR: s4"];
+"0x3aba" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3abc" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3abe" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3ac0" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3ac2" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3ac4" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3ac6" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3ac8" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3aca" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3acc" -> "0x3ace" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

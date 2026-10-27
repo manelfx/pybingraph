@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x18310" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x18310&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [fp, &#35;-0x10]</TD></TR></TABLE> }>];
+"0x18314" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x18314&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [fp, &#35;-0x1c]</TD></TR></TABLE> }>];
+"0x18318" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x18318&#58;&nbsp;</TD><TD ALIGN="LEFT">rsb</TD><TD ALIGN="LEFT">r3, r3, r2</TD></TR></TABLE> }>];
+"0x1831c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1831c&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [fp, &#35;-0x14]</TD></TR></TABLE> }>];
+"0x18320" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x18320&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [fp, &#35;-0x14]</TD></TR></TABLE> }>];
+"0x18324" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x18324&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [fp, &#35;-0x20]</TD></TR></TABLE> }>];
+"0x18328" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x18328&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r2, r3</TD></TR></TABLE> }>];
+"0x1832c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1832c&#58;&nbsp;</TD><TD ALIGN="LEFT">bge</TD><TD ALIGN="LEFT">&#35;0x18364</TD></TR></TABLE> }>];
+"0x18310" -> "0x18318" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x18310" -> "0x18320" [style=dotted, label=r2, tooltip="WAW: r2"];
+"0x18314" -> "0x18318" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x18318" -> "0x1831c" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x18318" -> "0x18320" [style=dashed, label=r2, tooltip="WAR: r2"];
+"0x18318" -> "0x18324" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0x1831c" -> "0x18320" [style=solid, label="[r11-0x14]", tooltip="RAW: mem[entry_r11-0x14]:4"];
+"0x1831c" -> "0x18324" [style=dashed, label=r3, tooltip="WAR: r3"];
+"0x18320" -> "0x18328" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x18324" -> "0x18328" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x18328" -> "0x1832c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -82,6 +82,12 @@ from bingraph.api import app as app_module
 from bingraph.core import project as project_module
 from bingraph.core import render as render_module
 from bingraph.helpers import settings as settings_module
+from tests.goldens.configs import (
+    CFG_CONFIGS as CONFIGS,
+    DEFAULT_CFG_CONFIGS as DEFAULT_CONFIGS,
+    GoldenConfig as GoldenConfig,
+    selected_configs,
+)
 
 
 TESTS_DIR = Path(__file__).resolve().parents[1]
@@ -92,7 +98,6 @@ SUMMARY_NAME = "summary.json"
 ACTUAL_ROOT = TESTS_DIR / "_actual"
 GOLDENS_ROOT = TESTS_DIR / "goldens"
 MODE_ENV = "BINGRAPH_GOLDEN_MODE"
-CONFIGS_ENV = "BINGRAPH_GOLDEN_CONFIGS"
 LIMIT_ENV = "BINGRAPH_GOLDEN_LIMIT"
 MIN_BBS_ENV = "BINGRAPH_GOLDEN_MIN_BBS"
 SKIPPED_BINARIES = [
@@ -106,35 +111,6 @@ SKIPPED_BINARIES = [
     "*lib*",
 ]
 
-
-@dataclass(frozen=True)
-class GoldenConfig:
-    name: str
-    cfg_mode: str
-    cfg_exits: str = "jump"
-    comments: bool = False
-    demangle: bool = False
-
-
-CONFIGS = [
-    # Compare the runtime CFG selection modes while inheriting the rest of the
-    # application defaults from the real Settings model.
-    GoldenConfig(name="cfg_mode_none", cfg_mode="none"),
-    GoldenConfig(name="cfg_mode_custom", cfg_mode="custom"),
-    # Include external calls in this separate presentation audit.
-    GoldenConfig(name="cfg_exits_always", cfg_mode="custom", cfg_exits="always"),
-    # Annotation audits have separate artifact trees, preserving CFG baselines.
-    GoldenConfig(name="cfg_comments_on", cfg_mode="custom", comments=True),
-    GoldenConfig(
-        name="cfg_demangle_on", cfg_mode="custom", comments=True, demangle=True
-    ),
-]
-
-# Custom construction is the production CFG path and therefore the default golden
-# suite. Keep the other configuration available for explicit comparisons.
-DEFAULT_CONFIGS = [
-    next(config for config in CONFIGS if config.name == "cfg_mode_custom")
-]
 
 # Curated regression cases that exercise CFG behavior we want to protect
 # while keeping a quick developer-facing golden suite. Configuration selection
@@ -537,32 +513,6 @@ def _golden_mode() -> str:
     return mode
 
 
-def _selected_configs() -> list[GoldenConfig]:
-    """Return the active config subset requested through the environment."""
-
-    raw_configs = os.getenv(CONFIGS_ENV, "").strip()
-    if not raw_configs:
-        return DEFAULT_CONFIGS
-
-    available = {config.name: config for config in CONFIGS}
-    selected_names = [name.strip() for name in raw_configs.split(",") if name.strip()]
-    unknown = [name for name in selected_names if name not in available]
-    if unknown:
-        raise ValueError(
-            f"{CONFIGS_ENV} contains unknown config(s): {', '.join(unknown)}. "
-            f"Valid values: {', '.join(sorted(available))}"
-        )
-
-    # Preserve the order requested by the user while silently deduplicating repeats.
-    selected: list[GoldenConfig] = []
-    seen: set[str] = set()
-    for name in selected_names:
-        if name not in seen:
-            selected.append(available[name])
-            seen.add(name)
-    return selected
-
-
 def _row_id(row: dict[str, Any]) -> str:
     """Build a readable pytest id for one CSV-driven row case."""
 
@@ -639,9 +589,13 @@ def _build_test_settings(config: GoldenConfig) -> settings_module.Settings:
 
 
 CURRENT_MODE = _golden_mode()
-ACTIVE_CONFIGS = _selected_configs()
-ROWS = tuple(_iter_rows(_env_limit())) if CURRENT_MODE == "compare" else ()
-if CURRENT_MODE == "compare" and _env_limit() is None:
+ACTIVE_CONFIGS = selected_configs(CONFIGS, DEFAULT_CONFIGS)
+ROWS = (
+    tuple(_iter_rows(_env_limit()))
+    if CURRENT_MODE == "compare" and ACTIVE_CONFIGS
+    else ()
+)
+if CURRENT_MODE == "compare" and ACTIVE_CONFIGS and _env_limit() is None:
     _assert_all_checkpoints_selected(ROWS)
 
 
@@ -880,6 +834,8 @@ def test_promote_actual_to_goldens() -> None:
 
     if CURRENT_MODE != "promote":
         pytest.skip("Promotion copy step only runs when BINGRAPH_GOLDEN_MODE=promote.")
+    if not ACTIVE_CONFIGS:
+        pytest.skip("No CFG configurations selected.")
 
     # Promote mode assumes compare mode already generated the `_actual` tree.
     assert ACTUAL_ROOT.exists(), (

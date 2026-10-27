@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x404d00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404d00&#58;&nbsp;</TD><TD ALIGN="LEFT">srliw</TD><TD ALIGN="LEFT">a2, s0, 0x1f</TD></TR></TABLE> }>];
+"0x404d04" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404d04&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a5, 3</TD></TR></TABLE> }>];
+"0x404d06" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404d06&#58;&nbsp;</TD><TD ALIGN="LEFT">addw</TD><TD ALIGN="LEFT">t0, a2, s0</TD></TR></TABLE> }>];
+"0x404d0a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404d0a&#58;&nbsp;</TD><TD ALIGN="LEFT">bge</TD><TD ALIGN="LEFT">a5, s0, 0x168</TD></TR></TABLE> }>];
+"0x404d00" -> "0x404d06" [style=solid, label=a2, tooltip="RAW: a2"];
+"0x404d04" -> "0x404d0a" [style=solid, label=a5, tooltip="RAW: a5"];
+}

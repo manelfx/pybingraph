@@ -1,0 +1,27 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4112a4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112a4&#58;&nbsp;</TD><TD ALIGN="LEFT">lb</TD><TD ALIGN="LEFT">$v0, 8($s0)</TD></TR></TABLE> }>];
+"0x4112a8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112a8&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$s0, $s0, 8</TD></TR></TABLE> }>];
+"0x4112ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112ac&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$ra, 0x24($sp)</TD></TR></TABLE> }>];
+"0x4112b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112b0&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s2, 0x20($sp)</TD></TR></TABLE> }>];
+"0x4112b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112b4&#58;&nbsp;</TD><TD ALIGN="LEFT">movz</TD><TD ALIGN="LEFT">$s0, $zero, $v0</TD></TR></TABLE> }>];
+"0x4112b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112b8&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s1, 0x1c($sp)</TD></TR></TABLE> }>];
+"0x4112bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112bc&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$v0, $s0</TD></TR></TABLE> }>];
+"0x4112c0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112c0&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s0, 0x18($sp)</TD></TR></TABLE> }>];
+"0x4112c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112c4&#58;&nbsp;</TD><TD ALIGN="LEFT">jr</TD><TD ALIGN="LEFT">$ra</TD></TR></TABLE> }>];
+"0x4112c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4112c8&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$sp, $sp, 0x28</TD></TR></TABLE> }>];
+"0x4112a4" -> "0x4112a8" [style=dashed, label=s0, tooltip="WAR: s0"];
+"0x4112a4" -> "0x4112b4" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x4112a4" -> "0x4112bc" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x4112a8" -> "0x4112b4" [style=solid, label=s0, tooltip="RAW: s0; WAW: s0"];
+"0x4112ac" -> "0x4112c4" [style=solid, label=ra, tooltip="RAW: ra"];
+"0x4112ac" -> "0x4112c8" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x4112b0" -> "0x4112c8" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x4112b4" -> "0x4112bc" [style=solid, label=s0, tooltip="RAW: s0; WAR: v0"];
+"0x4112b4" -> "0x4112c0" [style=dotted, label=s0, tooltip="WAW: s0"];
+"0x4112b8" -> "0x4112c8" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x4112bc" -> "0x4112c0" [style=dashed, label=s0, tooltip="WAR: s0"];
+"0x4112c0" -> "0x4112c8" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8006089" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006089&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr.w</TD><TD ALIGN="LEFT">r3, [sl]</TD></TR></TABLE> }>];
+"0x800608d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800608d&#58;&nbsp;</TD><TD ALIGN="LEFT">movs</TD><TD ALIGN="LEFT">r2, &#35;0</TD></TR></TABLE> }>];
+"0x800608f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800608f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r5, sl</TD></TR></TABLE> }>];
+"0x8006091" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006091&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r6, r3</TD></TR></TABLE> }>];
+"0x8006093" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006093&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r8</TD></TR></TABLE> }>];
+"0x8006095" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006095&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">lr, r2</TD></TR></TABLE> }>];
+"0x8006097" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006097&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">&#35;0x800609b</TD></TR></TABLE> }>];
+"0x8006089" -> "0x800608d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8006089" -> "0x8006091" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x800608d" -> "0x800608f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x800608d" -> "0x8006095" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x800608f" -> "0x8006091" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8006091" -> "0x8006093" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8006093" -> "0x8006095" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8006095" -> "0x8006097" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

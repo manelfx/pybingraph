@@ -1,0 +1,10 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x48eeba" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48eeba&#58;&nbsp;</TD><TD ALIGN="LEFT">larl</TD><TD ALIGN="LEFT">%r1, 0x59e4c0</TD></TR></TABLE> }>];
+"0x48eec0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48eec0&#58;&nbsp;</TD><TD ALIGN="LEFT">bc</TD><TD ALIGN="LEFT">0, 0</TD></TR></TABLE> }>];
+"0x48eec4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48eec4&#58;&nbsp;</TD><TD ALIGN="LEFT">lhi</TD><TD ALIGN="LEFT">%r0, 1</TD></TR></TABLE> }>];
+"0x48eec8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48eec8&#58;&nbsp;</TD><TD ALIGN="LEFT">stgrl</TD><TD ALIGN="LEFT">%r10, 0x59e4e0</TD></TR></TABLE> }>];
+"0x48eece" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48eece&#58;&nbsp;</TD><TD ALIGN="LEFT">j</TD><TD ALIGN="LEFT">0x48ee6c</TD></TR></TABLE> }>];
+}

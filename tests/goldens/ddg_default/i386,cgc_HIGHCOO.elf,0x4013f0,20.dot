@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4013f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4013f0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp + 0x14]</TD></TR></TABLE> }>];
+"0x4013f3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4013f3&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">edx, [eax + 4]</TD></TR></TABLE> }>];
+"0x4013f6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4013f6&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp + 0x14], edx</TD></TR></TABLE> }>];
+"0x4013f9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4013f9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [eax]</TD></TR></TABLE> }>];
+"0x4013fb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4013fb&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x1c], eax</TD></TR></TABLE> }>];
+"0x4013fe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4013fe&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x1c], 0</TD></TR></TABLE> }>];
+"0x401402" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401402&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x40140d</TD></TR></TABLE> }>];
+"0x4013f0" -> "0x4013f3" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x4013f0" -> "0x4013f6" [style=dashed, label="[ebp+0x14]", tooltip="WAR: mem[entry_ebp+0x14]:4"];
+"0x4013f0" -> "0x4013f9" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x4013f3" -> "0x4013f6" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x4013f3" -> "0x4013f9" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x4013f9" -> "0x4013fb" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x4013fb" -> "0x4013fe" [style=solid, label="[ebp-0x1c]", tooltip="RAW: mem[entry_ebp-0x1c]:4"];
+"0x4013fe" -> "0x401402" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

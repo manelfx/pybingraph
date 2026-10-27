@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8076ef5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8076ef5&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, ecx</TD></TR></TABLE> }>];
+"0x8076ef7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8076ef7&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">edx, 0xfffffffc</TD></TR></TABLE> }>];
+"0x8076efa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8076efa&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dl, 0xf8</TD></TR></TABLE> }>];
+"0x8076efd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8076efd&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x8076f0e</TD></TR></TABLE> }>];
+"0x8076ef5" -> "0x8076ef7" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x8076ef7" -> "0x8076efa" [style=solid, label=dl, tooltip="RAW: dl; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8076efa" -> "0x8076efd" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x120006730" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120006730&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">$v0, ($fp)</TD></TR></TABLE> }>];
+"0x120006734" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120006734&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">$v0, 1($fp)</TD></TR></TABLE> }>];
+"0x120006738" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120006738&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">$v0, 0x120006760</TD></TR></TABLE> }>];
+"0x12000673c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000673c&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x120006730" -> "0x120006734" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x120006734" -> "0x120006738" [style=solid, label=v0, tooltip="RAW: v0"];
+}

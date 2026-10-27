@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x412c7a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412c7a&#58;&nbsp;</TD><TD ALIGN="LEFT">agrk</TD><TD ALIGN="LEFT">%r1, %r6, %r10</TD></TR></TABLE> }>];
+"0x412c7e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412c7e&#58;&nbsp;</TD><TD ALIGN="LEFT">agr</TD><TD ALIGN="LEFT">%r10, %r13</TD></TR></TABLE> }>];
+"0x412c82" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412c82&#58;&nbsp;</TD><TD ALIGN="LEFT">clg</TD><TD ALIGN="LEFT">%r1, 0(%r7)</TD></TR></TABLE> }>];
+"0x412c88" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412c88&#58;&nbsp;</TD><TD ALIGN="LEFT">jl</TD><TD ALIGN="LEFT">0x412b9e</TD></TR></TABLE> }>];
+"0x412c7a" -> "0x412c7e" [style=dashed, label=r10, tooltip="WAR: r10"];
+"0x412c7a" -> "0x412c7e" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x412c7a" -> "0x412c82" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x412c7e" -> "0x412c82" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x412c82" -> "0x412c88" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+}

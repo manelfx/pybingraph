@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x406f10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x406f10&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r10, r3</TD></TR></TABLE> }>];
+"0x406f14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x406f14&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r9, -1</TD></TR></TABLE> }>];
+"0x406f18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x406f18&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpw</TD><TD ALIGN="LEFT">cr7, r10, r9</TD></TR></TABLE> }>];
+"0x406f1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x406f1c&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">cr7, 0x406f88</TD></TR></TABLE> }>];
+"0x406f10" -> "0x406f18" [style=solid, label=gpr10, tooltip="RAW: gpr10"];
+"0x406f14" -> "0x406f18" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x406f18" -> "0x406f1c" [style=solid, label="cr7_321", tooltip="RAW: cr7_321"];
+}

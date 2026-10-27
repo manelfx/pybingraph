@@ -1,0 +1,27 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x404ede" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404ede&#58;&nbsp;</TD><TD ALIGN="LEFT">flw</TD><TD ALIGN="LEFT">ft1, 0(a2)</TD></TR></TABLE> }>];
+"0x404ee2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404ee2&#58;&nbsp;</TD><TD ALIGN="LEFT">flw</TD><TD ALIGN="LEFT">ft2, 0(a4)</TD></TR></TABLE> }>];
+"0x404ee6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404ee6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a3, 3</TD></TR></TABLE> }>];
+"0x404ee8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404ee8&#58;&nbsp;</TD><TD ALIGN="LEFT">fsub.s</TD><TD ALIGN="LEFT">ft3, ft1, ft2</TD></TR></TABLE> }>];
+"0x404eec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404eec&#58;&nbsp;</TD><TD ALIGN="LEFT">fadd.s</TD><TD ALIGN="LEFT">ft4, ft1, ft2</TD></TR></TABLE> }>];
+"0x404ef0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404ef0&#58;&nbsp;</TD><TD ALIGN="LEFT">fsw</TD><TD ALIGN="LEFT">ft3, 0(a4)</TD></TR></TABLE> }>];
+"0x404ef4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404ef4&#58;&nbsp;</TD><TD ALIGN="LEFT">fsw</TD><TD ALIGN="LEFT">ft4, 0(a2)</TD></TR></TABLE> }>];
+"0x404ef8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404ef8&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a4, t3, -8</TD></TR></TABLE> }>];
+"0x404efc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404efc&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a2, a0, 0xc</TD></TR></TABLE> }>];
+"0x404ede" -> "0x404ee8" [style=solid, label=ft1, tooltip="RAW: ft1"];
+"0x404ede" -> "0x404eec" [style=solid, label=ft1, tooltip="RAW: ft1"];
+"0x404ede" -> "0x404ef4" [style=dashed, label="[a2]", tooltip="WAR: mem[entry_a2]:4"];
+"0x404ede" -> "0x404efc" [style=dashed, label=a2, tooltip="WAR: a2"];
+"0x404ee2" -> "0x404ee8" [style=solid, label=ft2, tooltip="RAW: ft2"];
+"0x404ee2" -> "0x404eec" [style=solid, label=ft2, tooltip="RAW: ft2"];
+"0x404ee2" -> "0x404ef0" [style=dashed, label="[a4]", tooltip="WAR: mem[entry_a4]:4"];
+"0x404ee2" -> "0x404ef8" [style=dashed, label=a4, tooltip="WAR: a4"];
+"0x404ee8" -> "0x404eec" [style=solid, label=536, tooltip="RAW: 536; WAW: 536"];
+"0x404ee8" -> "0x404ef0" [style=solid, label=ft3, tooltip="RAW: ft3"];
+"0x404eec" -> "0x404ef4" [style=solid, label=ft4, tooltip="RAW: ft4"];
+"0x404ef0" -> "0x404ef8" [style=dashed, label=a4, tooltip="WAR: a4"];
+"0x404ef4" -> "0x404efc" [style=dashed, label=a2, tooltip="WAR: a2"];
+}

@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4020ad" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4020ad&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">&#123;r4, lr&#125;</TD></TR></TABLE> }>];
+"0x4020af" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4020af&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r4, r0</TD></TR></TABLE> }>];
+"0x4020b1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4020b1&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrb</TD><TD ALIGN="LEFT">r3, [r0, &#35;6]</TD></TR></TABLE> }>];
+"0x4020b3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4020b3&#58;&nbsp;</TD><TD ALIGN="LEFT">cbnz</TD><TD ALIGN="LEFT">r3, &#35;0x4020d1</TD></TR></TABLE> }>];
+"0x4020ad" -> "0x4020af" [style=dashed, label=r4, tooltip="WAR: r4"];
+"0x4020ad" -> "0x4020af" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4020af" -> "0x4020b1" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4020b1" -> "0x4020b3" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate"];
+}

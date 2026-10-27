@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x402281" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402281&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [pc, &#35;0xa0]</TD></TR></TABLE> }>];
+"0x402283" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402283&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r1, [sp, &#35;0x10]</TD></TR></TABLE> }>];
+"0x402285" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402285&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r3, pc</TD></TR></TABLE> }>];
+"0x402287" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402287&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r4, [pc, &#35;0xa0]</TD></TR></TABLE> }>];
+"0x402289" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402289&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r0, [r3, &#35;0x58]</TD></TR></TABLE> }>];
+"0x40228b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40228b&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r4, pc</TD></TR></TABLE> }>];
+"0x40228d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40228d&#58;&nbsp;</TD><TD ALIGN="LEFT">blx</TD><TD ALIGN="LEFT">&#35;0x400d98</TD></TR></TABLE> }>];
+"0x402281" -> "0x402283" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x402281" -> "0x402285" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x402283" -> "0x402285" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x402285" -> "0x402287" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x402285" -> "0x402289" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x402287" -> "0x402289" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x402287" -> "0x40228b" [style=solid, label=r4, tooltip="RAW: r4; WAW: r4"];
+"0x402289" -> "0x40228b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x40228b" -> "0x40228d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

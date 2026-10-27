@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Annotated, Any, Literal, cast
 from loguru import logger
-from pydantic import Field, field_validator, BaseModel
+from pydantic import AfterValidator, Field, field_validator, BaseModel
 from pydantic_settings import (
     BaseSettings,
     CliImplicitFlag,
@@ -16,6 +16,23 @@ from pydantic_settings import (
 # CFG mode
 CfgMode = Literal["none", "custom"]
 CfgExits = Literal["never", "jump", "always"]
+MemoryPolicy = Literal["always", "may", "must"]
+
+
+def normalize_dependencies(value: str) -> str:
+    """Validate a nonempty selection and canonicalize case, order and duplicates.
+
+    API, CLI and Python rendering share the same rule, so an invalid filter
+    cannot silently hide dependencies or fall back to a different selection.
+    """
+    kinds = ("raw", "war", "waw")
+    selected = {part.strip().lower() for part in value.split(",")}
+    if not selected <= set(kinds):
+        raise ValueError("Dependencies must be comma-separated raw, war, or waw")
+    return ",".join(kind for kind in kinds if kind in selected)
+
+
+DependencySelection = Annotated[str, AfterValidator(normalize_dependencies)]
 
 
 class GlobalSettings(BaseSettings):
@@ -40,6 +57,13 @@ class GlobalSettings(BaseSettings):
     )
     cfg_exits: CfgExits = Field(
         "jump", description="Which CFG exits to render outside the function"
+    )
+    ddg_memory: MemoryPolicy = Field(
+        "must",
+        description="DDG memory edges: always, may alias, or must overlap",
+    )
+    ddg_dependencies: DependencySelection = Field(
+        "raw,war,waw", description="DDG edges to display: comma-separated raw, war, waw"
     )
     comments: CliImplicitFlag[bool] = Field(
         True, description="Appends comments to instructions when available"
@@ -99,7 +123,15 @@ class ClientSettings(BaseModel):
     function: str | None = Field(
         None, description="Function address (in int or 0x hex format)"
     )
-    format: str = Field("dot", description="Textual CFG output: svg, dot, raw, xdot")
+    address: str | None = Field(None, description="DDG block start address")
+    size: int | None = Field(None, description="DDG block size in bytes")
+    memory: MemoryPolicy | None = Field(
+        None, description="Override the DDG memory policy"
+    )
+    dependencies: DependencySelection | None = Field(
+        None, description="Override DDG edges: comma-separated raw, war, waw"
+    )
+    format: str = Field("dot", description="Textual graph output: svg, dot, raw, xdot")
 
     def cli_cmd(self) -> None:
         pass

@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x324a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x324a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a5, 0xc</TD></TR></TABLE> }>];
+"0x324c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x324c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sw</TD><TD ALIGN="LEFT">a5, 0(a0)</TD></TR></TABLE> }>];
+"0x324e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x324e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">ra, 0x18(sp)</TD></TR></TABLE> }>];
+"0x3250" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3250&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s0, 0x10(sp)</TD></TR></TABLE> }>];
+"0x3252" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3252&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">s1, 0</TD></TR></TABLE> }>];
+"0x3254" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3254&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a0, s1</TD></TR></TABLE> }>];
+"0x3256" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3256&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s1, 8(sp)</TD></TR></TABLE> }>];
+"0x3258" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3258&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, 0x20</TD></TR></TABLE> }>];
+"0x325a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x325a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.jr</TD><TD ALIGN="LEFT">ra</TD></TR></TABLE> }>];
+"0x324a" -> "0x324c" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x324c" -> "0x3254" [style=dashed, label=a0, tooltip="WAR: a0"];
+"0x324e" -> "0x3258" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x324e" -> "0x325a" [style=solid, label=ra, tooltip="RAW: ra"];
+"0x3250" -> "0x3258" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x3252" -> "0x3254" [style=solid, label=s1, tooltip="RAW: s1"];
+"0x3252" -> "0x3256" [style=dotted, label=s1, tooltip="WAW: s1"];
+"0x3254" -> "0x3256" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x3256" -> "0x3258" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

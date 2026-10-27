@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x42bc70" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42bc70&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 8</TD></TR></TABLE> }>];
+"0x42bc74" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42bc74&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, r13d</TD></TR></TABLE> }>];
+"0x42bc77" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42bc77&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r12</TD></TR></TABLE> }>];
+"0x42bc79" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42bc79&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r13</TD></TR></TABLE> }>];
+"0x42bc7b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42bc7b&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x42bc70" -> "0x42bc77" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x42bc74" -> "0x42bc79" [style=dashed, label=r13, tooltip="WAR: r13"];
+"0x42bc77" -> "0x42bc79" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x42bc79" -> "0x42bc7b" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+}

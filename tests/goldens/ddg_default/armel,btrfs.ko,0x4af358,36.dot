@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4af358" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4af358&#58;&nbsp;</TD><TD ALIGN="LEFT">movw</TD><TD ALIGN="LEFT">r3, &#35;0x968c</TD></TR></TABLE> }>];
+"0x4af35c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4af35c&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r4, [sp, &#35;4]</TD></TR></TABLE> }>];
+"0x4af360" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4af360&#58;&nbsp;</TD><TD ALIGN="LEFT">movt</TD><TD ALIGN="LEFT">r3, &#35;0x4a</TD></TR></TABLE> }>];
+"0x4af364" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4af364&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r0, [r4, &#35;0xec]</TD></TR></TABLE> }>];
+"0x4af368" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4af368&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [sp]</TD></TR></TABLE> }>];
+"0x4af36c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4af36c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, &#35;0</TD></TR></TABLE> }>];
+"0x4af370" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4af370&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r1, [r4, &#35;0xfc]</TD></TR></TABLE> }>];
+"0x4af374" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4af374&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [r4, &#35;0x100]</TD></TR></TABLE> }>];
+"0x4af378" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4af378&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x4a8214</TD></TR></TABLE> }>];
+"0x4af358" -> "0x4af360" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x4af360" -> "0x4af368" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x4af360" -> "0x4af36c" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0x4af368" -> "0x4af36c" [style=dashed, label=r3, tooltip="WAR: r3"];
+}

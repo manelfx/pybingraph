@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x808e3f8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808e3f8&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">edx, edx</TD></TR></TABLE> }>];
+"0x808e3fa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808e3fa&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">byte ptr [esi + 0xd], 2</TD></TR></TABLE> }>];
+"0x808e3fe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808e3fe&#58;&nbsp;</TD><TD ALIGN="LEFT">setne</TD><TD ALIGN="LEFT">dl</TD></TR></TABLE> }>];
+"0x808e401" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808e401&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esi + 0x28], edx</TD></TR></TABLE> }>];
+"0x808e404" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x808e404&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x808e147</TD></TR></TABLE> }>];
+"0x808e3f8" -> "0x808e3fa" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x808e3f8" -> "0x808e3fe" [style=dotted, label=dl, tooltip="WAW: dl"];
+"0x808e3f8" -> "0x808e401" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x808e3fa" -> "0x808e3fe" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x808e3fe" -> "0x808e401" [style=solid, label=edx, tooltip="RAW: edx"];
+}

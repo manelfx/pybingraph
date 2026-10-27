@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x404a2d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404a2d&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0x10</TD></TR></TABLE> }>];
+"0x404a30" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404a30&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0x20], edx</TD></TR></TABLE> }>];
+"0x404a34" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404a34&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ebx, eax</TD></TR></TABLE> }>];
+"0x404a36" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404a36&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [esp + 4]</TD></TR></TABLE> }>];
+"0x404a3a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404a3a&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">edx, dword ptr [esp + 0x20]</TD></TR></TABLE> }>];
+"0x404a3e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404a3e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0x24], eax</TD></TR></TABLE> }>];
+"0x404a42" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404a42&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [esp]</TD></TR></TABLE> }>];
+"0x404a45" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x404a45&#58;&nbsp;</TD><TD ALIGN="LEFT">jg</TD><TD ALIGN="LEFT">0x404eeb</TD></TR></TABLE> }>];
+"0x404a2d" -> "0x404a30" [style=solid, label=esp, tooltip="RAW: esp"];
+"0x404a2d" -> "0x404a36" [style=solid, label=esp, tooltip="RAW: esp"];
+"0x404a2d" -> "0x404a3a" [style=solid, label=esp, tooltip="RAW: esp; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x404a2d" -> "0x404a3e" [style=solid, label=esp, tooltip="RAW: esp"];
+"0x404a2d" -> "0x404a42" [style=solid, label=esp, tooltip="RAW: esp"];
+"0x404a30" -> "0x404a36" [style=dashed, label=edx, tooltip="WAR: edx"];
+"0x404a30" -> "0x404a3a" [style=solid, label="[esp+0x30]", tooltip="RAW: mem[entry_esp+0x30]:4"];
+"0x404a34" -> "0x404a42" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x404a36" -> "0x404a3a" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x404a3a" -> "0x404a45" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x404a3e" -> "0x404a42" [style=dashed, label=eax, tooltip="WAR: eax"];
+}

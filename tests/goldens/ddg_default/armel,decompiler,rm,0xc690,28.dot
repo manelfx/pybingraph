@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xc690" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xc690&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">&#123;fp, lr&#125;</TD></TR></TABLE> }>];
+"0xc694" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xc694&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">fp, sp, &#35;4</TD></TR></TABLE> }>];
+"0xc698" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xc698&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">sp, sp, &#35;0x10</TD></TR></TABLE> }>];
+"0xc69c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xc69c&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r0, [fp, &#35;-0x10]</TD></TR></TABLE> }>];
+"0xc6a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xc6a0&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r1, [fp, &#35;-0x14]</TD></TR></TABLE> }>];
+"0xc6a4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xc6a4&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r0, [fp, &#35;-0x10]</TD></TR></TABLE> }>];
+"0xc6a8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xc6a8&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x91a4</TD></TR></TABLE> }>];
+"0xc690" -> "0xc694" [style=solid, label=sp, tooltip="RAW: sp; WAR: r11"];
+"0xc690" -> "0xc698" [style=solid, label=sp, tooltip="RAW: sp; WAW: sp"];
+"0xc690" -> "0xc6a8" [style=dashed, label=lr, tooltip="WAR: lr"];
+"0xc694" -> "0xc698" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xc694" -> "0xc69c" [style=solid, label=r11, tooltip="RAW: r11"];
+"0xc694" -> "0xc6a0" [style=solid, label=r11, tooltip="RAW: r11"];
+"0xc694" -> "0xc6a4" [style=solid, label=r11, tooltip="RAW: r11"];
+"0xc69c" -> "0xc6a4" [style=solid, label="[sp-0x14]", tooltip="RAW: mem[entry_sp-0x14]:4; WAR: r0"];
+}

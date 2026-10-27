@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x3424" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3424&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">s0, 8(a5)</TD></TR></TABLE> }>];
+"0x3428" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3428&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a5, 1</TD></TR></TABLE> }>];
+"0x342a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x342a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.srli</TD><TD ALIGN="LEFT">s0, 8</TD></TR></TABLE> }>];
+"0x342c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x342c&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">a5, s6, -8</TD></TR></TABLE> }>];
+"0x3424" -> "0x3428" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x3424" -> "0x342a" [style=dashed, label=s0, tooltip="WAR: s0"];
+"0x3428" -> "0x342c" [style=solid, label=a5, tooltip="RAW: a5"];
+}

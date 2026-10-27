@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x38ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38ac&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">ra, 0x38(sp)</TD></TR></TABLE> }>];
+"0x38ae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38ae&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s0, 0x30(sp)</TD></TR></TABLE> }>];
+"0x38b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38b0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s1, 0x28(sp)</TD></TR></TABLE> }>];
+"0x38b2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38b2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s2, 0x20(sp)</TD></TR></TABLE> }>];
+"0x38b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38b4&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s3, 0x18(sp)</TD></TR></TABLE> }>];
+"0x38b6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38b6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s4, 0x10(sp)</TD></TR></TABLE> }>];
+"0x38b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38b8&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s5, 8(sp)</TD></TR></TABLE> }>];
+"0x38ba" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38ba&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s6, 0(sp)</TD></TR></TABLE> }>];
+"0x38bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38bc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, 0x40</TD></TR></TABLE> }>];
+"0x38be" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x38be&#58;&nbsp;</TD><TD ALIGN="LEFT">c.jr</TD><TD ALIGN="LEFT">ra</TD></TR></TABLE> }>];
+"0x38ac" -> "0x38bc" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x38ac" -> "0x38be" [style=solid, label=ra, tooltip="RAW: ra"];
+"0x38ae" -> "0x38bc" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x38b0" -> "0x38bc" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x38b2" -> "0x38bc" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x38b4" -> "0x38bc" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x38b6" -> "0x38bc" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x38b8" -> "0x38bc" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x38ba" -> "0x38bc" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

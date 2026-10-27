@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x22ab" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x22ab&#58;&nbsp;</TD><TD ALIGN="LEFT">subs.w</TD><TD ALIGN="LEFT">r0, r8, r0</TD></TR></TABLE> }>];
+"0x22af" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x22af&#58;&nbsp;</TD><TD ALIGN="LEFT">sbc.w</TD><TD ALIGN="LEFT">r1, sb, r1</TD></TR></TABLE> }>];
+"0x22b3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x22b3&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r1, r5</TD></TR></TABLE> }>];
+"0x22b5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x22b5&#58;&nbsp;</TD><TD ALIGN="LEFT">it</TD><TD ALIGN="LEFT">eq</TD></TR></TABLE> }>];
+"0x22b7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x22b7&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpeq</TD><TD ALIGN="LEFT">r0, r4</TD></TR></TABLE> }>];
+"0x22b9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x22b9&#58;&nbsp;</TD><TD ALIGN="LEFT">bhs</TD><TD ALIGN="LEFT">&#35;0x22d1</TD></TR></TABLE> }>];
+"0x22ab" -> "0x22af" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x22ab" -> "0x22b3" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x22ab" -> "0x22b7" [style=solid, label=r0, tooltip="RAW: r0"];
+"0x22af" -> "0x22b3" [style=solid, label=r1, tooltip="RAW: r1; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x22b3" -> "0x22b5" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x22b3" -> "0x22b7" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x22b5" -> "0x22b7" [style=solid, label=itstate, tooltip="RAW: itstate; WAW: itstate"];
+"0x22b7" -> "0x22b9" [style=solid, label="flags, itstate", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate; WAW: itstate"];
+}

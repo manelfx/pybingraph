@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4b5f7c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4b5f7c&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r2, sl, &#35;2</TD></TR></TABLE> }>];
+"0x4b5f80" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4b5f80&#58;&nbsp;</TD><TD ALIGN="LEFT">movne</TD><TD ALIGN="LEFT">r2, &#35;1</TD></TR></TABLE> }>];
+"0x4b5f84" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4b5f84&#58;&nbsp;</TD><TD ALIGN="LEFT">ands</TD><TD ALIGN="LEFT">r3, r2, sl, lsr &#35;31</TD></TR></TABLE> }>];
+"0x4b5f88" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4b5f88&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">&#35;0x4b5ff4</TD></TR></TABLE> }>];
+"0x4b5f7c" -> "0x4b5f80" [style=solid, label="flags, r2", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r2; WAW: r2"];
+"0x4b5f7c" -> "0x4b5f84" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4b5f80" -> "0x4b5f84" [style=solid, label=r2, tooltip="RAW: r2; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4b5f84" -> "0x4b5f88" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

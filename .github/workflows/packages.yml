@@ -73,7 +73,7 @@ jobs:
       - name: Compare checkpoint goldens
         id: checkpoints
         env:
-          BINGRAPH_GOLDEN_CONFIGS: cfg_mode_custom
+          BINGRAPH_GOLDEN_CONFIGS: cfg_mode_custom,ddg_default
           BINGRAPH_GOLDEN_MODE: compare
         run: make goldens-checkpoint UV='uv run --no-sync'
       - name: Select compatibility matrix
@@ -105,8 +105,8 @@ jobs:
         if: failure() && steps.checkpoints.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: cfg-checkpoint-failures-${{ github.sha }}-${{ github.run_attempt }}
-          path: tests/_actual/cfg_mode_custom/
+          name: graph-checkpoint-failures-${{ github.sha }}-${{ github.run_attempt }}
+          path: tests/_actual/
           if-no-files-found: warn
           retention-days: 30
 

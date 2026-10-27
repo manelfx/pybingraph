@@ -1,0 +1,26 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x517e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x517e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, -0x30</TD></TR></TABLE> }>];
+"0x5180" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5180&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s0, 0x20(sp)</TD></TR></TABLE> }>];
+"0x5182" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5182&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s1, 0x18(sp)</TD></TR></TABLE> }>];
+"0x5184" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5184&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s2, 0x10(sp)</TD></TR></TABLE> }>];
+"0x5186" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5186&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">ra, 0x28(sp)</TD></TR></TABLE> }>];
+"0x5188" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5188&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s3, 8(sp)</TD></TR></TABLE> }>];
+"0x518a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x518a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s2, a0</TD></TR></TABLE> }>];
+"0x518c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x518c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a0, 0x40(a0)</TD></TR></TABLE> }>];
+"0x518e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x518e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s0, a1</TD></TR></TABLE> }>];
+"0x5190" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5190&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s1, a2</TD></TR></TABLE> }>];
+"0x5192" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5192&#58;&nbsp;</TD><TD ALIGN="LEFT">c.beqz</TD><TD ALIGN="LEFT">a0, 0x5c</TD></TR></TABLE> }>];
+"0x517e" -> "0x5180" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x517e" -> "0x5182" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x517e" -> "0x5184" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x517e" -> "0x5186" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x517e" -> "0x5188" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5180" -> "0x518e" [style=dashed, label=s0, tooltip="WAR: s0"];
+"0x5182" -> "0x5190" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x5184" -> "0x518a" [style=dashed, label=s2, tooltip="WAR: s2"];
+"0x518a" -> "0x518c" [style=dashed, label=a0, tooltip="WAR: a0"];
+"0x518c" -> "0x5192" [style=solid, label=a0, tooltip="RAW: a0"];
+}

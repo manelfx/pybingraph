@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80001676" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80001676&#58;&nbsp;</TD><TD ALIGN="LEFT">sllg</TD><TD ALIGN="LEFT">%r0, %r3, 3</TD></TR></TABLE> }>];
+"0x8000167c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000167c&#58;&nbsp;</TD><TD ALIGN="LEFT">ag</TD><TD ALIGN="LEFT">%r0, 0x30(%r12)</TD></TR></TABLE> }>];
+"0x80001682" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80001682&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r5, %r0</TD></TR></TABLE> }>];
+"0x80001686" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80001686&#58;&nbsp;</TD><TD ALIGN="LEFT">l</TD><TD ALIGN="LEFT">%r5, 0(%r5)</TD></TR></TABLE> }>];
+"0x8000168a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000168a&#58;&nbsp;</TD><TD ALIGN="LEFT">st</TD><TD ALIGN="LEFT">%r5, 0xd0(%r11)</TD></TR></TABLE> }>];
+"0x8000168e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000168e&#58;&nbsp;</TD><TD ALIGN="LEFT">lrv</TD><TD ALIGN="LEFT">%r5, 0xd0(%r11)</TD></TR></TABLE> }>];
+"0x80001694" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80001694&#58;&nbsp;</TD><TD ALIGN="LEFT">l</TD><TD ALIGN="LEFT">%r7, 0xb8(%r11)</TD></TR></TABLE> }>];
+"0x80001698" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80001698&#58;&nbsp;</TD><TD ALIGN="LEFT">clrjh</TD><TD ALIGN="LEFT">%r7, %r5, 0x800016d2</TD></TR></TABLE> }>];
+"0x80001676" -> "0x8000167c" [style=solid, label=r0, tooltip="RAW: r0; WAW: r0"];
+"0x8000167c" -> "0x80001682" [style=solid, label=r0, tooltip="RAW: r0"];
+"0x80001682" -> "0x80001686" [style=solid, label=r5, tooltip="RAW: r5; WAW: r5_32"];
+"0x80001686" -> "0x8000168a" [style=solid, label="r5_32", tooltip="RAW: r5_32"];
+"0x80001686" -> "0x8000168e" [style=dotted, label="620, 621, 622, 623", tooltip="WAW: 620, 621, 622, 623"];
+"0x8000168a" -> "0x8000168e" [style=solid, label="[r11+0xd0]", tooltip="RAW: mem[entry_r11+0xd0]:4; WAR: 620, 621, 622, 623"];
+"0x8000168e" -> "0x80001698" [style=solid, label="r5_32", tooltip="RAW: r5_32"];
+"0x80001694" -> "0x80001698" [style=solid, label="r7_32", tooltip="RAW: r7_32"];
+}

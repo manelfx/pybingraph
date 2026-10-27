@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10fac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10fac&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [r5, &#35;0x30]</TD></TR></TABLE> }>];
+"0x10fb0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10fb0&#58;&nbsp;</TD><TD ALIGN="LEFT">orr</TD><TD ALIGN="LEFT">r3, r3, &#35;0x2000</TD></TR></TABLE> }>];
+"0x10fb4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10fb4&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [r5, &#35;0x30]</TD></TR></TABLE> }>];
+"0x10fb8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10fb8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, &#35;0</TD></TR></TABLE> }>];
+"0x10fbc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10fbc&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">&#35;0x11444</TD></TR></TABLE> }>];
+"0x10fac" -> "0x10fb0" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x10fac" -> "0x10fb4" [style=dashed, label="[r5+0x30]", tooltip="WAR: mem[entry_r5+0x30]:4"];
+"0x10fb0" -> "0x10fb4" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x10fb0" -> "0x10fb8" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0x10fb4" -> "0x10fb8" [style=dashed, label=r3, tooltip="WAR: r3"];
+}

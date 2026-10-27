@@ -1,0 +1,36 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1200046e8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1200046e8&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v1, 0x38($fp)</TD></TR></TABLE> }>];
+"0x1200046ec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1200046ec&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, -0x7fe0($gp)</TD></TR></TABLE> }>];
+"0x1200046f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1200046f0&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$v0, $v0, -0x75e0</TD></TR></TABLE> }>];
+"0x1200046f4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1200046f4&#58;&nbsp;</TD><TD ALIGN="LEFT">dsubu</TD><TD ALIGN="LEFT">$v0, $v1, $v0</TD></TR></TABLE> }>];
+"0x1200046f8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1200046f8&#58;&nbsp;</TD><TD ALIGN="LEFT">sltiu</TD><TD ALIGN="LEFT">$v0, $v0, 1</TD></TR></TABLE> }>];
+"0x1200046fc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1200046fc&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">$v0, 0x34($fp)</TD></TR></TABLE> }>];
+"0x120004700" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004700&#58;&nbsp;</TD><TD ALIGN="LEFT">lui</TD><TD ALIGN="LEFT">$v0, 0x7fff</TD></TR></TABLE> }>];
+"0x120004704" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004704&#58;&nbsp;</TD><TD ALIGN="LEFT">ori</TD><TD ALIGN="LEFT">$v0, $v0, 0xfffe</TD></TR></TABLE> }>];
+"0x120004708" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004708&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$v0, 0x30($fp)</TD></TR></TABLE> }>];
+"0x12000470c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000470c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v1, 0x30($fp)</TD></TR></TABLE> }>];
+"0x120004710" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004710&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 0x50($fp)</TD></TR></TABLE> }>];
+"0x120004714" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004714&#58;&nbsp;</TD><TD ALIGN="LEFT">slt</TD><TD ALIGN="LEFT">$v0, $v1, $v0</TD></TR></TABLE> }>];
+"0x120004718" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004718&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">$v0, 0x120004730</TD></TR></TABLE> }>];
+"0x12000471c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000471c&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x1200046e8" -> "0x1200046f4" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x1200046e8" -> "0x12000470c" [style=dotted, label=v1, tooltip="WAW: v1"];
+"0x1200046ec" -> "0x1200046f0" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x1200046f0" -> "0x1200046f4" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x1200046f4" -> "0x1200046f8" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x1200046f4" -> "0x12000470c" [style=dashed, label=v1, tooltip="WAR: v1"];
+"0x1200046f8" -> "0x1200046fc" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x1200046f8" -> "0x120004700" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x1200046fc" -> "0x120004700" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x120004700" -> "0x120004704" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x120004704" -> "0x120004708" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x120004704" -> "0x120004710" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x120004708" -> "0x12000470c" [style=solid, label="[s8+0x30]", tooltip="RAW: mem[entry_s8+0x30]:4"];
+"0x120004708" -> "0x120004710" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x12000470c" -> "0x120004714" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x120004710" -> "0x120004714" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x120004714" -> "0x120004718" [style=solid, label=v0, tooltip="RAW: v0"];
+}

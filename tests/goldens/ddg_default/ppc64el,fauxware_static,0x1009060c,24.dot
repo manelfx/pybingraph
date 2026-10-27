@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1009060c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1009060c&#58;&nbsp;</TD><TD ALIGN="LEFT">lbz</TD><TD ALIGN="LEFT">r8, 5(r5)</TD></TR></TABLE> }>];
+"0x10090610" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10090610&#58;&nbsp;</TD><TD ALIGN="LEFT">sldi</TD><TD ALIGN="LEFT">r9, r9, 4</TD></TR></TABLE> }>];
+"0x10090614" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10090614&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r5, r5, 5</TD></TR></TABLE> }>];
+"0x10090618" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10090618&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r9, r10, r9</TD></TR></TABLE> }>];
+"0x1009061c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1009061c&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpdi</TD><TD ALIGN="LEFT">cr7, r8, 0</TD></TR></TABLE> }>];
+"0x10090620" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10090620&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">cr7, 0x1009065c</TD></TR></TABLE> }>];
+"0x1009060c" -> "0x10090614" [style=dashed, label=gpr5, tooltip="WAR: gpr5"];
+"0x1009060c" -> "0x1009061c" [style=solid, label=gpr8, tooltip="RAW: gpr8"];
+"0x10090610" -> "0x10090618" [style=solid, label=gpr9, tooltip="RAW: gpr9; WAW: gpr9"];
+"0x1009061c" -> "0x10090620" [style=solid, label="cr7_321", tooltip="RAW: cr7_321"];
+}

@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40a3dc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40a3dc&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r9, 0x10(r1)</TD></TR></TABLE> }>];
+"0x40a3e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40a3e0&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r10, 4(r9)</TD></TR></TABLE> }>];
+"0x40a3e4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40a3e4&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r8, 0(r9)</TD></TR></TABLE> }>];
+"0x40a3e8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40a3e8&#58;&nbsp;</TD><TD ALIGN="LEFT">slwi</TD><TD ALIGN="LEFT">r10, r10, 3</TD></TR></TABLE> }>];
+"0x40a3ec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40a3ec&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r10, r10, 8</TD></TR></TABLE> }>];
+"0x40a3f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40a3f0&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r10, r8, r10</TD></TR></TABLE> }>];
+"0x40a3f4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40a3f4&#58;&nbsp;</TD><TD ALIGN="LEFT">stw</TD><TD ALIGN="LEFT">r10, 0(r9)</TD></TR></TABLE> }>];
+"0x40a3dc" -> "0x40a3e0" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x40a3dc" -> "0x40a3e4" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x40a3dc" -> "0x40a3f4" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x40a3e0" -> "0x40a3e8" [style=solid, label=gpr10, tooltip="RAW: gpr10; WAW: gpr10"];
+"0x40a3e4" -> "0x40a3f0" [style=solid, label=gpr8, tooltip="RAW: gpr8"];
+"0x40a3e4" -> "0x40a3f4" [style=dashed, label="[gpr9]", tooltip="WAR: mem[ddg_unknown_1]:4"];
+"0x40a3e8" -> "0x40a3ec" [style=solid, label=gpr10, tooltip="RAW: gpr10; WAW: gpr10"];
+"0x40a3ec" -> "0x40a3f0" [style=solid, label=gpr10, tooltip="RAW: gpr10; WAW: gpr10"];
+"0x40a3f0" -> "0x40a3f4" [style=solid, label=gpr10, tooltip="RAW: gpr10"];
+}

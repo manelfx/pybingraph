@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8003723" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003723&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [sp]</TD></TR></TABLE> }>];
+"0x8003725" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003725&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">sl, r0</TD></TR></TABLE> }>];
+"0x8003727" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003727&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r0, &#35;0</TD></TR></TABLE> }>];
+"0x8003729" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003729&#58;&nbsp;</TD><TD ALIGN="LEFT">bne.w</TD><TD ALIGN="LEFT">&#35;0x8003551</TD></TR></TABLE> }>];
+"0x8003723" -> "0x8003725" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8003725" -> "0x8003727" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8003727" -> "0x8003729" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+}

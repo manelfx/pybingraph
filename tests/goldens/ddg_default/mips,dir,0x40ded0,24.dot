@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40ded0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ded0&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v1, $v0, -1</TD></TR></TABLE> }>];
+"0x40ded4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ded4&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a1, $zero, 0x2f</TD></TR></TABLE> }>];
+"0x40ded8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ded8&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$a2, $s0, $v1</TD></TR></TABLE> }>];
+"0x40dedc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dedc&#58;&nbsp;</TD><TD ALIGN="LEFT">lb</TD><TD ALIGN="LEFT">$a2, ($a2)</TD></TR></TABLE> }>];
+"0x40dee0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dee0&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">$a2, $a1, 0x40defc</TD></TR></TABLE> }>];
+"0x40dee4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dee4&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$v0, $s0, $v0</TD></TR></TABLE> }>];
+"0x40ded0" -> "0x40ded8" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x40ded0" -> "0x40dee4" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x40ded4" -> "0x40dee0" [style=solid, label=a1, tooltip="RAW: a1"];
+"0x40ded8" -> "0x40dedc" [style=solid, label=a2, tooltip="RAW: a2; WAW: a2"];
+"0x40dedc" -> "0x40dee0" [style=solid, label=a2, tooltip="RAW: a2"];
+}

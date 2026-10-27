@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x405910" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405910&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edi, dword ptr [esp]</TD></TR></TABLE> }>];
+"0x405913" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405913&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, esi</TD></TR></TABLE> }>];
+"0x405915" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405915&#58;&nbsp;</TD><TD ALIGN="LEFT">shl</TD><TD ALIGN="LEFT">edi, cl</TD></TR></TABLE> }>];
+"0x405917" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405917&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">edi, eax</TD></TR></TABLE> }>];
+"0x405919" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405919&#58;&nbsp;</TD><TD ALIGN="LEFT">jae</TD><TD ALIGN="LEFT">0x40591f</TD></TR></TABLE> }>];
+"0x405910" -> "0x405915" [style=solid, label=edi, tooltip="RAW: edi; WAW: edi"];
+"0x405913" -> "0x405915" [style=solid, label=cl, tooltip="RAW: cl"];
+"0x405915" -> "0x405917" [style=solid, label=edi, tooltip="RAW: edi; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x405917" -> "0x405919" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

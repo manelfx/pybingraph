@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8006513c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006513c&#58;&nbsp;</TD><TD ALIGN="LEFT">sllg</TD><TD ALIGN="LEFT">%r1, %r1, 0xffd(%r2)</TD></TR></TABLE> }>];
+"0x80065142" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80065142&#58;&nbsp;</TD><TD ALIGN="LEFT">lgfr</TD><TD ALIGN="LEFT">%r5, %r0</TD></TR></TABLE> }>];
+"0x80065146" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80065146&#58;&nbsp;</TD><TD ALIGN="LEFT">ahi</TD><TD ALIGN="LEFT">%r2, -4</TD></TR></TABLE> }>];
+"0x8006514a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006514a&#58;&nbsp;</TD><TD ALIGN="LEFT">sllg</TD><TD ALIGN="LEFT">%r5, %r5, 3</TD></TR></TABLE> }>];
+"0x80065150" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80065150&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r10, %r7</TD></TR></TABLE> }>];
+"0x80065154" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80065154&#58;&nbsp;</TD><TD ALIGN="LEFT">og</TD><TD ALIGN="LEFT">%r1, 0x130(%r5, %r15)</TD></TR></TABLE> }>];
+"0x8006515a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006515a&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r1, 0x130(%r5, %r15)</TD></TR></TABLE> }>];
+"0x80065160" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80065160&#58;&nbsp;</TD><TD ALIGN="LEFT">j</TD><TD ALIGN="LEFT">0x80064f88</TD></TR></TABLE> }>];
+"0x8006513c" -> "0x80065146" [style=dashed, label="r2_32", tooltip="WAR: r2_32"];
+"0x8006513c" -> "0x80065154" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
+"0x80065142" -> "0x8006514a" [style=solid, label=r5, tooltip="RAW: r5; WAW: r5"];
+"0x80065146" -> "0x80065154" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8006514a" -> "0x80065154" [style=solid, label=r5, tooltip="RAW: r5"];
+"0x8006514a" -> "0x8006515a" [style=solid, label=r5, tooltip="RAW: r5"];
+"0x80065154" -> "0x8006515a" [style=solid, label=r1, tooltip="RAW: r1; WAR: mem[<BV64 entry_r15 + (SignExt(32, entry_r0[31:0]) << 0x3) + 0x130>]:8"];
+}

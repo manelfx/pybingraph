@@ -167,7 +167,7 @@ def test_demangle_api_default_and_request_overrides(
             if override is not None:
                 assert f"&demangle={str(override).lower()}" in response.text
         else:
-            assert calls[-1][-1] is expected
+            assert calls[-1][7] is expected
         assert symbols[0].name == MANGLED
 
 

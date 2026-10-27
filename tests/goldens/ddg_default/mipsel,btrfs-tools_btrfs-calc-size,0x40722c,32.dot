@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40722c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40722c&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$s6, $v0</TD></TR></TABLE> }>];
+"0x407230" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x407230&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $zero, 0x19</TD></TR></TABLE> }>];
+"0x407234" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x407234&#58;&nbsp;</TD><TD ALIGN="LEFT">mult</TD><TD ALIGN="LEFT">$s6, $v0</TD></TR></TABLE> }>];
+"0x407238" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x407238&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v1, 0x38($s1)</TD></TR></TABLE> }>];
+"0x40723c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40723c&#58;&nbsp;</TD><TD ALIGN="LEFT">mflo</TD><TD ALIGN="LEFT">$v0</TD></TR></TABLE> }>];
+"0x407240" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x407240&#58;&nbsp;</TD><TD ALIGN="LEFT">sltu</TD><TD ALIGN="LEFT">$v0, $v1, $v0</TD></TR></TABLE> }>];
+"0x407244" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x407244&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">$v0, 0x407284</TD></TR></TABLE> }>];
+"0x407248" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x407248&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$gp, 0x20($sp)</TD></TR></TABLE> }>];
+"0x40722c" -> "0x407230" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x40722c" -> "0x407234" [style=solid, label=s6, tooltip="RAW: s6"];
+"0x407230" -> "0x407234" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x407230" -> "0x40723c" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x407234" -> "0x40723c" [style=solid, label=lo, tooltip="RAW: lo; WAR: v0"];
+"0x407238" -> "0x407240" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x40723c" -> "0x407240" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x407240" -> "0x407244" [style=solid, label=v0, tooltip="RAW: v0"];
+}

@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1006a140" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006a140&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r8, r3, -0x10</TD></TR></TABLE> }>];
+"0x1006a144" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006a144&#58;&nbsp;</TD><TD ALIGN="LEFT">vspltisb</TD><TD ALIGN="LEFT">v11, -1</TD></TR></TABLE> }>];
+"0x1006a148" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006a148&#58;&nbsp;</TD><TD ALIGN="LEFT">vadduqm</TD><TD ALIGN="LEFT">v11, v3, v11</TD></TR></TABLE> }>];
+"0x1006a14c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006a14c&#58;&nbsp;</TD><TD ALIGN="LEFT">vandc</TD><TD ALIGN="LEFT">v11, v11, v3</TD></TR></TABLE> }>];
+"0x1006a150" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006a150&#58;&nbsp;</TD><TD ALIGN="LEFT">vpopcntd</TD><TD ALIGN="LEFT">v2, v11</TD></TR></TABLE> }>];
+"0x1006a154" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006a154&#58;&nbsp;</TD><TD ALIGN="LEFT">vspltb</TD><TD ALIGN="LEFT">v11, v2, 0xf</TD></TR></TABLE> }>];
+"0x1006a158" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006a158&#58;&nbsp;</TD><TD ALIGN="LEFT">vcmpequb.</TD><TD ALIGN="LEFT">v11, v11, v9</TD></TR></TABLE> }>];
+"0x1006a15c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006a15c&#58;&nbsp;</TD><TD ALIGN="LEFT">blt</TD><TD ALIGN="LEFT">cr6, 0x1006a168</TD></TR></TABLE> }>];
+"0x1006a144" -> "0x1006a148" [style=solid, label=vsr43, tooltip="RAW: vsr43; WAW: vsr43"];
+"0x1006a148" -> "0x1006a14c" [style=solid, label=vsr43, tooltip="RAW: vsr43; WAW: vsr43"];
+"0x1006a14c" -> "0x1006a150" [style=solid, label=vsr43, tooltip="RAW: vsr43"];
+"0x1006a14c" -> "0x1006a154" [style=dotted, label=vsr43, tooltip="WAW: vsr43"];
+"0x1006a150" -> "0x1006a154" [style=solid, label=vsr34, tooltip="RAW: vsr34; WAR: vsr43"];
+"0x1006a154" -> "0x1006a158" [style=solid, label=vsr43, tooltip="RAW: vsr43; WAW: vsr43"];
+"0x1006a158" -> "0x1006a15c" [style=solid, label="cr6_321", tooltip="RAW: cr6_321"];
+}

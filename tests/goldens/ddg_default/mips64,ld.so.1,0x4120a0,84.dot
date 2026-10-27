@@ -1,0 +1,37 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4120a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120a0&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll32</TD><TD ALIGN="LEFT">$a3, $a0, 0</TD></TR></TABLE> }>];
+"0x4120a4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120a4&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 8($s0)</TD></TR></TABLE> }>];
+"0x4120a8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120a8&#58;&nbsp;</TD><TD ALIGN="LEFT">dsrl32</TD><TD ALIGN="LEFT">$a3, $a3, 0</TD></TR></TABLE> }>];
+"0x4120ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120ac&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$a3, $a3, 0x60</TD></TR></TABLE> }>];
+"0x4120b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120b0&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a1, 0x10($s0)</TD></TR></TABLE> }>];
+"0x4120b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120b4&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll</TD><TD ALIGN="LEFT">$a3, $a3, 4</TD></TR></TABLE> }>];
+"0x4120b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120b8&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$t2, 0x30($sp)</TD></TR></TABLE> }>];
+"0x4120bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120bc&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$a2, $s1, $a3</TD></TR></TABLE> }>];
+"0x4120c0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120c0&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$a3, $v0, $a3</TD></TR></TABLE> }>];
+"0x4120c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120c4&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a0, $sp</TD></TR></TABLE> }>];
+"0x4120c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120c8&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$v1, 0x48($sp)</TD></TR></TABLE> }>];
+"0x4120cc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120cc&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$t5, 0x50($sp)</TD></TR></TABLE> }>];
+"0x4120d0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120d0&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$t6, 0x58($sp)</TD></TR></TABLE> }>];
+"0x4120d4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120d4&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$s2, 0x18($sp)</TD></TR></TABLE> }>];
+"0x4120d8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120d8&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$a2, $a2, 8</TD></TR></TABLE> }>];
+"0x4120dc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120dc&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$a3, $a3, 8</TD></TR></TABLE> }>];
+"0x4120e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120e0&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$t0, $s5</TD></TR></TABLE> }>];
+"0x4120e4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120e4&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$t1, $sp, 0x20</TD></TR></TABLE> }>];
+"0x4120e8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120e8&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$t9, $t4</TD></TR></TABLE> }>];
+"0x4120ec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120ec&#58;&nbsp;</TD><TD ALIGN="LEFT">jalr</TD><TD ALIGN="LEFT">$t9</TD></TR></TABLE> }>];
+"0x4120f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4120f0&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$t3, $sp, 0x18</TD></TR></TABLE> }>];
+"0x4120a0" -> "0x4120a8" [style=solid, label=a3, tooltip="RAW: a3; WAW: a3"];
+"0x4120a0" -> "0x4120c4" [style=dashed, label=a0, tooltip="WAR: a0"];
+"0x4120a4" -> "0x4120c0" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x4120a8" -> "0x4120ac" [style=solid, label=a3, tooltip="RAW: a3; WAW: a3"];
+"0x4120ac" -> "0x4120b4" [style=solid, label=a3, tooltip="RAW: a3; WAW: a3"];
+"0x4120b4" -> "0x4120bc" [style=solid, label=a3, tooltip="RAW: a3"];
+"0x4120b4" -> "0x4120c0" [style=solid, label=a3, tooltip="RAW: a3; WAW: a3"];
+"0x4120bc" -> "0x4120c0" [style=dashed, label=a3, tooltip="WAR: a3"];
+"0x4120bc" -> "0x4120d8" [style=solid, label=a2, tooltip="RAW: a2; WAW: a2"];
+"0x4120c0" -> "0x4120dc" [style=solid, label=a3, tooltip="RAW: a3; WAW: a3"];
+"0x4120e8" -> "0x4120ec" [style=solid, label=t9, tooltip="RAW: t9"];
+}

@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80862b3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80862b3&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, edx</TD></TR></TABLE> }>];
+"0x80862b5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80862b5&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">eax, ecx</TD></TR></TABLE> }>];
+"0x80862b7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80862b7&#58;&nbsp;</TD><TD ALIGN="LEFT">sete</TD><TD ALIGN="LEFT">al</TD></TR></TABLE> }>];
+"0x80862ba" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80862ba&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, al</TD></TR></TABLE> }>];
+"0x80862bd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80862bd&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0x60], eax</TD></TR></TABLE> }>];
+"0x80862c1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80862c1&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8086938</TD></TR></TABLE> }>];
+"0x80862b3" -> "0x80862b5" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x80862b5" -> "0x80862b7" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: al"];
+"0x80862b5" -> "0x80862ba" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x80862b7" -> "0x80862ba" [style=solid, label=al, tooltip="RAW: al; WAW: eax"];
+"0x80862ba" -> "0x80862bd" [style=solid, label=eax, tooltip="RAW: eax"];
+}

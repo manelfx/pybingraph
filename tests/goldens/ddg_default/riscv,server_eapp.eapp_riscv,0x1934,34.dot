@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1934" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1934&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x40(s0)</TD></TR></TABLE> }>];
+"0x1938" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1938&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a5, a5, -0x28</TD></TR></TABLE> }>];
+"0x193c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x193c&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a5, -0x28(s0)</TD></TR></TABLE> }>];
+"0x1940" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1940&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a5, s0, -0x30</TD></TR></TABLE> }>];
+"0x1944" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1944&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a3, zero, 0x20</TD></TR></TABLE> }>];
+"0x1948" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1948&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a2, -0x28(s0)</TD></TR></TABLE> }>];
+"0x194c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x194c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a1, -0x38(s0)</TD></TR></TABLE> }>];
+"0x1950" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1950&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a0, a5</TD></TR></TABLE> }>];
+"0x1952" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1952&#58;&nbsp;</TD><TD ALIGN="LEFT">jal</TD><TD ALIGN="LEFT">0x19de</TD></TR></TABLE> }>];
+"0x1934" -> "0x1938" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x1938" -> "0x193c" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x1938" -> "0x1940" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x193c" -> "0x1940" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x193c" -> "0x1948" [style=solid, label="[s0-0x28]", tooltip="RAW: mem[entry_s0-0x28]:8"];
+"0x1940" -> "0x1950" [style=solid, label=a5, tooltip="RAW: a5"];
+}

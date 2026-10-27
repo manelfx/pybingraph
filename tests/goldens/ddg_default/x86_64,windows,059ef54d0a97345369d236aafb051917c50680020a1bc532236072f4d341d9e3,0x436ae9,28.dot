@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x436ae9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x436ae9&#58;&nbsp;</TD><TD ALIGN="LEFT">xorps</TD><TD ALIGN="LEFT">xmm15, xmm15</TD></TR></TABLE> }>];
+"0x436aed" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x436aed&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r14, qword ptr [rip + 0x12cab4]</TD></TR></TABLE> }>];
+"0x436af4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x436af4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r14, qword ptr gs&#58;[r14]</TD></TR></TABLE> }>];
+"0x436af8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x436af8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r14, qword ptr [r14]</TD></TR></TABLE> }>];
+"0x436afb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x436afb&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD ALIGN="LEFT">dword ptr [rax + rax]</TD></TR></TABLE> }>];
+"0x436b00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x436b00&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x42db60</TD></TR></TABLE> }>];
+"0x436aed" -> "0x436af4" [style=solid, label=r14, tooltip="RAW: r14; WAW: r14"];
+"0x436af4" -> "0x436af8" [style=solid, label=r14, tooltip="RAW: r14; WAW: r14"];
+}

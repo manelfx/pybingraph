@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x425fbc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x425fbc&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a0, 0xc($s4)</TD></TR></TABLE> }>];
+"0x425fc0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x425fc0&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a0, $a0, -1</TD></TR></TABLE> }>];
+"0x425fc4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x425fc4&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x425bdc</TD></TR></TABLE> }>];
+"0x425fc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x425fc8&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$a0, 0xc($s4)</TD></TR></TABLE> }>];
+"0x425fbc" -> "0x425fc0" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x425fbc" -> "0x425fc8" [style=dashed, label="[s4+0xc]", tooltip="WAR: mem[entry_s4+0xc]:4"];
+"0x425fc0" -> "0x425fc8" [style=solid, label=a0, tooltip="RAW: a0"];
+}

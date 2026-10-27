@@ -6,6 +6,7 @@ IMAGE_PLATFORM ?=
 # These are commands, not filesystem targets. Declaring them phony prevents
 # existing directories such as `tests/` from making Make skip their recipes.
 .PHONY: units format format-check lint typecheck check compatibility coverage goldens \
+	goldens-cfg goldens-ddg goldens-cfg-checkpoint goldens-ddg-checkpoint \
 	goldens-checkpoint goldens-promote goldens-symbols badges badges-check python-matrix image
 
 # Run the default fast unit-test suite selected by pytest's `testpaths` setting.
@@ -78,27 +79,38 @@ coverage:
 	$(UV) coverage erase
 	$(UV) pytest -v --cov=bingraph --cov-append --cov-report= tests/units
 	$(UV) pytest -v -m checkpoint --cov=bingraph --cov-append --cov-report= \
-		tests/goldens/test_cfg_goldens.py
+		tests/goldens/test_cfg_goldens.py tests/goldens/test_ddg_goldens.py
 	$(UV) coverage report
 	$(UV) coverage html
 
+# Run both full graph suites and the independent symbol-corpus audit.
+goldens: goldens-cfg goldens-ddg goldens-symbols
+
 # Render and compare the complete CFG golden matrix. This can be expensive and
-# writes fresh candidate artifacts under `tests/_actual/`. It also verifies
-# that application symbol discovery remains aligned with the CSV corpus.
-goldens: goldens-symbols
+# writes fresh candidate artifacts under `tests/_actual/`.
+goldens-cfg:
 	$(UV) pytest -v --durations=5 tests/goldens/test_cfg_goldens.py
+
+# Frozen DDG blocks, one case each using default settings.
+goldens-ddg:
+	$(UV) pytest -v --durations=5 tests/goldens/test_ddg_goldens.py
 
 # Render and compare only checkpoint-marked goldens. The selected-test set
 # keeps the full-corpus summary and non-checkpoint `_actual` artifacts intact.
 # Set `BINGRAPH_GOLDEN_CONFIGS` in the environment to choose configurations.
-goldens-checkpoint:
+goldens-checkpoint: goldens-cfg-checkpoint goldens-ddg-checkpoint
+
+goldens-cfg-checkpoint:
 	$(UV) pytest -v --durations=5 -m checkpoint tests/goldens/test_cfg_goldens.py
+
+goldens-ddg-checkpoint:
+	$(UV) pytest -v --durations=5 -m checkpoint tests/goldens/test_ddg_goldens.py
 
 # Copy complete existing `_actual` trees into `tests/goldens/` without
 # rerendering CFGs. Run a full compare-mode golden suite before promoting.
 goldens-promote:
 	BINGRAPH_GOLDEN_MODE=promote \
-		$(UV) pytest -v tests/goldens/test_cfg_goldens.py
+		$(UV) pytest -v tests/goldens/test_cfg_goldens.py tests/goldens/test_ddg_goldens.py
 
 # Compare application symbol discovery against the CSV corpus, loading one
 # playground binary per test case. This is a semantic audit, not a renderer,

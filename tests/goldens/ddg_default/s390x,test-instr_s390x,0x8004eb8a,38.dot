@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8004eb8a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004eb8a&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">%f8, 0xb0(%r11)</TD></TR></TABLE> }>];
+"0x8004eb8e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004eb8e&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">%f10, 0xb8(%r11)</TD></TR></TABLE> }>];
+"0x8004eb92" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004eb92&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">%f12, 0xc0(%r11)</TD></TR></TABLE> }>];
+"0x8004eb96" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004eb96&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">%f14, 0xc8(%r11)</TD></TR></TABLE> }>];
+"0x8004eb9a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004eb9a&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">%f9, 0xd0(%r11)</TD></TR></TABLE> }>];
+"0x8004eb9e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004eb9e&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">%f11, 0xd8(%r11)</TD></TR></TABLE> }>];
+"0x8004eba2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004eba2&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r4, 0x150(%r11)</TD></TR></TABLE> }>];
+"0x8004eba8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004eba8&#58;&nbsp;</TD><TD ALIGN="LEFT">lmg</TD><TD ALIGN="LEFT">%r6, %r15, 0x110(%r11)</TD></TR></TABLE> }>];
+"0x8004ebae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004ebae&#58;&nbsp;</TD><TD ALIGN="LEFT">br</TD><TD ALIGN="LEFT">%r4</TD></TR></TABLE> }>];
+"0x8004eb8a" -> "0x8004eba8" [style=dashed, label=r11, tooltip="WAR: r11"];
+"0x8004eb8e" -> "0x8004eba8" [style=dashed, label=r11, tooltip="WAR: r11"];
+"0x8004eb92" -> "0x8004eba8" [style=dashed, label=r11, tooltip="WAR: r11"];
+"0x8004eb96" -> "0x8004eba8" [style=dashed, label=r11, tooltip="WAR: r11"];
+"0x8004eb9a" -> "0x8004eba8" [style=dashed, label=r11, tooltip="WAR: r11"];
+"0x8004eb9e" -> "0x8004eba8" [style=dashed, label=r11, tooltip="WAR: r11"];
+"0x8004eba2" -> "0x8004eba8" [style=dashed, label=r11, tooltip="WAR: r11"];
+"0x8004eba2" -> "0x8004ebae" [style=solid, label=r4, tooltip="RAW: r4"];
+}

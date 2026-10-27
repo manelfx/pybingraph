@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40d560" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40d560&#58;&nbsp;</TD><TD ALIGN="LEFT">shr</TD><TD ALIGN="LEFT">eax, 4</TD></TR></TABLE> }>];
+"0x40d563" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40d563&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">eax, 1</TD></TR></TABLE> }>];
+"0x40d566" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40d566&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">sil, 0xa</TD></TR></TABLE> }>];
+"0x40d56a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40d56a&#58;&nbsp;</TD><TD ALIGN="LEFT">setne</TD><TD ALIGN="LEFT">dl</TD></TR></TABLE> }>];
+"0x40d56d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40d56d&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">eax, edx</TD></TR></TABLE> }>];
+"0x40d56f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40d56f&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">eax, 1</TD></TR></TABLE> }>];
+"0x40d572" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40d572&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">r8d, al</TD></TR></TABLE> }>];
+"0x40d576" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40d576&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x40d40c</TD></TR></TABLE> }>];
+"0x40d560" -> "0x40d563" [style=solid, label=eax, tooltip="RAW: eax; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, rax"];
+"0x40d563" -> "0x40d566" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40d563" -> "0x40d56d" [style=solid, label=eax, tooltip="RAW: eax; WAW: rax"];
+"0x40d566" -> "0x40d56a" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40d566" -> "0x40d56d" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40d56a" -> "0x40d56d" [style=solid, label=edx, tooltip="RAW: edx; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40d56d" -> "0x40d56f" [style=solid, label=eax, tooltip="RAW: eax; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, rax"];
+"0x40d56f" -> "0x40d572" [style=solid, label=al, tooltip="RAW: al"];
+}

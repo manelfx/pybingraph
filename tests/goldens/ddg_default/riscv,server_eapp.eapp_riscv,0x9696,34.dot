@@ -1,0 +1,26 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x9696" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x9696&#58;&nbsp;</TD><TD ALIGN="LEFT">sraiw</TD><TD ALIGN="LEFT">a4, a5, 3</TD></TR></TABLE> }>];
+"0x969a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x969a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a4, a1</TD></TR></TABLE> }>];
+"0x969c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x969c&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">a4, 0(a4)</TD></TR></TABLE> }>];
+"0x96a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x96a0&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">a2, a5, 7</TD></TR></TABLE> }>];
+"0x96a4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x96a4&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">a3, a0, a5</TD></TR></TABLE> }>];
+"0x96a8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x96a8&#58;&nbsp;</TD><TD ALIGN="LEFT">sraw</TD><TD ALIGN="LEFT">a4, a4, a2</TD></TR></TABLE> }>];
+"0x96ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x96ac&#58;&nbsp;</TD><TD ALIGN="LEFT">c.andi</TD><TD ALIGN="LEFT">a4, 1</TD></TR></TABLE> }>];
+"0x96ae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x96ae&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">a4, 0(a3)</TD></TR></TABLE> }>];
+"0x96b2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x96b2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a5, 1</TD></TR></TABLE> }>];
+"0x96b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x96b4&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">a5, a6, -0x1e</TD></TR></TABLE> }>];
+"0x9696" -> "0x969a" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x9696" -> "0x96b2" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x969a" -> "0x969c" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x969c" -> "0x96a8" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x96a0" -> "0x96a8" [style=solid, label=a2, tooltip="RAW: a2"];
+"0x96a0" -> "0x96b2" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x96a4" -> "0x96ae" [style=solid, label=a3, tooltip="RAW: a3"];
+"0x96a4" -> "0x96b2" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x96a8" -> "0x96ac" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x96ac" -> "0x96ae" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x96b2" -> "0x96b4" [style=solid, label=a5, tooltip="RAW: a5"];
+}

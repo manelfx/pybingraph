@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4391ea" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4391ea&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 0x160]</TD></TR></TABLE> }>];
+"0x4391f2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4391f2&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">ebx, ebx</TD></TR></TABLE> }>];
+"0x4391f4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4391f4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, ebx</TD></TR></TABLE> }>];
+"0x4391f6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4391f6&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x168</TD></TR></TABLE> }>];
+"0x4391fd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4391fd&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR></TABLE> }>];
+"0x4391fe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4391fe&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x4391ea" -> "0x4391f6" [style=dashed, label=rsp, tooltip="WAR: rsp"];
+"0x4391f2" -> "0x4391f4" [style=solid, label=ebx, tooltip="RAW: ebx"];
+"0x4391f2" -> "0x4391f6" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4391f6" -> "0x4391fd" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x4391fd" -> "0x4391fe" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+}

@@ -1,0 +1,33 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x465344" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465344&#58;&nbsp;</TD><TD ALIGN="LEFT">cmn</TD><TD ALIGN="LEFT">r4, &#35;0x1000</TD></TR></TABLE> }>];
+"0x465348" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465348&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, &#35;0x40</TD></TR></TABLE> }>];
+"0x46534c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46534c&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r4, [r4]</TD></TR></TABLE> }>];
+"0x465350" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465350&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r1, r4, &#35;8</TD></TR></TABLE> }>];
+"0x465354" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465354&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r2, r4, &#35;0xd0</TD></TR></TABLE> }>];
+"0x465358" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465358&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r1, [r4, &#35;8]</TD></TR></TABLE> }>];
+"0x46535c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46535c&#58;&nbsp;</TD><TD ALIGN="LEFT">movt</TD><TD ALIGN="LEFT">r3, &#35;0x100</TD></TR></TABLE> }>];
+"0x465360" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465360&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r2, [r4, &#35;0xd0]</TD></TR></TABLE> }>];
+"0x465364" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465364&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r4, [r4, &#35;4]</TD></TR></TABLE> }>];
+"0x465368" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465368&#58;&nbsp;</TD><TD ALIGN="LEFT">movhi</TD><TD ALIGN="LEFT">r0, r4</TD></TR></TABLE> }>];
+"0x46536c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46536c&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r5, [r4, &#35;0x130]</TD></TR></TABLE> }>];
+"0x465370" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465370&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r5, [r4, &#35;0x148]</TD></TR></TABLE> }>];
+"0x465374" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465374&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r5, [r4, &#35;0x150]</TD></TR></TABLE> }>];
+"0x465378" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465378&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r1, [r4, &#35;0xc]</TD></TR></TABLE> }>];
+"0x46537c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46537c&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r2, [r4, &#35;0xd4]</TD></TR></TABLE> }>];
+"0x465380" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465380&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [r4, &#35;0x144]</TD></TR></TABLE> }>];
+"0x465384" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465384&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r5, [r4, &#35;0x158]</TD></TR></TABLE> }>];
+"0x465388" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465388&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [r4, &#35;0x14c]</TD></TR></TABLE> }>];
+"0x46538c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46538c&#58;&nbsp;</TD><TD ALIGN="LEFT">bhi</TD><TD ALIGN="LEFT">&#35;0x4653e8</TD></TR></TABLE> }>];
+"0x465344" -> "0x465368" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x465344" -> "0x46538c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x465348" -> "0x46535c" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x465350" -> "0x465358" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x465350" -> "0x465378" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x465354" -> "0x465360" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x465354" -> "0x46537c" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x46535c" -> "0x465380" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x46535c" -> "0x465388" [style=solid, label=r3, tooltip="RAW: r3"];
+}

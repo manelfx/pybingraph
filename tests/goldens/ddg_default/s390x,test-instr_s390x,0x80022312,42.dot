@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80022312" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80022312&#58;&nbsp;</TD><TD ALIGN="LEFT">sgrk</TD><TD ALIGN="LEFT">%r12, %r1, %r12</TD></TR></TABLE> }>];
+"0x80022316" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80022316&#58;&nbsp;</TD><TD ALIGN="LEFT">lgdr</TD><TD ALIGN="LEFT">%r1, %f2</TD></TR></TABLE> }>];
+"0x8002231a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002231a&#58;&nbsp;</TD><TD ALIGN="LEFT">lgdr</TD><TD ALIGN="LEFT">%r8, %f0</TD></TR></TABLE> }>];
+"0x8002231e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002231e&#58;&nbsp;</TD><TD ALIGN="LEFT">l</TD><TD ALIGN="LEFT">%r3, 0x10(%r10)</TD></TR></TABLE> }>];
+"0x80022322" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80022322&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r1, 0(%r12, %r1)</TD></TR></TABLE> }>];
+"0x80022326" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80022326&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r12, %r1</TD></TR></TABLE> }>];
+"0x8002232a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002232a&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r1, 0xc0(%r15)</TD></TR></TABLE> }>];
+"0x80022330" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80022330&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r12, 0(%r1)</TD></TR></TABLE> }>];
+"0x80022336" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80022336&#58;&nbsp;</TD><TD ALIGN="LEFT">mvhi</TD><TD ALIGN="LEFT">0(%r11), 0</TD></TR></TABLE> }>];
+"0x80022312" -> "0x80022316" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x80022312" -> "0x80022322" [style=solid, label=r12, tooltip="RAW: r12"];
+"0x80022312" -> "0x80022326" [style=dotted, label=r12, tooltip="WAW: r12"];
+"0x80022316" -> "0x80022322" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
+"0x80022322" -> "0x80022326" [style=solid, label=r1, tooltip="RAW: r1; WAR: r12"];
+"0x80022322" -> "0x8002232a" [style=dotted, label=r1, tooltip="WAW: r1"];
+"0x80022326" -> "0x8002232a" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x80022326" -> "0x80022330" [style=solid, label=r12, tooltip="RAW: r12"];
+"0x8002232a" -> "0x80022330" [style=solid, label=r1, tooltip="RAW: r1"];
+}

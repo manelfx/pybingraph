@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x415637" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x415637&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">eax, dword ptr [ebx + 0x900]</TD></TR></TABLE> }>];
+"0x41563d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41563d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, eax</TD></TR></TABLE> }>];
+"0x41563f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41563f&#58;&nbsp;</TD><TD ALIGN="LEFT">cmove</TD><TD ALIGN="LEFT">edx, dword ptr [ebx + 0x904]</TD></TR></TABLE> }>];
+"0x415646" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x415646&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">eax, edi</TD></TR></TABLE> }>];
+"0x415648" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x415648&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebx + 0x900], eax</TD></TR></TABLE> }>];
+"0x41564e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41564e&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">ecx, [edx + esi]</TD></TR></TABLE> }>];
+"0x415637" -> "0x41563f" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x415637" -> "0x415646" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x415637" -> "0x415646" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x415637" -> "0x415648" [style=dashed, label="[ebx+0x900]", tooltip="WAR: mem[entry_ebx+0x900]:4"];
+"0x41563d" -> "0x41563f" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x41563d" -> "0x415646" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x41563f" -> "0x415646" [style=dashed, label=flags, tooltip="WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x41563f" -> "0x41564e" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x415646" -> "0x415648" [style=solid, label=eax, tooltip="RAW: eax"];
+}

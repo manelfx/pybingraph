@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x43ca98" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ca98&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, ($s0)</TD></TR></TABLE> }>];
+"0x43ca9c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ca9c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s1, 0x48($sp)</TD></TR></TABLE> }>];
+"0x43caa0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43caa0&#58;&nbsp;</TD><TD ALIGN="LEFT">ori</TD><TD ALIGN="LEFT">$v0, $v0, 0x200</TD></TR></TABLE> }>];
+"0x43caa4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43caa4&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$v0, ($s0)</TD></TR></TABLE> }>];
+"0x43caa8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43caa8&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $s1, -1</TD></TR></TABLE> }>];
+"0x43caac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43caac&#58;&nbsp;</TD><TD ALIGN="LEFT">sltiu</TD><TD ALIGN="LEFT">$v0, $v0, 0x1fff</TD></TR></TABLE> }>];
+"0x43cab0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43cab0&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">$v0, 0x43ca4c</TD></TR></TABLE> }>];
+"0x43cab4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43cab4&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t9, -0x7d9c($gp)</TD></TR></TABLE> }>];
+"0x43ca98" -> "0x43caa0" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x43ca98" -> "0x43caa4" [style=dashed, label="[s0]", tooltip="WAR: mem[entry_s0]:4"];
+"0x43ca9c" -> "0x43caa8" [style=solid, label=s1, tooltip="RAW: s1"];
+"0x43caa0" -> "0x43caa4" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x43caa0" -> "0x43caa8" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x43caa4" -> "0x43caa8" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x43caa8" -> "0x43caac" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x43caac" -> "0x43cab0" [style=solid, label=v0, tooltip="RAW: v0"];
+}

@@ -1,0 +1,26 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x7bec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7bec&#58;&nbsp;</TD><TD ALIGN="LEFT">srai</TD><TD ALIGN="LEFT">a5, s10, 3</TD></TR></TABLE> }>];
+"0x7bf0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7bf0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a5, s6</TD></TR></TABLE> }>];
+"0x7bf2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7bf2&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">a5, 0(a5)</TD></TR></TABLE> }>];
+"0x7bf6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7bf6&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">a4, s10, 7</TD></TR></TABLE> }>];
+"0x7bfa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7bfa&#58;&nbsp;</TD><TD ALIGN="LEFT">sext.w</TD><TD ALIGN="LEFT">a2, s7</TD></TR></TABLE> }>];
+"0x7bfe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7bfe&#58;&nbsp;</TD><TD ALIGN="LEFT">sraw</TD><TD ALIGN="LEFT">a6, a5, a4</TD></TR></TABLE> }>];
+"0x7c02" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7c02&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">s7, a6, 1</TD></TR></TABLE> }>];
+"0x7c06" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7c06&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">a2, s7, a2</TD></TR></TABLE> }>];
+"0x7c0a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7c0a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a1, s11</TD></TR></TABLE> }>];
+"0x7c0c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7c0c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a0, s4</TD></TR></TABLE> }>];
+"0x7c0e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7c0e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">a2, 8(sp)</TD></TR></TABLE> }>];
+"0x7c10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7c10&#58;&nbsp;</TD><TD ALIGN="LEFT">jal</TD><TD ALIGN="LEFT">-0x6da</TD></TR></TABLE> }>];
+"0x7bec" -> "0x7bf0" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x7bf0" -> "0x7bf2" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x7bf2" -> "0x7bfe" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x7bf6" -> "0x7bfe" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x7bfa" -> "0x7c02" [style=dashed, label=s7, tooltip="WAR: s7"];
+"0x7bfa" -> "0x7c06" [style=solid, label=a2, tooltip="RAW: a2; WAW: a2"];
+"0x7bfe" -> "0x7c02" [style=solid, label=a6, tooltip="RAW: a6"];
+"0x7c02" -> "0x7c06" [style=solid, label=s7, tooltip="RAW: s7"];
+"0x7c06" -> "0x7c0e" [style=solid, label=a2, tooltip="RAW: a2"];
+}

@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40fe3c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fe3c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldur</TD><TD ALIGN="LEFT">x1, [x21, &#35;-8]</TD></TR></TABLE> }>];
+"0x40fe40" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fe40&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">x0, [x19, &#35;0x438]</TD></TR></TABLE> }>];
+"0x40fe44" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fe44&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">x22, x1</TD></TR></TABLE> }>];
+"0x40fe48" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fe48&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">x2, x0, &#35;1</TD></TR></TABLE> }>];
+"0x40fe4c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fe4c&#58;&nbsp;</TD><TD ALIGN="LEFT">csel</TD><TD ALIGN="LEFT">x22, x22, x1, hs</TD></TR></TABLE> }>];
+"0x40fe50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fe50&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">x2, &#35;1</TD></TR></TABLE> }>];
+"0x40fe54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fe54&#58;&nbsp;</TD><TD ALIGN="LEFT">b.hi</TD><TD ALIGN="LEFT">&#35;0x40fdc0</TD></TR></TABLE> }>];
+"0x40fe3c" -> "0x40fe44" [style=solid, label=x1, tooltip="RAW: x1"];
+"0x40fe3c" -> "0x40fe4c" [style=solid, label=x1, tooltip="RAW: x1"];
+"0x40fe40" -> "0x40fe48" [style=solid, label=x0, tooltip="RAW: x0"];
+"0x40fe44" -> "0x40fe4c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAR: x22"];
+"0x40fe44" -> "0x40fe50" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40fe48" -> "0x40fe50" [style=solid, label=x2, tooltip="RAW: x2"];
+"0x40fe4c" -> "0x40fe50" [style=dashed, label=flags, tooltip="WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40fe50" -> "0x40fe54" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

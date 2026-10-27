@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x118c2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x118c2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a1, 0(s1)</TD></TR></TABLE> }>];
+"0x118c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x118c4&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a5, 0x40(s0)</TD></TR></TABLE> }>];
+"0x118c6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x118c6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">s1, 8</TD></TR></TABLE> }>];
+"0x118c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x118c8&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">s0, 8</TD></TR></TABLE> }>];
+"0x118ca" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x118ca&#58;&nbsp;</TD><TD ALIGN="LEFT">c.xor</TD><TD ALIGN="LEFT">a1, a5</TD></TR></TABLE> }>];
+"0x118cc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x118cc&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">a1, a1, t6</TD></TR></TABLE> }>];
+"0x118d0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x118d0&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a1, -8(s1)</TD></TR></TABLE> }>];
+"0x118d4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x118d4&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">a4, s0, -0x16</TD></TR></TABLE> }>];
+"0x118c2" -> "0x118c6" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x118c2" -> "0x118ca" [style=solid, label=a1, tooltip="RAW: a1; WAW: a1"];
+"0x118c2" -> "0x118d0" [style=dashed, label="[s1]", tooltip="WAR: mem[entry_s1]:8"];
+"0x118c4" -> "0x118c8" [style=dashed, label=s0, tooltip="WAR: s0"];
+"0x118c4" -> "0x118ca" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x118c6" -> "0x118d0" [style=solid, label=s1, tooltip="RAW: s1"];
+"0x118c8" -> "0x118d4" [style=solid, label=s0, tooltip="RAW: s0"];
+"0x118ca" -> "0x118cc" [style=solid, label=a1, tooltip="RAW: a1; WAW: a1"];
+"0x118cc" -> "0x118d0" [style=solid, label=a1, tooltip="RAW: a1"];
+}

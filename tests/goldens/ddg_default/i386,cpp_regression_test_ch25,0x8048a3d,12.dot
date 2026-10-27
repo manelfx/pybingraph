@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8048a3d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a3d&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [eax]</TD></TR></TABLE> }>];
+"0x8048a40" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a40&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">al, al</TD></TR></TABLE> }>];
+"0x8048a42" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a42&#58;&nbsp;</TD><TD ALIGN="LEFT">setne</TD><TD ALIGN="LEFT">al</TD></TR></TABLE> }>];
+"0x8048a45" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a45&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">al, al</TD></TR></TABLE> }>];
+"0x8048a47" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a47&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x80489cf</TD></TR></TABLE> }>];
+"0x8048a3d" -> "0x8048a40" [style=solid, label=al, tooltip="RAW: al"];
+"0x8048a3d" -> "0x8048a42" [style=dotted, label=al, tooltip="WAW: al"];
+"0x8048a40" -> "0x8048a42" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAR: al"];
+"0x8048a40" -> "0x8048a45" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8048a42" -> "0x8048a45" [style=solid, label=al, tooltip="RAW: al; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8048a45" -> "0x8048a47" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

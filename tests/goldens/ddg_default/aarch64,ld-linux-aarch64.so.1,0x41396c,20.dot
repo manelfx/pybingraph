@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x41396c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41396c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">x0, [x19, &#35;0x118]</TD></TR></TABLE> }>];
+"0x413970" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413970&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">x1, x19, &#35;0x118</TD></TR></TABLE> }>];
+"0x413974" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413974&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">x2, x0</TD></TR></TABLE> }>];
+"0x413978" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413978&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">x0, x2</TD></TR></TABLE> }>];
+"0x41397c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41397c&#58;&nbsp;</TD><TD ALIGN="LEFT">b.eq</TD><TD ALIGN="LEFT">&#35;0x4139d0</TD></TR></TABLE> }>];
+"0x41396c" -> "0x413974" [style=solid, label=x0, tooltip="RAW: x0"];
+"0x41396c" -> "0x413978" [style=dotted, label=x0, tooltip="WAW: x0"];
+"0x413974" -> "0x413978" [style=dashed, label=x0, tooltip="WAR: x0"];
+"0x413974" -> "0x41397c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

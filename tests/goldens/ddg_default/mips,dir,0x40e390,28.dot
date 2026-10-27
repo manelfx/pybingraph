@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40e390" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40e390&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$s1, $s1, $v0</TD></TR></TABLE> }>];
+"0x40e394" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40e394&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $zero, 0x2f</TD></TR></TABLE> }>];
+"0x40e398" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40e398&#58;&nbsp;</TD><TD ALIGN="LEFT">lb</TD><TD ALIGN="LEFT">$s5, -1($s1)</TD></TR></TABLE> }>];
+"0x40e39c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40e39c&#58;&nbsp;</TD><TD ALIGN="LEFT">lb</TD><TD ALIGN="LEFT">$s1, ($s3)</TD></TR></TABLE> }>];
+"0x40e3a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40e3a0&#58;&nbsp;</TD><TD ALIGN="LEFT">xori</TD><TD ALIGN="LEFT">$s5, $s5, 0x2f</TD></TR></TABLE> }>];
+"0x40e3a4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40e3a4&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">$s1, $v0, 0x40e474</TD></TR></TABLE> }>];
+"0x40e3a8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40e3a8&#58;&nbsp;</TD><TD ALIGN="LEFT">sltu</TD><TD ALIGN="LEFT">$s5, $zero, $s5</TD></TR></TABLE> }>];
+"0x40e390" -> "0x40e394" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x40e390" -> "0x40e398" [style=solid, label=s1, tooltip="RAW: s1"];
+"0x40e390" -> "0x40e39c" [style=dotted, label=s1, tooltip="WAW: s1"];
+"0x40e394" -> "0x40e3a4" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x40e398" -> "0x40e39c" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x40e398" -> "0x40e3a0" [style=solid, label=s5, tooltip="RAW: s5; WAW: s5"];
+"0x40e39c" -> "0x40e3a4" [style=solid, label=s1, tooltip="RAW: s1"];
+"0x40e3a0" -> "0x40e3a8" [style=solid, label=s5, tooltip="RAW: s5; WAW: s5"];
+}

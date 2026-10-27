@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4082f8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4082f8&#58;&nbsp;</TD><TD ALIGN="LEFT">subss</TD><TD ALIGN="LEFT">xmm0, dword ptr [rip + 0x21bc]</TD></TR></TABLE> }>];
+"0x408300" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x408300&#58;&nbsp;</TD><TD ALIGN="LEFT">cvttss2si</TD><TD ALIGN="LEFT">rsi, xmm0</TD></TR></TABLE> }>];
+"0x408305" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x408305&#58;&nbsp;</TD><TD ALIGN="LEFT">movabs</TD><TD ALIGN="LEFT">rax, 0x8000000000000000</TD></TR></TABLE> }>];
+"0x40830f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40830f&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">rsi, rax</TD></TR></TABLE> }>];
+"0x4082f8" -> "0x408300" [style=solid, label=zmm0, tooltip="RAW: zmm0"];
+"0x408300" -> "0x40830f" [style=solid, label=rsi, tooltip="RAW: rsi; WAW: rsi"];
+"0x408305" -> "0x40830f" [style=solid, label=rax, tooltip="RAW: rax"];
+}

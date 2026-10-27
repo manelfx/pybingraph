@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80051206" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80051206&#58;&nbsp;</TD><TD ALIGN="LEFT">lhi</TD><TD ALIGN="LEFT">%r2, 0xb</TD></TR></TABLE> }>];
+"0x8005120a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005120a&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r1, 0xa0(%r15)</TD></TR></TABLE> }>];
+"0x80051210" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80051210&#58;&nbsp;</TD><TD ALIGN="LEFT">st</TD><TD ALIGN="LEFT">%r2, 0x10(%r1)</TD></TR></TABLE> }>];
+"0x80051214" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80051214&#58;&nbsp;</TD><TD ALIGN="LEFT">sgr</TD><TD ALIGN="LEFT">%r12, %r3</TD></TR></TABLE> }>];
+"0x80051218" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80051218&#58;&nbsp;</TD><TD ALIGN="LEFT">ahik</TD><TD ALIGN="LEFT">%r2, %r12, 1</TD></TR></TABLE> }>];
+"0x8005121e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005121e&#58;&nbsp;</TD><TD ALIGN="LEFT">st</TD><TD ALIGN="LEFT">%r2, 0xc(%r1)</TD></TR></TABLE> }>];
+"0x80051222" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80051222&#58;&nbsp;</TD><TD ALIGN="LEFT">lhi</TD><TD ALIGN="LEFT">%r2, 1</TD></TR></TABLE> }>];
+"0x80051226" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80051226&#58;&nbsp;</TD><TD ALIGN="LEFT">j</TD><TD ALIGN="LEFT">0x80051158</TD></TR></TABLE> }>];
+"0x80051206" -> "0x80051210" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
+"0x80051206" -> "0x80051218" [style=dotted, label="r2_32", tooltip="WAW: r2_32"];
+"0x8005120a" -> "0x80051210" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x8005120a" -> "0x8005121e" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x80051210" -> "0x80051218" [style=dashed, label="r2_32", tooltip="WAR: r2_32"];
+"0x80051214" -> "0x80051218" [style=solid, label="r12_32", tooltip="RAW: r12_32; WAW: 736, 744, 752, 760"];
+"0x80051218" -> "0x8005121e" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
+"0x80051218" -> "0x80051222" [style=dotted, label="r2_32", tooltip="WAW: r2_32"];
+"0x8005121e" -> "0x80051222" [style=dashed, label="r2_32", tooltip="WAR: r2_32"];
+}

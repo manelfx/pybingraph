@@ -1,0 +1,25 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x82b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x82b&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r3, r3, r0</TD></TR></TABLE> }>];
+"0x82d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x82d&#58;&nbsp;</TD><TD ALIGN="LEFT">udiv</TD><TD ALIGN="LEFT">r0, r3, r8</TD></TR></TABLE> }>];
+"0x831" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x831&#58;&nbsp;</TD><TD ALIGN="LEFT">mls</TD><TD ALIGN="LEFT">r3, r8, r0, r3</TD></TR></TABLE> }>];
+"0x835" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x835&#58;&nbsp;</TD><TD ALIGN="LEFT">mul</TD><TD ALIGN="LEFT">sb, sb, r0</TD></TR></TABLE> }>];
+"0x839" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x839&#58;&nbsp;</TD><TD ALIGN="LEFT">uxth</TD><TD ALIGN="LEFT">r4, r4</TD></TR></TABLE> }>];
+"0x83b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x83b&#58;&nbsp;</TD><TD ALIGN="LEFT">orr.w</TD><TD ALIGN="LEFT">r4, r4, r3, lsl &#35;16</TD></TR></TABLE> }>];
+"0x83f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x83f&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">sb, r4</TD></TR></TABLE> }>];
+"0x841" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x841&#58;&nbsp;</TD><TD ALIGN="LEFT">bls</TD><TD ALIGN="LEFT">&#35;0x853</TD></TR></TABLE> }>];
+"0x82b" -> "0x82d" [style=solid, label=r3, tooltip="RAW: r3; WAR: r0; WAW: itstate"];
+"0x82b" -> "0x831" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x82b" -> "0x83f" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x82d" -> "0x831" [style=solid, label=r0, tooltip="RAW: r0; WAR: r3; WAW: itstate"];
+"0x82d" -> "0x835" [style=solid, label=r0, tooltip="RAW: r0"];
+"0x831" -> "0x835" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x831" -> "0x83b" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x835" -> "0x839" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x835" -> "0x83f" [style=solid, label=r9, tooltip="RAW: r9"];
+"0x839" -> "0x83b" [style=solid, label=r4, tooltip="RAW: r4; WAW: itstate, r4"];
+"0x83b" -> "0x83f" [style=solid, label=r4, tooltip="RAW: r4; WAW: itstate"];
+"0x83f" -> "0x841" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+}

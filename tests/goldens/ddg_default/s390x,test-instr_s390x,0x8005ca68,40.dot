@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8005ca68" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005ca68&#58;&nbsp;</TD><TD ALIGN="LEFT">stmg</TD><TD ALIGN="LEFT">%r11, %r15, 0x58(%r15)</TD></TR></TABLE> }>];
+"0x8005ca6e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005ca6e&#58;&nbsp;</TD><TD ALIGN="LEFT">ogrk</TD><TD ALIGN="LEFT">%r1, %r3, %r4</TD></TR></TABLE> }>];
+"0x8005ca72" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005ca72&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r12, %r3</TD></TR></TABLE> }>];
+"0x8005ca76" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005ca76&#58;&nbsp;</TD><TD ALIGN="LEFT">lay</TD><TD ALIGN="LEFT">%r15, -0xa0(%r15)</TD></TR></TABLE> }>];
+"0x8005ca7c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005ca7c&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r13, %r2</TD></TR></TABLE> }>];
+"0x8005ca80" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005ca80&#58;&nbsp;</TD><TD ALIGN="LEFT">msgr</TD><TD ALIGN="LEFT">%r12, %r4</TD></TR></TABLE> }>];
+"0x8005ca84" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005ca84&#58;&nbsp;</TD><TD ALIGN="LEFT">srlg</TD><TD ALIGN="LEFT">%r1, %r1, 0x20</TD></TR></TABLE> }>];
+"0x8005ca8a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005ca8a&#58;&nbsp;</TD><TD ALIGN="LEFT">cgije</TD><TD ALIGN="LEFT">%r1, 0, 0x8005ca96</TD></TR></TABLE> }>];
+"0x8005ca68" -> "0x8005ca72" [style=dashed, label=r12, tooltip="WAR: r12"];
+"0x8005ca68" -> "0x8005ca76" [style=dashed, label=r15, tooltip="WAR: r15"];
+"0x8005ca68" -> "0x8005ca7c" [style=dashed, label=r13, tooltip="WAR: r13"];
+"0x8005ca6e" -> "0x8005ca84" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
+"0x8005ca72" -> "0x8005ca80" [style=solid, label=r12, tooltip="RAW: r12; WAW: r12"];
+"0x8005ca84" -> "0x8005ca8a" [style=solid, label=r1, tooltip="RAW: r1"];
+}

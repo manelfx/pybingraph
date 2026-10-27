@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4003ef" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4003ef&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrb.w</TD><TD ALIGN="LEFT">r3, [r4, &#35;0x53]</TD></TR></TABLE> }>];
+"0x4003f3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4003f3&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r3, &#35;0x41</TD></TR></TABLE> }>];
+"0x4003f5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4003f5&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0x19</TD></TR></TABLE> }>];
+"0x4003f7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4003f7&#58;&nbsp;</TD><TD ALIGN="LEFT">bls.w</TD><TD ALIGN="LEFT">&#35;0x400865</TD></TR></TABLE> }>];
+"0x4003ef" -> "0x4003f3" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
+"0x4003f3" -> "0x4003f5" [style=solid, label=r3, tooltip="RAW: r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+"0x4003f5" -> "0x4003f7" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+}

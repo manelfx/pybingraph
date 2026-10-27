@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80016d60" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80016d60&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r1, 0xb8(%r15)</TD></TR></TABLE> }>];
+"0x80016d66" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80016d66&#58;&nbsp;</TD><TD ALIGN="LEFT">agrk</TD><TD ALIGN="LEFT">%r4, %r8, %r1</TD></TR></TABLE> }>];
+"0x80016d6a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80016d6a&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r4, 0(%r4, %r10)</TD></TR></TABLE> }>];
+"0x80016d6e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80016d6e&#58;&nbsp;</TD><TD ALIGN="LEFT">clgrjhe</TD><TD ALIGN="LEFT">%r6, %r7, 0x80016f8e</TD></TR></TABLE> }>];
+"0x80016d60" -> "0x80016d66" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x80016d66" -> "0x80016d6a" [style=solid, label=r4, tooltip="RAW: r4; WAW: r4"];
+}

@@ -1,0 +1,26 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8081a60" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8081a60&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp - 0x45c]</TD></TR></TABLE> }>];
+"0x8081a66" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8081a66&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">ecx, [eax + 1]</TD></TR></TABLE> }>];
+"0x8081a69" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8081a69&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x45c], ecx</TD></TR></TABLE> }>];
+"0x8081a6f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8081a6f&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [eax + 1]</TD></TR></TABLE> }>];
+"0x8081a73" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8081a73&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [ebp - 0x494], al</TD></TR></TABLE> }>];
+"0x8081a79" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8081a79&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, eax</TD></TR></TABLE> }>];
+"0x8081a7b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8081a7b&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">eax, 0x20</TD></TR></TABLE> }>];
+"0x8081a7e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8081a7e&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">al, 0x5a</TD></TR></TABLE> }>];
+"0x8081a80" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8081a80&#58;&nbsp;</TD><TD ALIGN="LEFT">ja</TD><TD ALIGN="LEFT">0x8081560</TD></TR></TABLE> }>];
+"0x8081a60" -> "0x8081a66" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x8081a60" -> "0x8081a69" [style=dashed, label="[ebp-0x45c]", tooltip="WAR: mem[entry_ebp-0x45c]:4"];
+"0x8081a60" -> "0x8081a6f" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x8081a66" -> "0x8081a69" [style=solid, label=ecx, tooltip="RAW: ecx"];
+"0x8081a66" -> "0x8081a6f" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x8081a6f" -> "0x8081a73" [style=solid, label=al, tooltip="RAW: al"];
+"0x8081a6f" -> "0x8081a79" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x8081a6f" -> "0x8081a7b" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x8081a73" -> "0x8081a7b" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x8081a79" -> "0x8081a7b" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x8081a7b" -> "0x8081a7e" [style=solid, label=al, tooltip="RAW: al; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8081a7e" -> "0x8081a80" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

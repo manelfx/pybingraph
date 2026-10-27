@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x408fc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x408fc8&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v1, 8($s0)</TD></TR></TABLE> }>];
+"0x408fcc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x408fcc&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$a1, 0x20($v0)</TD></TR></TABLE> }>];
+"0x408fd0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x408fd0&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a0, 8($v1)</TD></TR></TABLE> }>];
+"0x408fd4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x408fd4&#58;&nbsp;</TD><TD ALIGN="LEFT">sltiu</TD><TD ALIGN="LEFT">$v0, $a1, 2</TD></TR></TABLE> }>];
+"0x408fd8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x408fd8&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a0, $a0, 1</TD></TR></TABLE> }>];
+"0x408fdc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x408fdc&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">$v0, 0x408fe8</TD></TR></TABLE> }>];
+"0x408fe0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x408fe0&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$a0, 8($v1)</TD></TR></TABLE> }>];
+"0x408fc8" -> "0x408fd0" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x408fc8" -> "0x408fe0" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x408fcc" -> "0x408fd4" [style=solid, label=a1, tooltip="RAW: a1; WAR: v0"];
+"0x408fd0" -> "0x408fd8" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x408fd0" -> "0x408fe0" [style=dashed, label="[v1+0x8]", tooltip="WAR: mem[ddg_unknown_1+0x8]:4"];
+"0x408fd4" -> "0x408fdc" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x408fd8" -> "0x408fe0" [style=solid, label=a0, tooltip="RAW: a0"];
+}

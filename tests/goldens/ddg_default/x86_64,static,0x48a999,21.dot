@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x48a999" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48a999&#58;&nbsp;</TD><TD ALIGN="LEFT">movsxd</TD><TD ALIGN="LEFT">rdx, r9d</TD></TR></TABLE> }>];
+"0x48a99c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48a99c&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">qword ptr [rsp + rdx*8 + 0xa0], 0</TD></TR></TABLE> }>];
+"0x48a9a5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48a9a5&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, 0xffffffff</TD></TR></TABLE> }>];
+"0x48a9aa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48a9aa&#58;&nbsp;</TD><TD ALIGN="LEFT">cmove</TD><TD ALIGN="LEFT">r9d, edx</TD></TR></TABLE> }>];
+"0x48a999" -> "0x48a99c" [style=solid, label=rdx, tooltip="RAW: rdx"];
+"0x48a999" -> "0x48a9a5" [style=dotted, label=rdx, tooltip="WAW: rdx"];
+"0x48a999" -> "0x48a9aa" [style=dashed, label=r9, tooltip="WAR: r9"];
+"0x48a99c" -> "0x48a9a5" [style=dashed, label=rdx, tooltip="WAR: rdx"];
+"0x48a99c" -> "0x48a9aa" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x48a9a5" -> "0x48a9aa" [style=solid, label=edx, tooltip="RAW: edx"];
+}

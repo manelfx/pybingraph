@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x5986" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5986&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, -0x80</TD></TR></TABLE> }>];
+"0x5988" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5988&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s2, 0x60(sp)</TD></TR></TABLE> }>];
+"0x598a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x598a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">ra, 0x78(sp)</TD></TR></TABLE> }>];
+"0x598c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x598c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s0, 0x70(sp)</TD></TR></TABLE> }>];
+"0x598e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x598e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s1, 0x68(sp)</TD></TR></TABLE> }>];
+"0x5990" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5990&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s3, 0x58(sp)</TD></TR></TABLE> }>];
+"0x5992" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5992&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s2, a1</TD></TR></TABLE> }>];
+"0x5994" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5994&#58;&nbsp;</TD><TD ALIGN="LEFT">c.beqz</TD><TD ALIGN="LEFT">a1, 0xae</TD></TR></TABLE> }>];
+"0x5986" -> "0x5988" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5986" -> "0x598a" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5986" -> "0x598c" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5986" -> "0x598e" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5986" -> "0x5990" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5988" -> "0x5992" [style=dashed, label=s2, tooltip="WAR: s2"];
+}

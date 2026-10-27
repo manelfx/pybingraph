@@ -1,0 +1,35 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80615ea" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80615ea&#58;&nbsp;</TD><TD ALIGN="LEFT">movdqa</TD><TD ALIGN="LEFT">xmm1, xmmword ptr [esi + 0x10]</TD></TR></TABLE> }>];
+"0x80615ef" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80615ef&#58;&nbsp;</TD><TD ALIGN="LEFT">movdqa</TD><TD ALIGN="LEFT">xmm2, xmm1</TD></TR></TABLE> }>];
+"0x80615f3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80615f3&#58;&nbsp;</TD><TD ALIGN="LEFT">palignr</TD><TD ALIGN="LEFT">xmm1, xmmword ptr [esi], 5</TD></TR></TABLE> }>];
+"0x80615f9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80615f9&#58;&nbsp;</TD><TD ALIGN="LEFT">pcmpeqb</TD><TD ALIGN="LEFT">xmm1, xmmword ptr [edi]</TD></TR></TABLE> }>];
+"0x80615fd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80615fd&#58;&nbsp;</TD><TD ALIGN="LEFT">movdqa</TD><TD ALIGN="LEFT">xmm3, xmmword ptr [esi + 0x20]</TD></TR></TABLE> }>];
+"0x8061602" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8061602&#58;&nbsp;</TD><TD ALIGN="LEFT">palignr</TD><TD ALIGN="LEFT">xmm3, xmm2, 5</TD></TR></TABLE> }>];
+"0x8061608" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8061608&#58;&nbsp;</TD><TD ALIGN="LEFT">pcmpeqb</TD><TD ALIGN="LEFT">xmm3, xmmword ptr [edi + 0x10]</TD></TR></TABLE> }>];
+"0x806160d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806160d&#58;&nbsp;</TD><TD ALIGN="LEFT">pand</TD><TD ALIGN="LEFT">xmm3, xmm1</TD></TR></TABLE> }>];
+"0x8061611" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8061611&#58;&nbsp;</TD><TD ALIGN="LEFT">pmovmskb</TD><TD ALIGN="LEFT">edx, xmm3</TD></TR></TABLE> }>];
+"0x8061615" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8061615&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">edi, [edi + 0x20]</TD></TR></TABLE> }>];
+"0x8061618" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8061618&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">esi, [esi + 0x20]</TD></TR></TABLE> }>];
+"0x806161b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806161b&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">edx, 0xffff</TD></TR></TABLE> }>];
+"0x8061621" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8061621&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x80620e0</TD></TR></TABLE> }>];
+"0x80615ea" -> "0x80615ef" [style=solid, label=xmm1, tooltip="RAW: xmm1"];
+"0x80615ea" -> "0x80615f3" [style=solid, label=xmm1, tooltip="RAW: xmm1; WAW: xmm1"];
+"0x80615ea" -> "0x8061618" [style=dashed, label=esi, tooltip="WAR: esi"];
+"0x80615ef" -> "0x80615f3" [style=dashed, label=xmm1, tooltip="WAR: xmm1"];
+"0x80615ef" -> "0x8061602" [style=solid, label=xmm2, tooltip="RAW: xmm2"];
+"0x80615f3" -> "0x80615f9" [style=solid, label=xmm1, tooltip="RAW: xmm1; WAW: xmm1"];
+"0x80615f3" -> "0x8061618" [style=dashed, label=esi, tooltip="WAR: esi"];
+"0x80615f9" -> "0x806160d" [style=solid, label=xmm1, tooltip="RAW: xmm1"];
+"0x80615f9" -> "0x8061615" [style=dashed, label=edi, tooltip="WAR: edi"];
+"0x80615fd" -> "0x8061602" [style=solid, label=xmm3, tooltip="RAW: xmm3; WAW: xmm3"];
+"0x80615fd" -> "0x8061618" [style=dashed, label=esi, tooltip="WAR: esi"];
+"0x8061602" -> "0x8061608" [style=solid, label=xmm3, tooltip="RAW: xmm3; WAW: xmm3"];
+"0x8061608" -> "0x806160d" [style=solid, label=xmm3, tooltip="RAW: xmm3; WAW: xmm3"];
+"0x8061608" -> "0x8061615" [style=dashed, label=edi, tooltip="WAR: edi"];
+"0x806160d" -> "0x8061611" [style=solid, label="216, xmm3", tooltip="RAW: 216, xmm3"];
+"0x8061611" -> "0x806161b" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x806161b" -> "0x8061621" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

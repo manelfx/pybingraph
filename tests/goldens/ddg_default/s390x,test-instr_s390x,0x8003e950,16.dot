@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8003e950" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003e950&#58;&nbsp;</TD><TD ALIGN="LEFT">cgr</TD><TD ALIGN="LEFT">%r11, %r2</TD></TR></TABLE> }>];
+"0x8003e954" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003e954&#58;&nbsp;</TD><TD ALIGN="LEFT">lhi</TD><TD ALIGN="LEFT">%r1, 1</TD></TR></TABLE> }>];
+"0x8003e958" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003e958&#58;&nbsp;</TD><TD ALIGN="LEFT">lhi</TD><TD ALIGN="LEFT">%r2, 0</TD></TR></TABLE> }>];
+"0x8003e95c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003e95c&#58;&nbsp;</TD><TD ALIGN="LEFT">locrnhe</TD><TD ALIGN="LEFT">%r1, %r2</TD></TR></TABLE> }>];
+"0x8003e950" -> "0x8003e958" [style=dashed, label="r2_32", tooltip="WAR: r2_32"];
+"0x8003e950" -> "0x8003e95c" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x8003e954" -> "0x8003e95c" [style=dotted, label="r1_32", tooltip="WAW: r1_32"];
+"0x8003e958" -> "0x8003e95c" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
+}

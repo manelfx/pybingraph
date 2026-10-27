@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x413059" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413059&#58;&nbsp;</TD><TD ALIGN="LEFT">xorps</TD><TD ALIGN="LEFT">xmm15, xmm15</TD></TR></TABLE> }>];
+"0x41305d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41305d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r14, qword ptr [rip + 0x150544]</TD></TR></TABLE> }>];
+"0x413064" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413064&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r14, qword ptr gs&#58;[r14]</TD></TR></TABLE> }>];
+"0x413068" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413068&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r14, qword ptr [r14]</TD></TR></TABLE> }>];
+"0x41306b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41306b&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">qword ptr [rsp + 0x28], 0</TD></TR></TABLE> }>];
+"0x413071" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413071&#58;&nbsp;</TD><TD ALIGN="LEFT">sete</TD><TD ALIGN="LEFT">al</TD></TR></TABLE> }>];
+"0x413074" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413074&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [rsp + 0x48]</TD></TR></TABLE> }>];
+"0x413079" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413079&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdx, qword ptr [rsp + 0x40]</TD></TR></TABLE> }>];
+"0x41307e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41307e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, qword ptr [rsp + 0x38]</TD></TR></TABLE> }>];
+"0x413083" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413083&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, eax</TD></TR></TABLE> }>];
+"0x413085" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413085&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 0x68]</TD></TR></TABLE> }>];
+"0x41305d" -> "0x413064" [style=solid, label=r14, tooltip="RAW: r14; WAW: r14"];
+"0x413064" -> "0x413068" [style=solid, label=r14, tooltip="RAW: r14; WAW: r14"];
+"0x41306b" -> "0x413071" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x413071" -> "0x413083" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x413071" -> "0x413085" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x413083" -> "0x413085" [style=dashed, label=rax, tooltip="WAR: rax"];
+}

@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x806c148" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806c148&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [edi + edx*4]</TD></TR></TABLE> }>];
+"0x806c14b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806c14b&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">ecx, 1</TD></TR></TABLE> }>];
+"0x806c14e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806c14e&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">eax, 1</TD></TR></TABLE> }>];
+"0x806c151" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806c151&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [eax - 1], dl</TD></TR></TABLE> }>];
+"0x806c154" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806c154&#58;&nbsp;</TD><TD ALIGN="LEFT">movsx</TD><TD ALIGN="LEFT">edx, byte ptr [ecx]</TD></TR></TABLE> }>];
+"0x806c157" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806c157&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">dl, dl</TD></TR></TABLE> }>];
+"0x806c159" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806c159&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x806c148</TD></TR></TABLE> }>];
+"0x806c148" -> "0x806c151" [style=solid, label=dl, tooltip="RAW: dl"];
+"0x806c148" -> "0x806c154" [style=dotted, label=edx, tooltip="WAW: edx"];
+"0x806c14b" -> "0x806c14e" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x806c14b" -> "0x806c154" [style=solid, label=ecx, tooltip="RAW: ecx"];
+"0x806c14e" -> "0x806c151" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x806c14e" -> "0x806c157" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x806c151" -> "0x806c154" [style=dashed, label=edx, tooltip="WAR: edx"];
+"0x806c154" -> "0x806c157" [style=solid, label=dl, tooltip="RAW: dl"];
+"0x806c157" -> "0x806c159" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

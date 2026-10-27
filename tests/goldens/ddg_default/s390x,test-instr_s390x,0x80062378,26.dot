@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80062378" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80062378&#58;&nbsp;</TD><TD ALIGN="LEFT">lgdr</TD><TD ALIGN="LEFT">%r2, %f8</TD></TR></TABLE> }>];
+"0x8006237c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006237c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldgr</TD><TD ALIGN="LEFT">%f8, %r8</TD></TR></TABLE> }>];
+"0x80062380" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80062380&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r8, %r2</TD></TR></TABLE> }>];
+"0x80062384" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80062384&#58;&nbsp;</TD><TD ALIGN="LEFT">lgf</TD><TD ALIGN="LEFT">%r2, 0xc0(%r15)</TD></TR></TABLE> }>];
+"0x8006238a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006238a&#58;&nbsp;</TD><TD ALIGN="LEFT">ngrk</TD><TD ALIGN="LEFT">%r3, %r2, %r1</TD></TR></TABLE> }>];
+"0x8006238e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006238e&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x800622ea</TD></TR></TABLE> }>];
+"0x80062378" -> "0x8006237c" [style=dashed, label=f8, tooltip="WAR: f8"];
+"0x80062378" -> "0x80062380" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x80062378" -> "0x80062384" [style=dotted, label=r2, tooltip="WAW: r2"];
+"0x8006237c" -> "0x80062380" [style=dashed, label=r8, tooltip="WAR: r8"];
+"0x80062380" -> "0x80062384" [style=dashed, label=r2, tooltip="WAR: r2"];
+"0x80062384" -> "0x8006238a" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x8006238a" -> "0x8006238e" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+}

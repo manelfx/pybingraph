@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1006644c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006644c&#58;&nbsp;</TD><TD ALIGN="LEFT">vmr</TD><TD ALIGN="LEFT">v5, v10</TD></TR></TABLE> }>];
+"0x10066450" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10066450&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r5, r5, -0x10</TD></TR></TABLE> }>];
+"0x10066454" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10066454&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpdi</TD><TD ALIGN="LEFT">cr6, r5, 0</TD></TR></TABLE> }>];
+"0x10066458" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10066458&#58;&nbsp;</TD><TD ALIGN="LEFT">blelr</TD><TD ALIGN="LEFT">cr6</TD></TR></TABLE> }>];
+"0x10066450" -> "0x10066454" [style=solid, label=gpr5, tooltip="RAW: gpr5"];
+"0x10066454" -> "0x10066458" [style=solid, label="cr6_321", tooltip="RAW: cr6_321"];
+}

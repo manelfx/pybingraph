@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8092c87" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8092c87&#58;&nbsp;</TD><TD ALIGN="LEFT">pcmpeqd</TD><TD ALIGN="LEFT">xmm1, xmmword ptr [eax]</TD></TR></TABLE> }>];
+"0x8092c8b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8092c8b&#58;&nbsp;</TD><TD ALIGN="LEFT">pmovmskb</TD><TD ALIGN="LEFT">edx, xmm1</TD></TR></TABLE> }>];
+"0x8092c8f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8092c8f&#58;&nbsp;</TD><TD ALIGN="LEFT">pxor</TD><TD ALIGN="LEFT">xmm2, xmm2</TD></TR></TABLE> }>];
+"0x8092c93" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8092c93&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">edx, edx</TD></TR></TABLE> }>];
+"0x8092c95" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8092c95&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">eax, [eax + 0x10]</TD></TR></TABLE> }>];
+"0x8092c98" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8092c98&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x8092d40</TD></TR></TABLE> }>];
+"0x8092c87" -> "0x8092c8b" [style=solid, label="184, xmm1", tooltip="RAW: 184, xmm1"];
+"0x8092c87" -> "0x8092c95" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x8092c8b" -> "0x8092c93" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x8092c93" -> "0x8092c98" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

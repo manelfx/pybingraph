@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80065632" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80065632&#58;&nbsp;</TD><TD ALIGN="LEFT">l</TD><TD ALIGN="LEFT">%r2, 0xc0(%r15)</TD></TR></TABLE> }>];
+"0x80065636" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80065636&#58;&nbsp;</TD><TD ALIGN="LEFT">agsi</TD><TD ALIGN="LEFT">0xb0(%r15), 0x18</TD></TR></TABLE> }>];
+"0x8006563c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8006563c&#58;&nbsp;</TD><TD ALIGN="LEFT">sll</TD><TD ALIGN="LEFT">%r2, 1</TD></TR></TABLE> }>];
+"0x80065640" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80065640&#58;&nbsp;</TD><TD ALIGN="LEFT">st</TD><TD ALIGN="LEFT">%r2, 0xc0(%r15)</TD></TR></TABLE> }>];
+"0x80065644" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80065644&#58;&nbsp;</TD><TD ALIGN="LEFT">cgije</TD><TD ALIGN="LEFT">%r1, 0, 0x800658c8</TD></TR></TABLE> }>];
+"0x80065632" -> "0x8006563c" [style=solid, label="r2_32", tooltip="RAW: r2_32; WAW: r2_32"];
+"0x80065632" -> "0x80065640" [style=dashed, label="[r15+0xc0]", tooltip="WAR: mem[entry_r15+0xc0]:4"];
+"0x8006563c" -> "0x80065640" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
+}

@@ -1,0 +1,35 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x120004370" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004370&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$sp, $sp, -0x70</TD></TR></TABLE> }>];
+"0x120004374" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004374&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$ra, 0x68($sp)</TD></TR></TABLE> }>];
+"0x120004378" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004378&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$fp, 0x60($sp)</TD></TR></TABLE> }>];
+"0x12000437c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000437c&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$gp, 0x58($sp)</TD></TR></TABLE> }>];
+"0x120004380" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004380&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$fp, $sp</TD></TR></TABLE> }>];
+"0x120004384" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004384&#58;&nbsp;</TD><TD ALIGN="LEFT">lui</TD><TD ALIGN="LEFT">$gp, 2</TD></TR></TABLE> }>];
+"0x120004388" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004388&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$gp, $gp, $t9</TD></TR></TABLE> }>];
+"0x12000438c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000438c&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$gp, $gp, -0x3930</TD></TR></TABLE> }>];
+"0x120004390" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004390&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$a0, 0x30($fp)</TD></TR></TABLE> }>];
+"0x120004394" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004394&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$a1, 0x38($fp)</TD></TR></TABLE> }>];
+"0x120004398" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120004398&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$a2, 0x40($fp)</TD></TR></TABLE> }>];
+"0x12000439c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000439c&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$a3, 0x48($fp)</TD></TR></TABLE> }>];
+"0x1200043a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1200043a0&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 0x48($fp)</TD></TR></TABLE> }>];
+"0x1200043a4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1200043a4&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">$v0, 0x1200043b8</TD></TR></TABLE> }>];
+"0x1200043a8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1200043a8&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x120004370" -> "0x120004374" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x120004370" -> "0x120004378" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x120004370" -> "0x12000437c" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x120004370" -> "0x120004380" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x120004378" -> "0x120004380" [style=dashed, label=s8, tooltip="WAR: s8"];
+"0x12000437c" -> "0x120004384" [style=dashed, label=gp, tooltip="WAR: gp"];
+"0x120004380" -> "0x120004390" [style=solid, label=s8, tooltip="RAW: s8"];
+"0x120004380" -> "0x120004394" [style=solid, label=s8, tooltip="RAW: s8"];
+"0x120004380" -> "0x120004398" [style=solid, label=s8, tooltip="RAW: s8"];
+"0x120004380" -> "0x12000439c" [style=solid, label=s8, tooltip="RAW: s8"];
+"0x120004380" -> "0x1200043a0" [style=solid, label=s8, tooltip="RAW: s8"];
+"0x120004384" -> "0x120004388" [style=solid, label=gp, tooltip="RAW: gp; WAW: gp"];
+"0x120004388" -> "0x12000438c" [style=solid, label=gp, tooltip="RAW: gp; WAW: gp"];
+"0x12000439c" -> "0x1200043a0" [style=solid, label="[sp-0x28]", tooltip="RAW: mem[entry_sp-0x28]:8"];
+"0x1200043a0" -> "0x1200043a4" [style=solid, label=v0, tooltip="RAW: v0"];
+}

@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4093" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4093&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r4</TD></TR></TABLE> }>];
+"0x4095" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4095&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">sp, &#35;0xc</TD></TR></TABLE> }>];
+"0x4097" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4097&#58;&nbsp;</TD><TD ALIGN="LEFT">pop.w</TD><TD ALIGN="LEFT">&#123;r4, r5, r6, r7, r8, sb, sl, fp, lr&#125;</TD></TR></TABLE> }>];
+"0x409b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x409b&#58;&nbsp;</TD><TD ALIGN="LEFT">b.w</TD><TD ALIGN="LEFT">&#35;0x4e03</TD></TR></TABLE> }>];
+"0x4093" -> "0x4095" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4093" -> "0x4097" [style=dashed, label=r4, tooltip="WAR: r4"];
+"0x4095" -> "0x4097" [style=solid, label=sp, tooltip="RAW: sp; WAW: itstate, sp"];
+"0x4097" -> "0x409b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

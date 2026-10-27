@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x411efc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411efc&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 0x18($sp)</TD></TR></TABLE> }>];
+"0x411f00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411f00&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a1, 0x10($s0)</TD></TR></TABLE> }>];
+"0x411f04" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411f04&#58;&nbsp;</TD><TD ALIGN="LEFT">lwu</TD><TD ALIGN="LEFT">$t1, ($v0)</TD></TR></TABLE> }>];
+"0x411f08" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411f08&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 0x30($sp)</TD></TR></TABLE> }>];
+"0x411f0c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411f0c&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$t2, 0x48($sp)</TD></TR></TABLE> }>];
+"0x411f10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411f10&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$a2, $a2, 8</TD></TR></TABLE> }>];
+"0x411f14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411f14&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$a3, $a3, 8</TD></TR></TABLE> }>];
+"0x411f18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411f18&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$t0, $sp, 0x20</TD></TR></TABLE> }>];
+"0x411f1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411f1c&#58;&nbsp;</TD><TD ALIGN="LEFT">jalr</TD><TD ALIGN="LEFT">$t9</TD></TR></TABLE> }>];
+"0x411f20" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411f20&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$t1, $v0, $t1</TD></TR></TABLE> }>];
+"0x411efc" -> "0x411f04" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x411efc" -> "0x411f08" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x411f04" -> "0x411f08" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x411f04" -> "0x411f20" [style=solid, label=t1, tooltip="RAW: t1; WAW: t1"];
+"0x411f08" -> "0x411f20" [style=solid, label=v0, tooltip="RAW: v0"];
+}

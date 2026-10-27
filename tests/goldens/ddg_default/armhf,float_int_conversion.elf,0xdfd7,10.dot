@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xdfd7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xdfd7&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrd</TD><TD ALIGN="LEFT">r2, r0, [sp, &#35;0x38]</TD></TR></TABLE> }>];
+"0xdfdb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xdfdb&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r7, sb</TD></TR></TABLE> }>];
+"0xdfdd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xdfdd&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r1, r2, &#35;1</TD></TR></TABLE> }>];
+"0xdfdf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xdfdf&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">&#35;0xd963</TD></TR></TABLE> }>];
+"0xdfd7" -> "0xdfdb" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xdfd7" -> "0xdfdd" [style=solid, label=r2, tooltip="RAW: r2"];
+"0xdfdb" -> "0xdfdd" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xdfdd" -> "0xdfdf" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

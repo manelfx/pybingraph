@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40fac4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fac4&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a0, $s1</TD></TR></TABLE> }>];
+"0x40fac8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fac8&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$gp, 0x10($sp)</TD></TR></TABLE> }>];
+"0x40facc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40facc&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$ra, 0x24($sp)</TD></TR></TABLE> }>];
+"0x40fad0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fad0&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s2, 0x20($sp)</TD></TR></TABLE> }>];
+"0x40fad4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fad4&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s1, 0x1c($sp)</TD></TR></TABLE> }>];
+"0x40fad8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fad8&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s0, 0x18($sp)</TD></TR></TABLE> }>];
+"0x40fadc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fadc&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t9, -0x7c98($gp)</TD></TR></TABLE> }>];
+"0x40fae0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fae0&#58;&nbsp;</TD><TD ALIGN="LEFT">jr</TD><TD ALIGN="LEFT">$t9</TD></TR></TABLE> }>];
+"0x40fae4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fae4&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$sp, $sp, 0x28</TD></TR></TABLE> }>];
+"0x40fac4" -> "0x40fad4" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x40fac8" -> "0x40fadc" [style=solid, label=gp, tooltip="RAW: gp"];
+"0x40fac8" -> "0x40fae4" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x40facc" -> "0x40fae4" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x40fad0" -> "0x40fae4" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x40fad4" -> "0x40fae4" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x40fad8" -> "0x40fae4" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x40fadc" -> "0x40fae0" [style=solid, label=t9, tooltip="RAW: t9"];
+}

@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xee95" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xee95&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr.w</TD><TD ALIGN="LEFT">r3, [r2, r4, lsl &#35;2]</TD></TR></TABLE> }>];
+"0xee99" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xee99&#58;&nbsp;</TD><TD ALIGN="LEFT">movs</TD><TD ALIGN="LEFT">r0, &#35;1</TD></TR></TABLE> }>];
+"0xee9b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xee9b&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">r2, r2, r4, lsl &#35;2</TD></TR></TABLE> }>];
+"0xee9f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xee9f&#58;&nbsp;</TD><TD ALIGN="LEFT">cbz</TD><TD ALIGN="LEFT">r3, &#35;0xeeb7</TD></TR></TABLE> }>];
+"0xee95" -> "0xee99" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xee95" -> "0xee9b" [style=dashed, label=r2, tooltip="WAR: r2"];
+"0xee95" -> "0xee9f" [style=solid, label=r3, tooltip="RAW: r3"];
+"0xee99" -> "0xee9b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xee9b" -> "0xee9f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

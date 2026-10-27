@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1003936c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003936c&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r9, r3, 8</TD></TR></TABLE> }>];
+"0x10039370" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10039370&#58;&nbsp;</TD><TD ALIGN="LEFT">ldbrx</TD><TD ALIGN="LEFT">r10, 0, r9</TD></TR></TABLE> }>];
+"0x10039374" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10039374&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r9, r4, 8</TD></TR></TABLE> }>];
+"0x10039378" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10039378&#58;&nbsp;</TD><TD ALIGN="LEFT">ldbrx</TD><TD ALIGN="LEFT">r8, 0, r9</TD></TR></TABLE> }>];
+"0x1003937c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003937c&#58;&nbsp;</TD><TD ALIGN="LEFT">subf.</TD><TD ALIGN="LEFT">r9, r8, r10</TD></TR></TABLE> }>];
+"0x10039380" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10039380&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">0x10039330</TD></TR></TABLE> }>];
+"0x1003936c" -> "0x10039370" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x1003936c" -> "0x10039374" [style=dotted, label=gpr9, tooltip="WAW: gpr9"];
+"0x10039370" -> "0x10039374" [style=dashed, label=gpr9, tooltip="WAR: gpr9"];
+"0x10039370" -> "0x1003937c" [style=solid, label=gpr10, tooltip="RAW: gpr10"];
+"0x10039374" -> "0x10039378" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x10039374" -> "0x1003937c" [style=dotted, label=gpr9, tooltip="WAW: gpr9"];
+"0x10039378" -> "0x1003937c" [style=solid, label=gpr8, tooltip="RAW: gpr8; WAR: gpr9"];
+"0x1003937c" -> "0x10039380" [style=solid, label="cr0_321", tooltip="RAW: cr0_321"];
+}

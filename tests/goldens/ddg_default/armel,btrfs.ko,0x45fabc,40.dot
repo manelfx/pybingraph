@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x45fabc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45fabc&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r4, r8, &#35;5</TD></TR></TABLE> }>];
+"0x45fac0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45fac0&#58;&nbsp;</TD><TD ALIGN="LEFT">movw</TD><TD ALIGN="LEFT">r3, &#35;0x7ec</TD></TR></TABLE> }>];
+"0x45fac4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45fac4&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r0, [sp, &#35;0x34]</TD></TR></TABLE> }>];
+"0x45fac8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45fac8&#58;&nbsp;</TD><TD ALIGN="LEFT">movt</TD><TD ALIGN="LEFT">r3, &#35;0x4c</TD></TR></TABLE> }>];
+"0x45facc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45facc&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r1, [pc, &#35;0x150]</TD></TR></TABLE> }>];
+"0x45fad0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45fad0&#58;&nbsp;</TD><TD ALIGN="LEFT">movw</TD><TD ALIGN="LEFT">r2, &#35;0x612</TD></TR></TABLE> }>];
+"0x45fad4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45fad4&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [sp]</TD></TR></TABLE> }>];
+"0x45fad8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45fad8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, r8</TD></TR></TABLE> }>];
+"0x45fadc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45fadc&#58;&nbsp;</TD><TD ALIGN="LEFT">movne</TD><TD ALIGN="LEFT">r4, &#35;1</TD></TR></TABLE> }>];
+"0x45fae0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45fae0&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x4b9b58</TD></TR></TABLE> }>];
+"0x45fabc" -> "0x45fadc" [style=solid, label="flags, r4", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r4; WAW: r4"];
+"0x45fac0" -> "0x45fac8" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x45fac8" -> "0x45fad4" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x45fac8" -> "0x45fad8" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0x45fad4" -> "0x45fad8" [style=dashed, label=r3, tooltip="WAR: r3"];
+}

@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x401aed" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401aed&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [eax], esi</TD></TR></TABLE> }>];
+"0x401aef" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401aef&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0xc</TD></TR></TABLE> }>];
+"0x401af2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401af2&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, 1</TD></TR></TABLE> }>];
+"0x401af7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401af7&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">ebx</TD></TR></TABLE> }>];
+"0x401af8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401af8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, esi</TD></TR></TABLE> }>];
+"0x401afa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401afa&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">esi</TD></TR></TABLE> }>];
+"0x401afb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401afb&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">edi</TD></TR></TABLE> }>];
+"0x401afc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401afc&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">ebp</TD></TR></TABLE> }>];
+"0x401afd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401afd&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x401aed" -> "0x401af2" [style=dashed, label=esi, tooltip="WAR: esi"];
+"0x401aed" -> "0x401af8" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x401aef" -> "0x401af7" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x401af2" -> "0x401af8" [style=solid, label=esi, tooltip="RAW: esi"];
+"0x401af2" -> "0x401afa" [style=dotted, label=esi, tooltip="WAW: esi"];
+"0x401af7" -> "0x401afa" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x401af8" -> "0x401afa" [style=dashed, label=esi, tooltip="WAR: esi"];
+"0x401afa" -> "0x401afb" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x401afb" -> "0x401afc" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x401afc" -> "0x401afd" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+}

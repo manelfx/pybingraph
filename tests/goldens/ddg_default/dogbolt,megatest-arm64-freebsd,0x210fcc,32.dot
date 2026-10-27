@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x210fcc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x210fcc&#58;&nbsp;</TD><TD ALIGN="LEFT">ldp</TD><TD ALIGN="LEFT">x15, x16, [x13, &#35;-8]</TD></TR></TABLE> }>];
+"0x210fd0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x210fd0&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">x14, x14, &#35;2</TD></TR></TABLE> }>];
+"0x210fd4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x210fd4&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">x13, x13, &#35;0x10</TD></TR></TABLE> }>];
+"0x210fd8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x210fd8&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">w15, [x15, &#35;8]</TD></TR></TABLE> }>];
+"0x210fdc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x210fdc&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">w16, [x16, &#35;8]</TD></TR></TABLE> }>];
+"0x210fe0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x210fe0&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">w11, w15, w11</TD></TR></TABLE> }>];
+"0x210fe4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x210fe4&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">w12, w16, w12</TD></TR></TABLE> }>];
+"0x210fe8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x210fe8&#58;&nbsp;</TD><TD ALIGN="LEFT">b.ne</TD><TD ALIGN="LEFT">&#35;0x210fcc</TD></TR></TABLE> }>];
+"0x210fcc" -> "0x210fd4" [style=dashed, label=x13, tooltip="WAR: x13"];
+"0x210fcc" -> "0x210fd8" [style=solid, label=x15, tooltip="RAW: x15; WAW: x15"];
+"0x210fcc" -> "0x210fdc" [style=solid, label=x16, tooltip="RAW: x16; WAW: x16"];
+"0x210fd0" -> "0x210fe8" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x210fd8" -> "0x210fe0" [style=solid, label=w15, tooltip="RAW: w15"];
+"0x210fdc" -> "0x210fe4" [style=solid, label=w16, tooltip="RAW: w16"];
+}

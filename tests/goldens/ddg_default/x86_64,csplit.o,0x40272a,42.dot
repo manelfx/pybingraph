@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40272a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40272a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [rbp - 0x48], 1</TD></TR></TABLE> }>];
+"0x402731" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402731&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [rbp - 0x44], 0</TD></TR></TABLE> }>];
+"0x402738" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402738&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rbp - 0x28], rax</TD></TR></TABLE> }>];
+"0x40273c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40273c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdx, qword ptr [rbp - 0x28]</TD></TR></TABLE> }>];
+"0x402740" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402740&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, dword ptr [rbp - 0x44]</TD></TR></TABLE> }>];
+"0x402743" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402743&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [rbp - 0x48]</TD></TR></TABLE> }>];
+"0x402746" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402746&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, ebx</TD></TR></TABLE> }>];
+"0x402748" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402748&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edi, eax</TD></TR></TABLE> }>];
+"0x40274a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40274a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, 0</TD></TR></TABLE> }>];
+"0x40274f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40274f&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x500050</TD></TR></TABLE> }>];
+"0x40272a" -> "0x402743" [style=solid, label="[rbp-0x48]", tooltip="RAW: mem[entry_rbp-0x48]:4"];
+"0x402731" -> "0x402740" [style=solid, label="[rbp-0x44]", tooltip="RAW: mem[entry_rbp-0x44]:4"];
+"0x402738" -> "0x40273c" [style=solid, label="[rbp-0x28]", tooltip="RAW: mem[entry_rbp-0x28]:8"];
+"0x402738" -> "0x402743" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x402743" -> "0x402748" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x402743" -> "0x40274a" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x402748" -> "0x40274a" [style=dashed, label=rax, tooltip="WAR: rax"];
+}

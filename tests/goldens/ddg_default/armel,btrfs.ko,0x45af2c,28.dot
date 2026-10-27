@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x45af2c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45af2c&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r6, r6, r3</TD></TR></TABLE> }>];
+"0x45af30" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45af30&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r2, r4, r8</TD></TR></TABLE> }>];
+"0x45af34" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45af34&#58;&nbsp;</TD><TD ALIGN="LEFT">adc</TD><TD ALIGN="LEFT">r7, r7, &#35;0</TD></TR></TABLE> }>];
+"0x45af38" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45af38&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, &#35;0</TD></TR></TABLE> }>];
+"0x45af3c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45af3c&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, r7</TD></TR></TABLE> }>];
+"0x45af40" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45af40&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpeq</TD><TD ALIGN="LEFT">r2, r6</TD></TR></TABLE> }>];
+"0x45af44" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45af44&#58;&nbsp;</TD><TD ALIGN="LEFT">bhi</TD><TD ALIGN="LEFT">&#35;0x45b000</TD></TR></TABLE> }>];
+"0x45af2c" -> "0x45af34" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x45af2c" -> "0x45af38" [style=dashed, label=r3, tooltip="WAR: r3"];
+"0x45af2c" -> "0x45af3c" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x45af2c" -> "0x45af40" [style=solid, label=r6, tooltip="RAW: r6"];
+"0x45af30" -> "0x45af40" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x45af34" -> "0x45af3c" [style=solid, label=r7, tooltip="RAW: r7; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x45af38" -> "0x45af3c" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x45af3c" -> "0x45af40" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x45af40" -> "0x45af44" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x402d82" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402d82&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">edi, edi</TD></TR></TABLE> }>];
+"0x402d84" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402d84&#58;&nbsp;</TD><TD ALIGN="LEFT">setne</TD><TD ALIGN="LEFT">byte ptr [esp + 0x4a]</TD></TR></TABLE> }>];
+"0x402d89" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402d89&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">esp, 0xc</TD></TR></TABLE> }>];
+"0x402d8c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402d8c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edi, dword ptr [esp + 0x3c]</TD></TR></TABLE> }>];
+"0x402d90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402d90&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">edi</TD></TR></TABLE> }>];
+"0x402d91" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402d91&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x400ff0</TD></TR></TABLE> }>];
+"0x402d82" -> "0x402d84" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x402d82" -> "0x402d89" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x402d82" -> "0x402d8c" [style=dashed, label=edi, tooltip="WAR: edi"];
+"0x402d84" -> "0x402d89" [style=dashed, label="flags, esp", tooltip="WAR: cc_dep1, cc_dep2, cc_ndep, cc_op, esp"];
+"0x402d89" -> "0x402d8c" [style=solid, label=esp, tooltip="RAW: esp"];
+"0x402d89" -> "0x402d90" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x402d8c" -> "0x402d90" [style=solid, label=edi, tooltip="RAW: edi; WAR: esp"];
+"0x402d90" -> "0x402d91" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+}

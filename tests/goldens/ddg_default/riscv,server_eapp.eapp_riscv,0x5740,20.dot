@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x5740" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5740&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, -0x40</TD></TR></TABLE> }>];
+"0x5742" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5742&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s1, 0x28(sp)</TD></TR></TABLE> }>];
+"0x5744" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5744&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">ra, 0x38(sp)</TD></TR></TABLE> }>];
+"0x5746" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5746&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s0, 0x30(sp)</TD></TR></TABLE> }>];
+"0x5748" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5748&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s2, 0x20(sp)</TD></TR></TABLE> }>];
+"0x574a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x574a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s3, 0x18(sp)</TD></TR></TABLE> }>];
+"0x574c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x574c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s4, 0x10(sp)</TD></TR></TABLE> }>];
+"0x574e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x574e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.lw</TD><TD ALIGN="LEFT">a5, 0x24(a0)</TD></TR></TABLE> }>];
+"0x5750" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5750&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s1, a0</TD></TR></TABLE> }>];
+"0x5752" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5752&#58;&nbsp;</TD><TD ALIGN="LEFT">c.beqz</TD><TD ALIGN="LEFT">a5, 0x3a</TD></TR></TABLE> }>];
+"0x5740" -> "0x5742" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5740" -> "0x5744" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5740" -> "0x5746" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5740" -> "0x5748" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5740" -> "0x574a" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5740" -> "0x574c" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x5742" -> "0x5750" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x574e" -> "0x5752" [style=solid, label=a5, tooltip="RAW: a5"];
+}

@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x42ac4c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ac4c&#58;&nbsp;</TD><TD ALIGN="LEFT">wsbh</TD><TD ALIGN="LEFT">$v0, $v0</TD></TR></TABLE> }>];
+"0x42ac50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ac50&#58;&nbsp;</TD><TD ALIGN="LEFT">rotr</TD><TD ALIGN="LEFT">$v0, $v0, 0x10</TD></TR></TABLE> }>];
+"0x42ac54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ac54&#58;&nbsp;</TD><TD ALIGN="LEFT">sltu</TD><TD ALIGN="LEFT">$v0, $v0, $s2</TD></TR></TABLE> }>];
+"0x42ac58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ac58&#58;&nbsp;</TD><TD ALIGN="LEFT">bnez</TD><TD ALIGN="LEFT">$v0, 0x42acac</TD></TR></TABLE> }>];
+"0x42ac5c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ac5c&#58;&nbsp;</TD><TD ALIGN="LEFT">sltu</TD><TD ALIGN="LEFT">$v0, $s5, $s3</TD></TR></TABLE> }>];
+"0x42ac4c" -> "0x42ac50" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x42ac50" -> "0x42ac54" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x42ac54" -> "0x42ac58" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x42ac54" -> "0x42ac5c" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x42ac58" -> "0x42ac5c" [style=dashed, label=v0, tooltip="WAR: v0"];
+}

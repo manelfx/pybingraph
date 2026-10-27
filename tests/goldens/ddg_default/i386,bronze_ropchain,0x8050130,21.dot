@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8050130" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8050130&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edi, dword ptr [ebp + 8]</TD></TR></TABLE> }>];
+"0x8050133" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8050133&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [edi + eax], 0</TD></TR></TABLE> }>];
+"0x8050137" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8050137&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [esi]</TD></TR></TABLE> }>];
+"0x8050139" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8050139&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, edi</TD></TR></TABLE> }>];
+"0x805013b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805013b&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">edx, dword ptr [ebp - 0x1c]</TD></TR></TABLE> }>];
+"0x805013e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805013e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esi], edx</TD></TR></TABLE> }>];
+"0x8050140" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8050140&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">dh, 0x80</TD></TR></TABLE> }>];
+"0x8050143" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8050143&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x80500fa</TD></TR></TABLE> }>];
+"0x8050130" -> "0x8050133" [style=solid, label=edi, tooltip="RAW: edi"];
+"0x8050130" -> "0x8050139" [style=solid, label=edi, tooltip="RAW: edi"];
+"0x8050137" -> "0x805013b" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x8050137" -> "0x805013e" [style=dashed, label="[esi]", tooltip="WAR: mem[entry_esi]:4"];
+"0x805013b" -> "0x805013e" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x805013b" -> "0x8050140" [style=solid, label=dh, tooltip="RAW: dh; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, dh"];
+"0x805013e" -> "0x8050140" [style=dashed, label=dh, tooltip="WAR: dh"];
+"0x8050140" -> "0x8050143" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

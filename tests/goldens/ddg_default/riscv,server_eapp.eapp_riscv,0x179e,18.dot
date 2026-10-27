@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x179e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x179e&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x18(s0)</TD></TR></TABLE> }>];
+"0x17a2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x17a2&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">a5, 0(a5)</TD></TR></TABLE> }>];
+"0x17a6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x17a6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a4, a5</TD></TR></TABLE> }>];
+"0x17a8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x17a8&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a5, zero, 0x20</TD></TR></TABLE> }>];
+"0x17ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x17ac&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">a4, a5, 0x24</TD></TR></TABLE> }>];
+"0x179e" -> "0x17a2" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x17a2" -> "0x17a6" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x17a2" -> "0x17a8" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x17a6" -> "0x17a8" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x17a6" -> "0x17ac" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x17a8" -> "0x17ac" [style=solid, label=a5, tooltip="RAW: a5"];
+}

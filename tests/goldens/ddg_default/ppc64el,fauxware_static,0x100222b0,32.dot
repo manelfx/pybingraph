@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x100222b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100222b0&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r9, 0x20(r8)</TD></TR></TABLE> }>];
+"0x100222b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100222b4&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r10, 0x28(r8)</TD></TR></TABLE> }>];
+"0x100222b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100222b8&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r30, r30, r27</TD></TR></TABLE> }>];
+"0x100222bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100222bc&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r9, 0x20(r26)</TD></TR></TABLE> }>];
+"0x100222c0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100222c0&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r8, 0x28(r9)</TD></TR></TABLE> }>];
+"0x100222c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100222c4&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r9, 0x28(r26)</TD></TR></TABLE> }>];
+"0x100222c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100222c8&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r8, 0x20(r9)</TD></TR></TABLE> }>];
+"0x100222cc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x100222cc&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x10021548</TD></TR></TABLE> }>];
+"0x100222b0" -> "0x100222bc" [style=dashed, label=gpr9, tooltip="WAR: gpr9"];
+"0x100222bc" -> "0x100222c0" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x100222bc" -> "0x100222c4" [style=dotted, label=gpr9, tooltip="WAW: gpr9"];
+"0x100222c0" -> "0x100222c4" [style=dashed, label=gpr9, tooltip="WAR: gpr9"];
+"0x100222c4" -> "0x100222c8" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+}

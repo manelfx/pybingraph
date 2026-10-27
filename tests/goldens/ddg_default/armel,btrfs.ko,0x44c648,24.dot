@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x44c648" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c648&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">ip, [r6, &#35;0x58]</TD></TR></TABLE> }>];
+"0x44c64c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c64c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r2, &#35;0</TD></TR></TABLE> }>];
+"0x44c650" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c650&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r6</TD></TR></TABLE> }>];
+"0x44c654" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c654&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, r2</TD></TR></TABLE> }>];
+"0x44c658" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c658&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">ip, [ip, &#35;0x30]</TD></TR></TABLE> }>];
+"0x44c65c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c65c&#58;&nbsp;</TD><TD ALIGN="LEFT">blx</TD><TD ALIGN="LEFT">ip</TD></TR></TABLE> }>];
+"0x44c648" -> "0x44c658" [style=solid, label=r12, tooltip="RAW: r12; WAW: r12"];
+"0x44c64c" -> "0x44c654" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x44c658" -> "0x44c65c" [style=solid, label=r12, tooltip="RAW: r12"];
+}

@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x804f299" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804f299&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ebx, dword ptr [esp + 0x10]</TD></TR></TABLE> }>];
+"0x804f29d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804f29d&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dword ptr [esp + 8], esi</TD></TR></TABLE> }>];
+"0x804f2a1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804f2a1&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [esp + 0x23], cl</TD></TR></TABLE> }>];
+"0x804f2a5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804f2a5&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [ebx + eax*4 - 0x1d8c0]</TD></TR></TABLE> }>];
+"0x804f2ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804f2ac&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [ebx + eax - 0x1d900]</TD></TR></TABLE> }>];
+"0x804f2b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804f2b4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0xc], edx</TD></TR></TABLE> }>];
+"0x804f2b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804f2b8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [esp + 0x22], al</TD></TR></TABLE> }>];
+"0x804f2bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x804f2bc&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x804f590</TD></TR></TABLE> }>];
+"0x804f299" -> "0x804f2a5" [style=solid, label=ebx, tooltip="RAW: ebx"];
+"0x804f299" -> "0x804f2ac" [style=solid, label=ebx, tooltip="RAW: ebx"];
+"0x804f29d" -> "0x804f2bc" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x804f2a5" -> "0x804f2ac" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x804f2a5" -> "0x804f2b4" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x804f2ac" -> "0x804f2b8" [style=solid, label=al, tooltip="RAW: al"];
+}

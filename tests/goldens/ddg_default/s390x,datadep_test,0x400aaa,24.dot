@@ -1,0 +1,17 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x400aaa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400aaa&#58;&nbsp;</TD><TD ALIGN="LEFT">lgfr</TD><TD ALIGN="LEFT">%r5, %r5</TD></TR></TABLE> }>];
+"0x400aae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400aae&#58;&nbsp;</TD><TD ALIGN="LEFT">ic</TD><TD ALIGN="LEFT">%r0, 0(%r5, %r3)</TD></TR></TABLE> }>];
+"0x400ab2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400ab2&#58;&nbsp;</TD><TD ALIGN="LEFT">stc</TD><TD ALIGN="LEFT">%r0, 0(%r5, %r2)</TD></TR></TABLE> }>];
+"0x400ab6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400ab6&#58;&nbsp;</TD><TD ALIGN="LEFT">ahik</TD><TD ALIGN="LEFT">%r5, %r1, 3</TD></TR></TABLE> }>];
+"0x400abc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400abc&#58;&nbsp;</TD><TD ALIGN="LEFT">crjhe</TD><TD ALIGN="LEFT">%r5, %r4, 0x400b14</TD></TR></TABLE> }>];
+"0x400aaa" -> "0x400aae" [style=solid, label=r5, tooltip="RAW: r5"];
+"0x400aaa" -> "0x400ab2" [style=solid, label=r5, tooltip="RAW: r5"];
+"0x400aaa" -> "0x400ab6" [style=dotted, label="r5_32", tooltip="WAW: r5_32"];
+"0x400aae" -> "0x400ab2" [style=solid, label=583, tooltip="RAW: 583"];
+"0x400aae" -> "0x400ab6" [style=dashed, label="r5_32", tooltip="WAR: r5_32"];
+"0x400ab2" -> "0x400ab6" [style=dashed, label="r5_32", tooltip="WAR: r5_32"];
+"0x400ab6" -> "0x400abc" [style=solid, label="r5_32", tooltip="RAW: r5_32"];
+}

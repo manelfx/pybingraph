@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4144b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4144b0&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 8($v1)</TD></TR></TABLE> }>];
+"0x4144b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4144b4&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$v0, $a0, $v0</TD></TR></TABLE> }>];
+"0x4144b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4144b8&#58;&nbsp;</TD><TD ALIGN="LEFT">lhu</TD><TD ALIGN="LEFT">$v1, ($v0)</TD></TR></TABLE> }>];
+"0x4144bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4144bc&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$v0, 0x30($fp)</TD></TR></TABLE> }>];
+"0x4144c0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4144c0&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $zero, 1</TD></TR></TABLE> }>];
+"0x4144c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4144c4&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">$v1, $v0, 0x414930</TD></TR></TABLE> }>];
+"0x4144c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4144c8&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v1, 0x30($fp)</TD></TR></TABLE> }>];
+"0x4144b0" -> "0x4144b4" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x4144b0" -> "0x4144b8" [style=dashed, label=v1, tooltip="WAR: v1"];
+"0x4144b4" -> "0x4144b8" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x4144b4" -> "0x4144bc" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x4144b4" -> "0x4144c0" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x4144b8" -> "0x4144c0" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x4144b8" -> "0x4144c4" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x4144b8" -> "0x4144c8" [style=dotted, label=v1, tooltip="WAW: v1"];
+"0x4144bc" -> "0x4144c0" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x4144bc" -> "0x4144c8" [style=solid, label="[s8+0x30]", tooltip="RAW: mem[entry_s8+0x30]:8"];
+"0x4144c0" -> "0x4144c4" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x4144c4" -> "0x4144c8" [style=dashed, label=v1, tooltip="WAR: v1"];
+}

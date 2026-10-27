@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x416bc4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416bc4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, r6</TD></TR></TABLE> }>];
+"0x416bc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416bc8&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r2, r3, &#35;2</TD></TR></TABLE> }>];
+"0x416bcc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416bcc&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r4, r0, &#35;2</TD></TR></TABLE> }>];
+"0x416bd0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416bd0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r6, r0</TD></TR></TABLE> }>];
+"0x416bd4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416bd4&#58;&nbsp;</TD><TD ALIGN="LEFT">movne</TD><TD ALIGN="LEFT">r2, &#35;1</TD></TR></TABLE> }>];
+"0x416bd8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416bd8&#58;&nbsp;</TD><TD ALIGN="LEFT">bics</TD><TD ALIGN="LEFT">r4, r4, &#35;2</TD></TR></TABLE> }>];
+"0x416bdc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416bdc&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">&#35;0x416b78</TD></TR></TABLE> }>];
+"0x416bc4" -> "0x416bc8" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x416bc4" -> "0x416bd0" [style=dashed, label=r6, tooltip="WAR: r6"];
+"0x416bc8" -> "0x416bd4" [style=solid, label="flags, r2", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r2; WAW: r2"];
+"0x416bc8" -> "0x416bd8" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x416bcc" -> "0x416bd8" [style=solid, label=r4, tooltip="RAW: r4; WAW: r4"];
+"0x416bd4" -> "0x416bd8" [style=dashed, label=flags, tooltip="WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x416bd8" -> "0x416bdc" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

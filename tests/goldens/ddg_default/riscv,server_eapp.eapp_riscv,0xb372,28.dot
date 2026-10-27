@@ -1,0 +1,17 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xb372" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb372&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a5, s6, 0x28</TD></TR></TABLE> }>];
+"0xb376" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb376&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">a5, 8(sp)</TD></TR></TABLE> }>];
+"0xb378" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb378&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">a6, 0x10(sp)</TD></TR></TABLE> }>];
+"0xb37a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb37a&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s11, s6, 0x50</TD></TR></TABLE> }>];
+"0xb37e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb37e&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a5, sp, 0x33f</TD></TR></TABLE> }>];
+"0xb382" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb382&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a3, sp, 0x43f</TD></TR></TABLE> }>];
+"0xb386" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb386&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a4, zero, 0xff</TD></TR></TABLE> }>];
+"0xb38a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb38a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a1, -1</TD></TR></TABLE> }>];
+"0xb38c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb38c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.j</TD><TD ALIGN="LEFT">0x10</TD></TR></TABLE> }>];
+"0xb372" -> "0xb376" [style=solid, label=a5, tooltip="RAW: a5"];
+"0xb372" -> "0xb37e" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0xb376" -> "0xb37e" [style=dashed, label=a5, tooltip="WAR: a5"];
+}

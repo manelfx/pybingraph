@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x44cd14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44cd14&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 0x2a0($sp)</TD></TR></TABLE> }>];
+"0x44cd18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44cd18&#58;&nbsp;</TD><TD ALIGN="LEFT">ext</TD><TD ALIGN="LEFT">$v0, $v0, 0x1a, 1</TD></TR></TABLE> }>];
+"0x44cd1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44cd1c&#58;&nbsp;</TD><TD ALIGN="LEFT">bnez</TD><TD ALIGN="LEFT">$v0, 0x44d460</TD></TR></TABLE> }>];
+"0x44cd20" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44cd20&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$zero, 0x23c($sp)</TD></TR></TABLE> }>];
+"0x44cd14" -> "0x44cd18" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x44cd18" -> "0x44cd1c" [style=solid, label=v0, tooltip="RAW: v0"];
+}

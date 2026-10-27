@@ -6,6 +6,7 @@ import sys
 
 from angr import Project
 from fastapi import FastAPI, Query
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, HTMLResponse, Response
 from fastapi.routing import APIRoute
 from fastapi.templating import Jinja2Templates
@@ -30,6 +31,9 @@ from bingraph.core import (
     render_cfg,
     FunctionSymbol,
 )
+from bingraph.ddg import render_ddg
+from bingraph.ddg.builder import MAX_BLOCK_BYTES
+from bingraph.helpers.settings import DependencySelection, MemoryPolicy
 
 
 ItemT = TypeVar("ItemT")
@@ -66,7 +70,9 @@ def create_app() -> FastAPI:
                         raise exc
 
                     # normalize response status codes
-                    if isinstance(exc, (ValueError, FileNotFoundError)):
+                    if isinstance(exc, RequestValidationError):
+                        status_code = HTTPStatus.UNPROCESSABLE_ENTITY
+                    elif isinstance(exc, (ValueError, FileNotFoundError)):
                         status_code = HTTPStatus.BAD_REQUEST
                     elif isinstance(exc, StarletteHTTPException):
                         status_code = exc.status_code
@@ -218,6 +224,7 @@ def create_app() -> FastAPI:
             cfg_exits,
             format,
             demangle,
+            filepath,
         )
 
     @app.get("/cfg")
@@ -267,5 +274,61 @@ def create_app() -> FastAPI:
             filepath, function, dfs, comments, mode, exits, format, demangle
         )
         return {"graph": cfg}
+
+    # Block-local dependencies require no function symbol or CFG construction.
+    def _render_ddg(
+        filepath: str,
+        address: str,
+        size: int,
+        memory: MemoryPolicy | None,
+        format: str,
+        dependencies: DependencySelection | None,
+    ) -> str:
+        validate_text_cfg_format(format)
+        try:
+            start = (
+                int(address, 16) if address.lower().startswith("0x") else int(address)
+            )
+        except ValueError as exc:
+            raise ValueError("Invalid block address") from exc
+        return render_ddg(
+            _get_project(filepath),
+            start,
+            size,
+            memory or settings.ddg_memory,
+            format,
+            dependencies or settings.ddg_dependencies,
+        )
+
+    @app.get("/ddg")
+    def ddg(
+        filepath: str,
+        address: str,
+        size: int = Query(..., gt=0, le=MAX_BLOCK_BYTES),
+        memory: MemoryPolicy | None = None,
+        dependencies: DependencySelection | None = Query(
+            None, description="Edge types to display: comma-separated raw, war, waw"
+        ),
+    ) -> Response:
+        """Render one instruction-order dependency DAG as SVG."""
+        return Response(
+            _render_ddg(filepath, address, size, memory, "svg", dependencies),
+            media_type="image/svg+xml",
+        )
+
+    @app.get("/api/ddg", response_model=dict[str, str])
+    def api_ddg(
+        filepath: str,
+        address: str,
+        size: int = Query(..., gt=0, le=MAX_BLOCK_BYTES),
+        memory: MemoryPolicy | None = None,
+        dependencies: DependencySelection | None = Query(
+            None, description="Edge types to display: comma-separated raw, war, waw"
+        ),
+        format: str = Query("dot", json_schema_extra={"enum": list(TEXT_CFG_FORMATS)}),
+    ) -> dict[str, str]:
+        return {
+            "graph": _render_ddg(filepath, address, size, memory, format, dependencies)
+        }
 
     return app

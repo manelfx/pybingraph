@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x434590" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x434590&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dx, word ptr [rsi - 3]</TD></TR></TABLE> }>];
+"0x434594" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x434594&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">cx, word ptr [rsi - 2]</TD></TR></TABLE> }>];
+"0x434598" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x434598&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">word ptr [rdi - 3], dx</TD></TR></TABLE> }>];
+"0x43459c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43459c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">word ptr [rdi - 2], cx</TD></TR></TABLE> }>];
+"0x4345a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4345a0&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x434590" -> "0x434598" [style=solid, label=dx, tooltip="RAW: dx"];
+"0x434594" -> "0x43459c" [style=solid, label=cx, tooltip="RAW: cx"];
+"0x434598" -> "0x43459c" [style=dotted, label="[rdi-0x2]", tooltip="WAW: mem[entry_rdi-0x2]:2"];
+}

@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x412dec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412dec&#58;&nbsp;</TD><TD ALIGN="LEFT">dsrl32</TD><TD ALIGN="LEFT">$t5, $t5, 0</TD></TR></TABLE> }>];
+"0x412df0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412df0&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll</TD><TD ALIGN="LEFT">$t6, $t5, 3</TD></TR></TABLE> }>];
+"0x412df4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412df4&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$t6, $s2, $t6</TD></TR></TABLE> }>];
+"0x412df8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412df8&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$a2, ($t6)</TD></TR></TABLE> }>];
+"0x412dfc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412dfc&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 0x560($a2)</TD></TR></TABLE> }>];
+"0x412e00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412e00&#58;&nbsp;</TD><TD ALIGN="LEFT">beql</TD><TD ALIGN="LEFT">$v0, $zero, 0x412f38</TD></TR></TABLE> }>];
+"0x412e04" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412e04&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, 0x568($a2)</TD></TR></TABLE> }>];
+"0x412dec" -> "0x412df0" [style=solid, label=t5, tooltip="RAW: t5"];
+"0x412df0" -> "0x412df4" [style=solid, label=t6, tooltip="RAW: t6; WAW: t6"];
+"0x412df4" -> "0x412df8" [style=solid, label=t6, tooltip="RAW: t6"];
+"0x412df8" -> "0x412dfc" [style=solid, label=a2, tooltip="RAW: a2"];
+"0x412df8" -> "0x412e04" [style=solid, label=a2, tooltip="RAW: a2"];
+"0x412dfc" -> "0x412e00" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x412dfc" -> "0x412e04" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x412e00" -> "0x412e04" [style=dashed, label=v0, tooltip="WAR: v0"];
+}

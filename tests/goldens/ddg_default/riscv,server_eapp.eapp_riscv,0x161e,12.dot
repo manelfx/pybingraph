@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x161e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x161e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a5, a0</TD></TR></TABLE> }>];
+"0x1620" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1620&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a5, -0x28(s0)</TD></TR></TABLE> }>];
+"0x1624" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1624&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x28(s0)</TD></TR></TABLE> }>];
+"0x1628" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1628&#58;&nbsp;</TD><TD ALIGN="LEFT">c.bnez</TD><TD ALIGN="LEFT">a5, 0xe</TD></TR></TABLE> }>];
+"0x161e" -> "0x1620" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x161e" -> "0x1624" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x1620" -> "0x1624" [style=solid, label="[s0-0x28]", tooltip="RAW: mem[entry_s0-0x28]:8; WAR: a5"];
+"0x1624" -> "0x1628" [style=solid, label=a5, tooltip="RAW: a5"];
+}

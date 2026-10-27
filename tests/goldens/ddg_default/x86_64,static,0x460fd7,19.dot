@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x460fd7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x460fd7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [r12 + 8]</TD></TR></TABLE> }>];
+"0x460fdc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x460fdc&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdx, [rax + 8]</TD></TR></TABLE> }>];
+"0x460fe0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x460fe0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [r12 + 8], rdx</TD></TR></TABLE> }>];
+"0x460fe5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x460fe5&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x45f582</TD></TR></TABLE> }>];
+"0x460fd7" -> "0x460fdc" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x460fd7" -> "0x460fe0" [style=dashed, label="[r12+0x8]", tooltip="WAR: mem[entry_r12+0x8]:8"];
+"0x460fdc" -> "0x460fe0" [style=solid, label=rdx, tooltip="RAW: rdx"];
+}

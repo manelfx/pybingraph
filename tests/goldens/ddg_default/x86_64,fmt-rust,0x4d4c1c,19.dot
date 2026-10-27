@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4d4c1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4d4c1c&#58;&nbsp;</TD><TD ALIGN="LEFT">movaps</TD><TD ALIGN="LEFT">xmmword ptr [rsp + 0x40], xmm0</TD></TR></TABLE> }>];
+"0x4d4c21" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4d4c21&#58;&nbsp;</TD><TD ALIGN="LEFT">movaps</TD><TD ALIGN="LEFT">xmm0, xmmword ptr [rsp + 0x70]</TD></TR></TABLE> }>];
+"0x4d4c26" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4d4c26&#58;&nbsp;</TD><TD ALIGN="LEFT">movaps</TD><TD ALIGN="LEFT">xmm1, xmmword ptr [rsp]</TD></TR></TABLE> }>];
+"0x4d4c2a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4d4c2a&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x4d5770</TD></TR></TABLE> }>];
+"0x4d4c1c" -> "0x4d4c21" [style=dashed, label=xmm0, tooltip="WAR: xmm0"];
+"0x4d4c1c" -> "0x4d4c2a" [style=dashed, label=rsp, tooltip="WAR: rsp"];
+"0x4d4c21" -> "0x4d4c2a" [style=dashed, label=rsp, tooltip="WAR: rsp"];
+"0x4d4c26" -> "0x4d4c2a" [style=dashed, label=rsp, tooltip="WAR: rsp"];
+}

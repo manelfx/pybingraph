@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80a96c9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80a96c9&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">edx, byte ptr [esi + 0xa]</TD></TR></TABLE> }>];
+"0x80a96cd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80a96cd&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">esi, [esp + 0xc]</TD></TR></TABLE> }>];
+"0x80a96d1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80a96d1&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dl, 0x52</TD></TR></TABLE> }>];
+"0x80a96d4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80a96d4&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x80a96f3</TD></TR></TABLE> }>];
+"0x80a96c9" -> "0x80a96cd" [style=dashed, label=esi, tooltip="WAR: esi"];
+"0x80a96c9" -> "0x80a96d1" [style=solid, label=dl, tooltip="RAW: dl"];
+"0x80a96d1" -> "0x80a96d4" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

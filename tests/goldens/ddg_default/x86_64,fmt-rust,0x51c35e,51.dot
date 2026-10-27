@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x51c35e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x51c35e&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rip + 0x63d23]</TD></TR></TABLE> }>];
+"0x51c365" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x51c365&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, qword ptr [rsp + 0x40]</TD></TR></TABLE> }>];
+"0x51c36a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x51c36a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rdi], rax</TD></TR></TABLE> }>];
+"0x51c36d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x51c36d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rdi + 8], 1</TD></TR></TABLE> }>];
+"0x51c375" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x51c375&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rdi + 0x10], 8</TD></TR></TABLE> }>];
+"0x51c37d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x51c37d&#58;&nbsp;</TD><TD ALIGN="LEFT">xorps</TD><TD ALIGN="LEFT">xmm0, xmm0</TD></TR></TABLE> }>];
+"0x51c380" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x51c380&#58;&nbsp;</TD><TD ALIGN="LEFT">movups</TD><TD ALIGN="LEFT">xmmword ptr [rdi + 0x18], xmm0</TD></TR></TABLE> }>];
+"0x51c384" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x51c384&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rsi, [rip + 0x63d55]</TD></TR></TABLE> }>];
+"0x51c38b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x51c38b&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">qword ptr [rip + 0x67e6f]</TD></TR></TABLE> }>];
+"0x51c35e" -> "0x51c36a" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x51c365" -> "0x51c36a" [style=solid, label=rdi, tooltip="RAW: rdi"];
+"0x51c365" -> "0x51c36d" [style=solid, label=rdi, tooltip="RAW: rdi"];
+"0x51c365" -> "0x51c375" [style=solid, label=rdi, tooltip="RAW: rdi"];
+"0x51c365" -> "0x51c380" [style=solid, label=rdi, tooltip="RAW: rdi"];
+"0x51c365" -> "0x51c38b" [style=dashed, label=rsp, tooltip="WAR: rsp"];
+"0x51c37d" -> "0x51c380" [style=solid, label=xmm0, tooltip="RAW: xmm0"];
+}

@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x442309" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442309&#58;&nbsp;</TD><TD ALIGN="LEFT">shl</TD><TD ALIGN="LEFT">rdi, 4</TD></TR></TABLE> }>];
+"0x44230d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44230d&#58;&nbsp;</TD><TD ALIGN="LEFT">movups</TD><TD ALIGN="LEFT">xmm0, xmmword ptr [r14]</TD></TR></TABLE> }>];
+"0x442311" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442311&#58;&nbsp;</TD><TD ALIGN="LEFT">movups</TD><TD ALIGN="LEFT">xmmword ptr [rbx + rdi + 8], xmm0</TD></TR></TABLE> }>];
+"0x442316" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442316&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">qword ptr [rbx + 0x58], 1</TD></TR></TABLE> }>];
+"0x44231b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44231b&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x18</TD></TR></TABLE> }>];
+"0x44231f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44231f&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbx</TD></TR></TABLE> }>];
+"0x442320" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442320&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r14</TD></TR></TABLE> }>];
+"0x442322" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442322&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x442309" -> "0x442311" [style=solid, label=rdi, tooltip="RAW: rdi"];
+"0x442309" -> "0x442316" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x44230d" -> "0x442311" [style=solid, label=xmm0, tooltip="RAW: xmm0"];
+"0x44230d" -> "0x442320" [style=dashed, label=r14, tooltip="WAR: r14"];
+"0x442311" -> "0x44231f" [style=dashed, label=rbx, tooltip="WAR: rbx"];
+"0x442316" -> "0x44231b" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x442316" -> "0x44231f" [style=dashed, label=rbx, tooltip="WAR: rbx"];
+"0x44231b" -> "0x44231f" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x44231f" -> "0x442320" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x442320" -> "0x442322" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+}

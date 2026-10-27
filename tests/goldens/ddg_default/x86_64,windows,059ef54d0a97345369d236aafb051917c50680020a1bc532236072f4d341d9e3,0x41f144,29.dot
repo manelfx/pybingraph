@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x41f144" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f144&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [rsp + 0x38]</TD></TR></TABLE> }>];
+"0x41f149" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f149&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [rcx + 0x30]</TD></TR></TABLE> }>];
+"0x41f14d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f14d&#58;&nbsp;</TD><TD ALIGN="LEFT">dec</TD><TD ALIGN="LEFT">dword ptr [rcx + 0xd8]</TD></TR></TABLE> }>];
+"0x41f153" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f153&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, 0xffffffffffffffff</TD></TR></TABLE> }>];
+"0x41f15a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f15a&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x40</TD></TR></TABLE> }>];
+"0x41f15e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f15e&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR></TABLE> }>];
+"0x41f15f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f15f&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x41f160" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f160&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x41f144" -> "0x41f149" [style=solid, label=rcx, tooltip="RAW: rcx; WAW: rcx"];
+"0x41f144" -> "0x41f15a" [style=dashed, label=rsp, tooltip="WAR: rsp"];
+"0x41f149" -> "0x41f14d" [style=solid, label=rcx, tooltip="RAW: rcx"];
+"0x41f14d" -> "0x41f15a" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x41f15a" -> "0x41f15e" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x41f15e" -> "0x41f160" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+}

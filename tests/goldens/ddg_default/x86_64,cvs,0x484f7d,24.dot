@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x484f7d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x484f7d&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [r15 + 0x38]</TD></TR></TABLE> }>];
+"0x484f82" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x484f82&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">edi, edi</TD></TR></TABLE> }>];
+"0x484f84" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x484f84&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">eax, 0xfffffff9</TD></TR></TABLE> }>];
+"0x484f87" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x484f87&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">eax, edi</TD></TR></TABLE> }>];
+"0x484f89" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x484f89&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [r15 + 0x38], al</TD></TR></TABLE> }>];
+"0x484f8d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x484f8d&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">al, 6</TD></TR></TABLE> }>];
+"0x484f8f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x484f8f&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x4850e8</TD></TR></TABLE> }>];
+"0x484f7d" -> "0x484f84" [style=solid, label=eax, tooltip="RAW: eax; WAW: rax"];
+"0x484f7d" -> "0x484f89" [style=dashed, label="[r15+0x38]", tooltip="WAR: mem[entry_r15+0x38]:1"];
+"0x484f82" -> "0x484f84" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x484f82" -> "0x484f87" [style=solid, label=edi, tooltip="RAW: edi"];
+"0x484f84" -> "0x484f87" [style=solid, label=eax, tooltip="RAW: eax; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, rax"];
+"0x484f87" -> "0x484f89" [style=solid, label=al, tooltip="RAW: al"];
+"0x484f87" -> "0x484f8d" [style=solid, label=al, tooltip="RAW: al; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x484f8d" -> "0x484f8f" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x43b130" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43b130&#58;&nbsp;</TD><TD ALIGN="LEFT">movups</TD><TD ALIGN="LEFT">xmm0, xmmword ptr [rcx + rdx + 0x20]</TD></TR></TABLE> }>];
+"0x43b135" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43b135&#58;&nbsp;</TD><TD ALIGN="LEFT">movups</TD><TD ALIGN="LEFT">xmm1, xmmword ptr [rcx + rdx + 0x30]</TD></TR></TABLE> }>];
+"0x43b13a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43b13a&#58;&nbsp;</TD><TD ALIGN="LEFT">movups</TD><TD ALIGN="LEFT">xmmword ptr [rcx + rdx + 0x10], xmm1</TD></TR></TABLE> }>];
+"0x43b13f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43b13f&#58;&nbsp;</TD><TD ALIGN="LEFT">movups</TD><TD ALIGN="LEFT">xmmword ptr [rcx + rdx], xmm0</TD></TR></TABLE> }>];
+"0x43b143" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43b143&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rdx, 0x20</TD></TR></TABLE> }>];
+"0x43b147" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43b147&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rdx, -0x20</TD></TR></TABLE> }>];
+"0x43b14b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43b14b&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x43b0b4</TD></TR></TABLE> }>];
+"0x43b130" -> "0x43b13f" [style=solid, label=xmm0, tooltip="RAW: xmm0"];
+"0x43b130" -> "0x43b143" [style=dashed, label=rdx, tooltip="WAR: rdx"];
+"0x43b135" -> "0x43b13a" [style=solid, label=xmm1, tooltip="RAW: xmm1"];
+"0x43b135" -> "0x43b143" [style=dashed, label=rdx, tooltip="WAR: rdx"];
+"0x43b13a" -> "0x43b143" [style=dashed, label=rdx, tooltip="WAR: rdx"];
+"0x43b13f" -> "0x43b143" [style=dashed, label=rdx, tooltip="WAR: rdx"];
+"0x43b143" -> "0x43b147" [style=solid, label=rdx, tooltip="RAW: rdx; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x43b147" -> "0x43b14b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

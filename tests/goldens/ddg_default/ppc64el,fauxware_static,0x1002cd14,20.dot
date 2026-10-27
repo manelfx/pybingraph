@@ -1,0 +1,10 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1002cd14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1002cd14&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpldi</TD><TD ALIGN="LEFT">cr1, r5, 0x10</TD></TR></TABLE> }>];
+"0x1002cd18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1002cd18&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r10, r5</TD></TR></TABLE> }>];
+"0x1002cd1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1002cd1c&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r12, r4</TD></TR></TABLE> }>];
+"0x1002cd20" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1002cd20&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpldi</TD><TD ALIGN="LEFT">cr6, r0, 2</TD></TR></TABLE> }>];
+"0x1002cd24" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1002cd24&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">0x1002cd80</TD></TR></TABLE> }>];
+}

@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x5fc2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5fc2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">a0, 0x30(sp)</TD></TR></TABLE> }>];
+"0x5fc4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5fc4&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a5, a0, 0x80</TD></TR></TABLE> }>];
+"0x5fc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5fc8&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">a5, 0x30(sp)</TD></TR></TABLE> }>];
+"0x5fca" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5fca&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a5, -1</TD></TR></TABLE> }>];
+"0x5fcc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5fcc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.srli</TD><TD ALIGN="LEFT">a5, 0x20</TD></TR></TABLE> }>];
+"0x5fc2" -> "0x5fc4" [style=solid, label=a0, tooltip="RAW: a0"];
+"0x5fc2" -> "0x5fc8" [style=dashed, label="[sp+0x30]", tooltip="WAR: mem[entry_sp+0x30]:8"];
+"0x5fc4" -> "0x5fc8" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x5fc4" -> "0x5fca" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x5fc8" -> "0x5fca" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x5fca" -> "0x5fcc" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+}

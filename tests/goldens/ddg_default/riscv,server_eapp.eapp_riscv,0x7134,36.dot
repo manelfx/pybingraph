@@ -1,0 +1,25 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x7134" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7134&#58;&nbsp;</TD><TD ALIGN="LEFT">slli</TD><TD ALIGN="LEFT">a1, s5, 0x20</TD></TR></TABLE> }>];
+"0x7138" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7138&#58;&nbsp;</TD><TD ALIGN="LEFT">srli</TD><TD ALIGN="LEFT">a5, a1, 0x1d</TD></TR></TABLE> }>];
+"0x713c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x713c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a5, s3</TD></TR></TABLE> }>];
+"0x713e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x713e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a5, 0(a5)</TD></TR></TABLE> }>];
+"0x7140" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7140&#58;&nbsp;</TD><TD ALIGN="LEFT">lwu</TD><TD ALIGN="LEFT">a1, 0x24(s6)</TD></TR></TABLE> }>];
+"0x7144" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7144&#58;&nbsp;</TD><TD ALIGN="LEFT">c.slli</TD><TD ALIGN="LEFT">t1, 0x20</TD></TR></TABLE> }>];
+"0x7146" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7146&#58;&nbsp;</TD><TD ALIGN="LEFT">srli</TD><TD ALIGN="LEFT">a6, a5, 0x20</TD></TR></TABLE> }>];
+"0x714a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x714a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.swsp</TD><TD ALIGN="LEFT">s5, 0xc(sp)</TD></TR></TABLE> }>];
+"0x714c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x714c&#58;&nbsp;</TD><TD ALIGN="LEFT">remu</TD><TD ALIGN="LEFT">a6, a6, a1</TD></TR></TABLE> }>];
+"0x7150" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7150&#58;&nbsp;</TD><TD ALIGN="LEFT">srli</TD><TD ALIGN="LEFT">t1, t1, 0x20</TD></TR></TABLE> }>];
+"0x7154" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7154&#58;&nbsp;</TD><TD ALIGN="LEFT">bnez</TD><TD ALIGN="LEFT">t3, 0x9e</TD></TR></TABLE> }>];
+"0x7134" -> "0x7138" [style=solid, label=a1, tooltip="RAW: a1"];
+"0x7134" -> "0x7140" [style=dotted, label=a1, tooltip="WAW: a1"];
+"0x7138" -> "0x713c" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x7138" -> "0x7140" [style=dashed, label=a1, tooltip="WAR: a1"];
+"0x713c" -> "0x713e" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x713e" -> "0x7146" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x7140" -> "0x714c" [style=solid, label=a1, tooltip="RAW: a1"];
+"0x7144" -> "0x7150" [style=solid, label=t1, tooltip="RAW: t1; WAW: t1"];
+"0x7146" -> "0x714c" [style=solid, label=a6, tooltip="RAW: a6; WAW: a6"];
+}

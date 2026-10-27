@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x400417" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400417&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r3, r6</TD></TR></TABLE> }>];
+"0x400419" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400419&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r3, &#35;0x21</TD></TR></TABLE> }>];
+"0x40041b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40041b&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0x81</TD></TR></TABLE> }>];
+"0x40041d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40041d&#58;&nbsp;</TD><TD ALIGN="LEFT">bhi</TD><TD ALIGN="LEFT">&#35;0x400401</TD></TR></TABLE> }>];
+"0x400417" -> "0x400419" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
+"0x400419" -> "0x40041b" [style=solid, label=r3, tooltip="RAW: r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+"0x40041b" -> "0x40041d" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+}

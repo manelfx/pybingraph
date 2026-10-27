@@ -1,0 +1,34 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x43ff2c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff2c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 0x5c($s0)</TD></TR></TABLE> }>];
+"0x43ff30" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff30&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a0, $s3</TD></TR></TABLE> }>];
+"0x43ff34" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff34&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a2, 0xc($s0)</TD></TR></TABLE> }>];
+"0x43ff38" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff38&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a3, 8($s0)</TD></TR></TABLE> }>];
+"0x43ff3c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff3c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t9, -0x7844($gp)</TD></TR></TABLE> }>];
+"0x43ff40" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff40&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a1, $v0, 0x2c</TD></TR></TABLE> }>];
+"0x43ff44" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff44&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v1, ($v0)</TD></TR></TABLE> }>];
+"0x43ff48" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff48&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t2, 8($v0)</TD></TR></TABLE> }>];
+"0x43ff4c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff4c&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t1, 0x34($v0)</TD></TR></TABLE> }>];
+"0x43ff50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff50&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t0, 0x38($v0)</TD></TR></TABLE> }>];
+"0x43ff54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff54&#58;&nbsp;</TD><TD ALIGN="LEFT">subu</TD><TD ALIGN="LEFT">$v1, $v1, $t2</TD></TR></TABLE> }>];
+"0x43ff58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff58&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$t1, 0x2c($v0)</TD></TR></TABLE> }>];
+"0x43ff5c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff5c&#58;&nbsp;</TD><TD ALIGN="LEFT">sra</TD><TD ALIGN="LEFT">$v1, $v1, 2</TD></TR></TABLE> }>];
+"0x43ff60" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff60&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$t0, 0x30($v0)</TD></TR></TABLE> }>];
+"0x43ff64" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff64&#58;&nbsp;</TD><TD ALIGN="LEFT">bal</TD><TD ALIGN="LEFT">0x441030</TD></TR></TABLE> }>];
+"0x43ff68" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43ff68&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$v1, 0x10($sp)</TD></TR></TABLE> }>];
+"0x43ff2c" -> "0x43ff40" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x43ff2c" -> "0x43ff44" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x43ff2c" -> "0x43ff48" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x43ff2c" -> "0x43ff4c" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x43ff2c" -> "0x43ff50" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x43ff2c" -> "0x43ff58" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x43ff2c" -> "0x43ff60" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x43ff44" -> "0x43ff54" [style=solid, label=v1, tooltip="RAW: v1; WAW: v1"];
+"0x43ff48" -> "0x43ff54" [style=solid, label=t2, tooltip="RAW: t2"];
+"0x43ff4c" -> "0x43ff58" [style=solid, label=t1, tooltip="RAW: t1"];
+"0x43ff50" -> "0x43ff60" [style=solid, label=t0, tooltip="RAW: t0"];
+"0x43ff54" -> "0x43ff5c" [style=solid, label=v1, tooltip="RAW: v1; WAW: v1"];
+"0x43ff5c" -> "0x43ff68" [style=solid, label=v1, tooltip="RAW: v1"];
+}

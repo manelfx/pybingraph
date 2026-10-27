@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x402acc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402acc&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ebx, dword ptr [rsp + 8]</TD></TR></TABLE> }>];
+"0x402ad0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402ad0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, 0x7fffffff</TD></TR></TABLE> }>];
+"0x402ad5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402ad5&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">eax, dword ptr [rsp + 4]</TD></TR></TABLE> }>];
+"0x402ad9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402ad9&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">dword ptr [rsp + 4], ebx</TD></TR></TABLE> }>];
+"0x402add" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402add&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">eax, ebx</TD></TR></TABLE> }>];
+"0x402adf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402adf&#58;&nbsp;</TD><TD ALIGN="LEFT">jge</TD><TD ALIGN="LEFT">0x402af4</TD></TR></TABLE> }>];
+"0x402acc" -> "0x402ad9" [style=solid, label=ebx, tooltip="RAW: ebx"];
+"0x402acc" -> "0x402add" [style=solid, label=ebx, tooltip="RAW: ebx"];
+"0x402ad0" -> "0x402ad5" [style=solid, label=eax, tooltip="RAW: eax; WAW: rax"];
+"0x402ad5" -> "0x402ad9" [style=dashed, label="[rsp+0x4]", tooltip="WAR: mem[entry_rsp+0x4]:4"];
+"0x402ad5" -> "0x402ad9" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x402ad5" -> "0x402add" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x402ad9" -> "0x402add" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x402add" -> "0x402adf" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

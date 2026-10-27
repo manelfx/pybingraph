@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x42ca46" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ca46&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">byte ptr [rbx + 0xe8], 1</TD></TR></TABLE> }>];
+"0x42ca4d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ca4d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, 0</TD></TR></TABLE> }>];
+"0x42ca52" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ca52&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovne</TD><TD ALIGN="LEFT">rdx, rax</TD></TR></TABLE> }>];
+"0x42ca56" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ca56&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rdx, rcx</TD></TR></TABLE> }>];
+"0x42ca59" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ca59&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, 1</TD></TR></TABLE> }>];
+"0x42ca5e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ca5e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 0xa8], rax</TD></TR></TABLE> }>];
+"0x42ca66" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42ca66&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x42cbf5</TD></TR></TABLE> }>];
+"0x42ca46" -> "0x42ca52" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x42ca46" -> "0x42ca56" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x42ca4d" -> "0x42ca52" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x42ca4d" -> "0x42ca59" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x42ca52" -> "0x42ca56" [style=solid, label=rdx, tooltip="RAW: rdx; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: rdx"];
+"0x42ca52" -> "0x42ca59" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x42ca59" -> "0x42ca5e" [style=solid, label=rax, tooltip="RAW: rax"];
+}

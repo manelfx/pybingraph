@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x496088" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x496088&#58;&nbsp;</TD><TD ALIGN="LEFT">vmovdqa</TD><TD ALIGN="LEFT">xmm3, xmmword ptr [rdi]</TD></TR></TABLE> }>];
+"0x49608c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x49608c&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">r9, [rcx + r11 - 0x10]</TD></TR></TABLE> }>];
+"0x496091" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x496091&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r11, r9</TD></TR></TABLE> }>];
+"0x496094" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x496094&#58;&nbsp;</TD><TD ALIGN="LEFT">jb</TD><TD ALIGN="LEFT">0x497151</TD></TR></TABLE> }>];
+"0x49608c" -> "0x496091" [style=solid, label=r9, tooltip="RAW: r9"];
+"0x496091" -> "0x496094" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

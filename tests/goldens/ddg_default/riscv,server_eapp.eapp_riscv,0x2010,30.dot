@@ -1,0 +1,28 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x2010" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2010&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x18(s0)</TD></TR></TABLE> }>];
+"0x2014" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2014&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a5, 0(a5)</TD></TR></TABLE> }>];
+"0x2016" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2016&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a5, -0x28(s0)</TD></TR></TABLE> }>];
+"0x201a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x201a&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x28(s0)</TD></TR></TABLE> }>];
+"0x201e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x201e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a4, 0(a5)</TD></TR></TABLE> }>];
+"0x2020" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2020&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x28(s0)</TD></TR></TABLE> }>];
+"0x2024" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2024&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a4, a5</TD></TR></TABLE> }>];
+"0x2026" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2026&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x20(s0)</TD></TR></TABLE> }>];
+"0x202a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x202a&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">a4, a5, 0x5c</TD></TR></TABLE> }>];
+"0x2010" -> "0x2014" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x2014" -> "0x2016" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x2014" -> "0x201a" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x2016" -> "0x201a" [style=solid, label="[s0-0x28]", tooltip="RAW: mem[entry_s0-0x28]:8; WAR: a5"];
+"0x2016" -> "0x2020" [style=solid, label="[s0-0x28]", tooltip="RAW: mem[entry_s0-0x28]:8"];
+"0x201a" -> "0x201e" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x201a" -> "0x2020" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x201e" -> "0x2020" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x201e" -> "0x2024" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x2020" -> "0x2024" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x2020" -> "0x2026" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x2024" -> "0x2026" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x2024" -> "0x202a" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x2026" -> "0x202a" [style=solid, label=a5, tooltip="RAW: a5"];
+}

@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40178a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40178a&#58;&nbsp;</TD><TD ALIGN="LEFT">flw</TD><TD ALIGN="LEFT">ft11, 0(t3)</TD></TR></TABLE> }>];
+"0x40178e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40178e&#58;&nbsp;</TD><TD ALIGN="LEFT">flw</TD><TD ALIGN="LEFT">ft0, 0(a7)</TD></TR></TABLE> }>];
+"0x401792" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401792&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">t3, 4</TD></TR></TABLE> }>];
+"0x401794" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401794&#58;&nbsp;</TD><TD ALIGN="LEFT">fmul.s</TD><TD ALIGN="LEFT">fa5, ft11, ft11</TD></TR></TABLE> }>];
+"0x401798" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401798&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a7, 4</TD></TR></TABLE> }>];
+"0x40179a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40179a&#58;&nbsp;</TD><TD ALIGN="LEFT">fmadd.s</TD><TD ALIGN="LEFT">fa3, ft0, ft0, fa5</TD></TR></TABLE> }>];
+"0x40179e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40179e&#58;&nbsp;</TD><TD ALIGN="LEFT">fsw</TD><TD ALIGN="LEFT">fa3, -4(a7)</TD></TR></TABLE> }>];
+"0x4017a2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4017a2&#58;&nbsp;</TD><TD ALIGN="LEFT">fsw</TD><TD ALIGN="LEFT">ft7, -4(t3)</TD></TR></TABLE> }>];
+"0x40178a" -> "0x401792" [style=dashed, label=t3, tooltip="WAR: t3"];
+"0x40178a" -> "0x401794" [style=solid, label=ft11, tooltip="RAW: ft11"];
+"0x40178a" -> "0x4017a2" [style=dashed, label="[t3]", tooltip="WAR: mem[entry_t3]:4"];
+"0x40178e" -> "0x401798" [style=dashed, label=a7, tooltip="WAR: a7"];
+"0x40178e" -> "0x40179a" [style=solid, label=ft0, tooltip="RAW: ft0"];
+"0x40178e" -> "0x40179e" [style=dashed, label="[a7]", tooltip="WAR: mem[entry_a7]:4"];
+"0x401792" -> "0x4017a2" [style=solid, label=t3, tooltip="RAW: t3"];
+"0x401794" -> "0x40179a" [style=solid, label="536, fa5", tooltip="RAW: 536, fa5; WAW: 536"];
+"0x401798" -> "0x40179e" [style=solid, label=a7, tooltip="RAW: a7"];
+"0x40179a" -> "0x40179e" [style=solid, label=fa3, tooltip="RAW: fa3"];
+}

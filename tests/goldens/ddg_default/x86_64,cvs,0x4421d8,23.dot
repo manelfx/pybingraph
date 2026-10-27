@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4421d8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4421d8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 0x20]</TD></TR></TABLE> }>];
+"0x4421dd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4421dd&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">ebp, byte ptr [rax + 1]</TD></TR></TABLE> }>];
+"0x4421e1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4421e1&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rax, 1</TD></TR></TABLE> }>];
+"0x4421e5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4421e5&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 0x20], rax</TD></TR></TABLE> }>];
+"0x4421ea" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4421ea&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x441c26</TD></TR></TABLE> }>];
+"0x4421d8" -> "0x4421dd" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x4421d8" -> "0x4421e1" [style=solid, label=rax, tooltip="RAW: rax; WAW: rax"];
+"0x4421d8" -> "0x4421e5" [style=dashed, label="[rsp+0x20]", tooltip="WAR: mem[entry_rsp+0x20]:8"];
+"0x4421dd" -> "0x4421e1" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x4421e1" -> "0x4421e5" [style=solid, label=rax, tooltip="RAW: rax"];
+}

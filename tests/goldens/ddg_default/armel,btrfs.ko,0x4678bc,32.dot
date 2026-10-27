@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4678bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4678bc&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r0, [sl, &#35;0x1cc]</TD></TR></TABLE> }>];
+"0x4678c0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4678c0&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrd</TD><TD ALIGN="LEFT">r6, r7, [r1, &#35;0x30]</TD></TR></TABLE> }>];
+"0x4678c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4678c4&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [r0, &#35;0x74]</TD></TR></TABLE> }>];
+"0x4678c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4678c8&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [r0, &#35;0x70]</TD></TR></TABLE> }>];
+"0x4678cc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4678cc&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r7, r3</TD></TR></TABLE> }>];
+"0x4678d0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4678d0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpeq</TD><TD ALIGN="LEFT">r6, r2</TD></TR></TABLE> }>];
+"0x4678d4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4678d4&#58;&nbsp;</TD><TD ALIGN="LEFT">movls</TD><TD ALIGN="LEFT">r5, &#35;0</TD></TR></TABLE> }>];
+"0x4678d8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4678d8&#58;&nbsp;</TD><TD ALIGN="LEFT">bls</TD><TD ALIGN="LEFT">&#35;0x467828</TD></TR></TABLE> }>];
+"0x4678bc" -> "0x4678c4" [style=solid, label=r0, tooltip="RAW: r0"];
+"0x4678bc" -> "0x4678c8" [style=solid, label=r0, tooltip="RAW: r0"];
+"0x4678c0" -> "0x4678cc" [style=solid, label=r7, tooltip="RAW: r7"];
+"0x4678c0" -> "0x4678d0" [style=solid, label=r6, tooltip="RAW: r6"];
+"0x4678c4" -> "0x4678cc" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x4678c8" -> "0x4678d0" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x4678cc" -> "0x4678d0" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4678d0" -> "0x4678d4" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4678d0" -> "0x4678d8" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

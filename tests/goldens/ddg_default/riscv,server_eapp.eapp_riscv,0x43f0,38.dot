@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x43f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43f0&#58;&nbsp;</TD><TD ALIGN="LEFT">lui</TD><TD ALIGN="LEFT">t1, 0x6b206</TD></TR></TABLE> }>];
+"0x43f4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43f4&#58;&nbsp;</TD><TD ALIGN="LEFT">lui</TD><TD ALIGN="LEFT">t3, 0x79623</TD></TR></TABLE> }>];
+"0x43f8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43f8&#58;&nbsp;</TD><TD ALIGN="LEFT">lui</TD><TD ALIGN="LEFT">t4, 0x33206</TD></TR></TABLE> }>];
+"0x43fc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43fc&#58;&nbsp;</TD><TD ALIGN="LEFT">lui</TD><TD ALIGN="LEFT">t5, 0x61708</TD></TR></TABLE> }>];
+"0x4400" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4400&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">t1, t1, 0x574</TD></TR></TABLE> }>];
+"0x4404" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4404&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">t3, t3, -0x2ce</TD></TR></TABLE> }>];
+"0x4408" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4408&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">t4, t4, 0x46e</TD></TR></TABLE> }>];
+"0x440c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x440c&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">t5, t5, -0x79b</TD></TR></TABLE> }>];
+"0x4410" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4410&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s5, sp, 0xc</TD></TR></TABLE> }>];
+"0x4414" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4414&#58;&nbsp;</TD><TD ALIGN="LEFT">c.j</TD><TD ALIGN="LEFT">-0x572</TD></TR></TABLE> }>];
+"0x43f0" -> "0x4400" [style=solid, label=t1, tooltip="RAW: t1; WAW: t1"];
+"0x43f4" -> "0x4404" [style=solid, label=t3, tooltip="RAW: t3; WAW: t3"];
+"0x43f8" -> "0x4408" [style=solid, label=t4, tooltip="RAW: t4; WAW: t4"];
+"0x43fc" -> "0x440c" [style=solid, label=t5, tooltip="RAW: t5; WAW: t5"];
+}

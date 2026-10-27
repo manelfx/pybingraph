@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x41faf8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41faf8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, 0xffffffffffffffd0</TD></TR></TABLE> }>];
+"0x41faff" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41faff&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr fs&#58;[rax], 0xc</TD></TR></TABLE> }>];
+"0x41fb06" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41fb06&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x10</TD></TR></TABLE> }>];
+"0x41fb0a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41fb0a&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">eax, eax</TD></TR></TABLE> }>];
+"0x41fb0c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41fb0c&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbx</TD></TR></TABLE> }>];
+"0x41fb0d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41fb0d&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR></TABLE> }>];
+"0x41fb0e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41fb0e&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r12</TD></TR></TABLE> }>];
+"0x41fb10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41fb10&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x41faf8" -> "0x41faff" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x41faf8" -> "0x41fb0a" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x41faff" -> "0x41fb0a" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x41fb06" -> "0x41fb0a" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x41fb06" -> "0x41fb0c" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x41fb0c" -> "0x41fb0d" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x41fb0d" -> "0x41fb0e" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x41fb0e" -> "0x41fb10" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+}

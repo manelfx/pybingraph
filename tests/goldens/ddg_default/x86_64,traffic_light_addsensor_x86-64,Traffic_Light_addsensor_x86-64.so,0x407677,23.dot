@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x407677" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x407677&#58;&nbsp;</TD><TD ALIGN="LEFT">endbr64</TD><TD></TD></TR></TABLE> }>];
+"0x40767b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40767b&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR></TABLE> }>];
+"0x40767c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40767c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbp, rsp</TD></TR></TABLE> }>];
+"0x40767f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40767f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rbp - 8], rdi</TD></TR></TABLE> }>];
+"0x407683" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x407683&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rbp - 8]</TD></TR></TABLE> }>];
+"0x407687" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x407687&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [rax]</TD></TR></TABLE> }>];
+"0x40768a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40768a&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">al, al</TD></TR></TABLE> }>];
+"0x40768c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40768c&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x4076b1</TD></TR></TABLE> }>];
+"0x40767b" -> "0x40767c" [style=solid, label=rsp, tooltip="RAW: rsp; WAR: rbp"];
+"0x40767c" -> "0x40767f" [style=solid, label=rbp, tooltip="RAW: rbp"];
+"0x40767c" -> "0x407683" [style=solid, label=rbp, tooltip="RAW: rbp"];
+"0x40767f" -> "0x407683" [style=solid, label="[rsp-0x10]", tooltip="RAW: mem[entry_rsp-0x10]:8"];
+"0x407683" -> "0x407687" [style=solid, label=rax, tooltip="RAW: rax; WAW: rax"];
+"0x407687" -> "0x40768a" [style=solid, label=al, tooltip="RAW: al"];
+"0x40768a" -> "0x40768c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

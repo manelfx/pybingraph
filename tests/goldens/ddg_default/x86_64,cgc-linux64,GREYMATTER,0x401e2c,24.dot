@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x401e2c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e2c&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [rbp - 0x160]</TD></TR></TABLE> }>];
+"0x401e33" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e33&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, qword ptr [rbp - 0x18]</TD></TR></TABLE> }>];
+"0x401e37" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e37&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsi, 1</TD></TR></TABLE> }>];
+"0x401e3b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e3b&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rbp - 0x18], rsi</TD></TR></TABLE> }>];
+"0x401e3f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e3f&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x401b80</TD></TR></TABLE> }>];
+"0x401e33" -> "0x401e37" [style=solid, label=rsi, tooltip="RAW: rsi; WAW: rsi"];
+"0x401e33" -> "0x401e3b" [style=dashed, label="[rbp-0x18]", tooltip="WAR: mem[entry_rbp-0x18]:8"];
+"0x401e37" -> "0x401e3b" [style=solid, label=rsi, tooltip="RAW: rsi"];
+}

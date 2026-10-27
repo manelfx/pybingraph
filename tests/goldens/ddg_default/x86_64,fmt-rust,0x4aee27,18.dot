@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4aee27" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4aee27&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdx, rbx</TD></TR></TABLE> }>];
+"0x4aee2a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4aee2a&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x38</TD></TR></TABLE> }>];
+"0x4aee2e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4aee2e&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbx</TD></TR></TABLE> }>];
+"0x4aee2f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4aee2f&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r12</TD></TR></TABLE> }>];
+"0x4aee31" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4aee31&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r13</TD></TR></TABLE> }>];
+"0x4aee33" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4aee33&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r14</TD></TR></TABLE> }>];
+"0x4aee35" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4aee35&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">r15</TD></TR></TABLE> }>];
+"0x4aee37" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4aee37&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR></TABLE> }>];
+"0x4aee38" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4aee38&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x4aee27" -> "0x4aee2e" [style=dashed, label=rbx, tooltip="WAR: rbx"];
+"0x4aee2a" -> "0x4aee2e" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x4aee2e" -> "0x4aee2f" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x4aee2f" -> "0x4aee31" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x4aee31" -> "0x4aee33" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x4aee33" -> "0x4aee35" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x4aee35" -> "0x4aee37" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x4aee37" -> "0x4aee38" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+}

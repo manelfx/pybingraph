@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80067f3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80067f3&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r2, r4</TD></TR></TABLE> }>];
+"0x80067f5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80067f5&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, r5</TD></TR></TABLE> }>];
+"0x80067f7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80067f7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r8, r0</TD></TR></TABLE> }>];
+"0x80067f9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80067f9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">sb, r1</TD></TR></TABLE> }>];
+"0x80067fb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80067fb&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r4</TD></TR></TABLE> }>];
+"0x80067fd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80067fd&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r5</TD></TR></TABLE> }>];
+"0x80067ff" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80067ff&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x80004d1</TD></TR></TABLE> }>];
+"0x80067f3" -> "0x80067f5" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x80067f5" -> "0x80067f7" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x80067f7" -> "0x80067f9" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x80067f7" -> "0x80067fb" [style=dashed, label=r0, tooltip="WAR: r0"];
+"0x80067f9" -> "0x80067fb" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x80067f9" -> "0x80067fd" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x80067fb" -> "0x80067fd" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x80067fd" -> "0x80067ff" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

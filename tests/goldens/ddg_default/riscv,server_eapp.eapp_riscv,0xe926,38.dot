@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xe926" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe926&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a3, 0x48(a0)</TD></TR></TABLE> }>];
+"0xe928" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe928&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a4, 0x160(a0)</TD></TR></TABLE> }>];
+"0xe92c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe92c&#58;&nbsp;</TD><TD ALIGN="LEFT">auipc</TD><TD ALIGN="LEFT">s5, 0xc</TD></TR></TABLE> }>];
+"0xe930" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe930&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s5, s5, -0x33c</TD></TR></TABLE> }>];
+"0xe934" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe934&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s6, zero, 0x80</TD></TR></TABLE> }>];
+"0xe938" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe938&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s1, a2</TD></TR></TABLE> }>];
+"0xe93a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe93a&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">s4, 0(s5)</TD></TR></TABLE> }>];
+"0xe93e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe93e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a5, 0x40(a0)</TD></TR></TABLE> }>];
+"0xe940" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe940&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s3, a1</TD></TR></TABLE> }>];
+"0xe942" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe942&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s2, a0, 0x60</TD></TR></TABLE> }>];
+"0xe946" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe946&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a2, a3</TD></TR></TABLE> }>];
+"0xe948" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe948&#58;&nbsp;</TD><TD ALIGN="LEFT">bgeu</TD><TD ALIGN="LEFT">s6, a4, 0x3c</TD></TR></TABLE> }>];
+"0xe926" -> "0xe946" [style=solid, label=a3, tooltip="RAW: a3"];
+"0xe928" -> "0xe948" [style=solid, label=a4, tooltip="RAW: a4"];
+"0xe92c" -> "0xe930" [style=solid, label=s5, tooltip="RAW: s5; WAW: s5"];
+"0xe930" -> "0xe93a" [style=solid, label=s5, tooltip="RAW: s5"];
+"0xe934" -> "0xe948" [style=solid, label=s6, tooltip="RAW: s6"];
+"0xe938" -> "0xe946" [style=dashed, label=a2, tooltip="WAR: a2"];
+}

@@ -1,0 +1,29 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xf318" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf318&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, r0</TD></TR></TABLE> }>];
+"0xf31c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf31c&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [fp, &#35;-8]</TD></TR></TABLE> }>];
+"0xf320" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf320&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [fp, &#35;-8]</TD></TR></TABLE> }>];
+"0xf324" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf324&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0</TD></TR></TABLE> }>];
+"0xf328" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf328&#58;&nbsp;</TD><TD ALIGN="LEFT">movne</TD><TD ALIGN="LEFT">r3, &#35;0</TD></TR></TABLE> }>];
+"0xf32c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf32c&#58;&nbsp;</TD><TD ALIGN="LEFT">moveq</TD><TD ALIGN="LEFT">r3, &#35;1</TD></TR></TABLE> }>];
+"0xf330" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf330&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [fp, &#35;-8]</TD></TR></TABLE> }>];
+"0xf334" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf334&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r3, r2, r3</TD></TR></TABLE> }>];
+"0xf338" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf338&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [fp, &#35;-8]</TD></TR></TABLE> }>];
+"0xf318" -> "0xf31c" [style=solid, label=r3, tooltip="RAW: r3"];
+"0xf318" -> "0xf320" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0xf31c" -> "0xf320" [style=solid, label="[r11-0x8]", tooltip="RAW: mem[entry_r11-0x8]:4; WAR: r3"];
+"0xf31c" -> "0xf330" [style=solid, label="[r11-0x8]", tooltip="RAW: mem[entry_r11-0x8]:4"];
+"0xf31c" -> "0xf338" [style=dotted, label="[r11-0x8]", tooltip="WAW: mem[entry_r11-0x8]:4"];
+"0xf320" -> "0xf324" [style=solid, label=r3, tooltip="RAW: r3"];
+"0xf320" -> "0xf328" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0xf320" -> "0xf338" [style=dashed, label="[r11-0x8]", tooltip="WAR: mem[entry_r11-0x8]:4"];
+"0xf324" -> "0xf328" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAR: r3"];
+"0xf324" -> "0xf32c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0xf328" -> "0xf32c" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0xf32c" -> "0xf334" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0xf330" -> "0xf334" [style=solid, label=r2, tooltip="RAW: r2"];
+"0xf330" -> "0xf338" [style=dashed, label="[r11-0x8]", tooltip="WAR: mem[entry_r11-0x8]:4"];
+"0xf334" -> "0xf338" [style=solid, label=r3, tooltip="RAW: r3"];
+}

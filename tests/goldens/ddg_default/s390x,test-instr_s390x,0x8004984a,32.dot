@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8004984a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004984a&#58;&nbsp;</TD><TD ALIGN="LEFT">ahik</TD><TD ALIGN="LEFT">%r1, %r10, -1</TD></TR></TABLE> }>];
+"0x80049850" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80049850&#58;&nbsp;</TD><TD ALIGN="LEFT">lgfr</TD><TD ALIGN="LEFT">%r1, %r1</TD></TR></TABLE> }>];
+"0x80049854" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80049854&#58;&nbsp;</TD><TD ALIGN="LEFT">sllg</TD><TD ALIGN="LEFT">%r1, %r1, 4</TD></TR></TABLE> }>];
+"0x8004985a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004985a&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r3, 0xc8(%r1, %r11)</TD></TR></TABLE> }>];
+"0x80049860" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80049860&#58;&nbsp;</TD><TD ALIGN="LEFT">aghi</TD><TD ALIGN="LEFT">%r3, 1</TD></TR></TABLE> }>];
+"0x80049864" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80049864&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r3, 0xc8(%r1, %r11)</TD></TR></TABLE> }>];
+"0x8004984a" -> "0x80049850" [style=solid, label="r1_32", tooltip="RAW: r1_32; WAW: r1"];
+"0x8004984a" -> "0x80049860" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x80049850" -> "0x80049854" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
+"0x80049854" -> "0x8004985a" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x80049854" -> "0x80049864" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x8004985a" -> "0x80049860" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x8004985a" -> "0x80049864" [style=dashed, label="[<BV64 r11 + (SignExt(32, r10[31:0] + 0xffffffff) << 0x4) + 0xc8>]", tooltip="WAR: mem[<BV64 entry_r11 + (SignExt(32, entry_r10[31:0] + 0xffffffff) << 0x4) + 0xc8>]:8"];
+"0x80049860" -> "0x80049864" [style=solid, label=r3, tooltip="RAW: r3"];
+}

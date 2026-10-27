@@ -1,0 +1,17 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40d9f7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40d9f7&#58;&nbsp;</TD><TD ALIGN="LEFT">movabs</TD><TD ALIGN="LEFT">rdx, 0xffffffff00000000</TD></TR></TABLE> }>];
+"0x40da01" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40da01&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">rdx, qword ptr [rsp + 0x28]</TD></TR></TABLE> }>];
+"0x40da06" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40da06&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdi, [r9 + 2]</TD></TR></TABLE> }>];
+"0x40da0a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40da0a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, 7</TD></TR></TABLE> }>];
+"0x40da0f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40da0f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r12d, 0x103</TD></TR></TABLE> }>];
+"0x40da15" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40da15&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">rdx, 0xb</TD></TR></TABLE> }>];
+"0x40da19" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40da19&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rsp + 0x28], rdx</TD></TR></TABLE> }>];
+"0x40da1e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40da1e&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x40d7b6</TD></TR></TABLE> }>];
+"0x40d9f7" -> "0x40da01" [style=solid, label=rdx, tooltip="RAW: rdx; WAW: rdx"];
+"0x40da01" -> "0x40da15" [style=solid, label=rdx, tooltip="RAW: rdx; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, rdx"];
+"0x40da01" -> "0x40da19" [style=dashed, label="[rsp+0x28]", tooltip="WAR: mem[entry_rsp+0x28]:8"];
+"0x40da15" -> "0x40da19" [style=solid, label=rdx, tooltip="RAW: rdx"];
+}

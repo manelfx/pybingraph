@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10029cbc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029cbc&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r1, r1, 0xa0</TD></TR></TABLE> }>];
+"0x10029cc0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029cc0&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r3, r30</TD></TR></TABLE> }>];
+"0x10029cc4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029cc4&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r12, 8(r1)</TD></TR></TABLE> }>];
+"0x10029cc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029cc8&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r28, -0x20(r1)</TD></TR></TABLE> }>];
+"0x10029ccc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029ccc&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r30, -0x10(r1)</TD></TR></TABLE> }>];
+"0x10029cd0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029cd0&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r31, -8(r1)</TD></TR></TABLE> }>];
+"0x10029cd4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029cd4&#58;&nbsp;</TD><TD ALIGN="LEFT">mtocrf</TD><TD ALIGN="LEFT">8, r12</TD></TR></TABLE> }>];
+"0x10029cd8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029cd8&#58;&nbsp;</TD><TD ALIGN="LEFT">blr</TD><TD></TD></TR></TABLE> }>];
+"0x10029cbc" -> "0x10029cc4" [style=solid, label=gpr1, tooltip="RAW: gpr1"];
+"0x10029cbc" -> "0x10029cc8" [style=solid, label=gpr1, tooltip="RAW: gpr1"];
+"0x10029cbc" -> "0x10029ccc" [style=solid, label=gpr1, tooltip="RAW: gpr1"];
+"0x10029cbc" -> "0x10029cd0" [style=solid, label=gpr1, tooltip="RAW: gpr1"];
+"0x10029cc0" -> "0x10029ccc" [style=dashed, label=gpr30, tooltip="WAR: gpr30"];
+"0x10029cc4" -> "0x10029cd4" [style=solid, label=gpr12, tooltip="RAW: gpr12"];
+}

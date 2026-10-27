@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x46fd66" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46fd66&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">r14d, ecx</TD></TR></TABLE> }>];
+"0x46fd69" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46fd69&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r13d, 0</TD></TR></TABLE> }>];
+"0x46fd6f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46fd6f&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovns</TD><TD ALIGN="LEFT">r13d, r14d</TD></TR></TABLE> }>];
+"0x46fd73" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46fd73&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r13d, ecx</TD></TR></TABLE> }>];
+"0x46fd76" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46fd76&#58;&nbsp;</TD><TD ALIGN="LEFT">movsxd</TD><TD ALIGN="LEFT">r13, r13d</TD></TR></TABLE> }>];
+"0x46fd79" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46fd79&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r13, rax</TD></TR></TABLE> }>];
+"0x46fd7c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x46fd7c&#58;&nbsp;</TD><TD ALIGN="LEFT">jae</TD><TD ALIGN="LEFT">0x46fa4b</TD></TR></TABLE> }>];
+"0x46fd66" -> "0x46fd6f" [style=solid, label="flags, r14d", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r14d"];
+"0x46fd66" -> "0x46fd73" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x46fd69" -> "0x46fd6f" [style=solid, label=r13, tooltip="RAW: r13; WAW: r13"];
+"0x46fd6f" -> "0x46fd73" [style=solid, label=r13d, tooltip="RAW: r13d; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: r13"];
+"0x46fd73" -> "0x46fd76" [style=solid, label=r13d, tooltip="RAW: r13d; WAW: r13"];
+"0x46fd73" -> "0x46fd79" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x46fd76" -> "0x46fd79" [style=solid, label=r13, tooltip="RAW: r13"];
+"0x46fd79" -> "0x46fd7c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

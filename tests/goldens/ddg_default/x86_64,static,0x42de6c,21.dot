@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x42de6c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42de6c&#58;&nbsp;</TD><TD ALIGN="LEFT">movdqu</TD><TD ALIGN="LEFT">xmm2, xmmword ptr [rdi + 0x30]</TD></TR></TABLE> }>];
+"0x42de71" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42de71&#58;&nbsp;</TD><TD ALIGN="LEFT">pxor</TD><TD ALIGN="LEFT">xmm2, xmmword ptr [rsi + 0x30]</TD></TR></TABLE> }>];
+"0x42de76" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42de76&#58;&nbsp;</TD><TD ALIGN="LEFT">ptest</TD><TD ALIGN="LEFT">xmm0, xmm2</TD></TR></TABLE> }>];
+"0x42de7b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42de7b&#58;&nbsp;</TD><TD ALIGN="LEFT">jae</TD><TD ALIGN="LEFT">0x42e753</TD></TR></TABLE> }>];
+"0x42de6c" -> "0x42de71" [style=solid, label=xmm2, tooltip="RAW: xmm2; WAW: xmm2"];
+"0x42de71" -> "0x42de76" [style=solid, label=xmm2, tooltip="RAW: xmm2"];
+"0x42de76" -> "0x42de7b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

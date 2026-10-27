@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x44f318" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44f318&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">esi, byte ptr [rbp]</TD></TR></TABLE> }>];
+"0x44f31c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44f31c&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [rbx]</TD></TR></TABLE> }>];
+"0x44f31f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44f31f&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rcx, 1</TD></TR></TABLE> }>];
+"0x44f323" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44f323&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdx, [rbp + 1]</TD></TR></TABLE> }>];
+"0x44f327" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44f327&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [rbp], al</TD></TR></TABLE> }>];
+"0x44f32a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44f32a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [rbx], sil</TD></TR></TABLE> }>];
+"0x44f32d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44f32d&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rbx + 1]</TD></TR></TABLE> }>];
+"0x44f331" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44f331&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, qword ptr [rsp + 0x18]</TD></TR></TABLE> }>];
+"0x44f336" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44f336&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x44f528</TD></TR></TABLE> }>];
+"0x44f318" -> "0x44f327" [style=dashed, label="[rbp]", tooltip="WAR: mem[entry_rbp]:1"];
+"0x44f318" -> "0x44f32a" [style=solid, label=sil, tooltip="RAW: sil"];
+"0x44f318" -> "0x44f331" [style=dotted, label=rsi, tooltip="WAW: rsi"];
+"0x44f31c" -> "0x44f327" [style=solid, label=al, tooltip="RAW: al"];
+"0x44f31c" -> "0x44f32a" [style=dashed, label="[rbx]", tooltip="WAR: mem[entry_rbx]:1"];
+"0x44f31c" -> "0x44f32d" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x44f31f" -> "0x44f336" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x44f327" -> "0x44f32d" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x44f32a" -> "0x44f331" [style=dashed, label=rsi, tooltip="WAR: rsi"];
+}

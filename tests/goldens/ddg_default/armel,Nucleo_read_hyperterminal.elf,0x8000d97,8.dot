@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8000d97" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000d97&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r3, r5, &#35;3</TD></TR></TABLE> }>];
+"0x8000d99" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000d99&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;2</TD></TR></TABLE> }>];
+"0x8000d9b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000d9b&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [r0, &#35;4]</TD></TR></TABLE> }>];
+"0x8000d9d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000d9d&#58;&nbsp;</TD><TD ALIGN="LEFT">bhi</TD><TD ALIGN="LEFT">&#35;0x8000db3</TD></TR></TABLE> }>];
+"0x8000d97" -> "0x8000d99" [style=solid, label=r3, tooltip="RAW: r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+"0x8000d97" -> "0x8000d9b" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0x8000d99" -> "0x8000d9b" [style=dashed, label=r3, tooltip="WAR: r3"];
+"0x8000d99" -> "0x8000d9b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8000d99" -> "0x8000d9d" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8000d9b" -> "0x8000d9d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

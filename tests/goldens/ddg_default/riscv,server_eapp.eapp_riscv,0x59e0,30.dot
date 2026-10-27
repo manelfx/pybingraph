@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x59e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59e0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.lw</TD><TD ALIGN="LEFT">a2, 0x2c(s0)</TD></TR></TABLE> }>];
+"0x59e2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59e2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a1, s2</TD></TR></TABLE> }>];
+"0x59e4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59e4&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a4, a0, 0x3f</TD></TR></TABLE> }>];
+"0x59e8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59e8&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s2, sp, 8</TD></TR></TABLE> }>];
+"0x59ec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59ec&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">a4, a4, -0x40</TD></TR></TABLE> }>];
+"0x59f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59f0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a0, s2</TD></TR></TABLE> }>];
+"0x59f2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59f2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sd</TD><TD ALIGN="LEFT">a5, 0(s1)</TD></TR></TABLE> }>];
+"0x59f4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59f4&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sd</TD><TD ALIGN="LEFT">a4, 8(s1)</TD></TR></TABLE> }>];
+"0x59f6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59f6&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">s3, 0x10(s1)</TD></TR></TABLE> }>];
+"0x59fa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x59fa&#58;&nbsp;</TD><TD ALIGN="LEFT">jal</TD><TD ALIGN="LEFT">-0x554</TD></TR></TABLE> }>];
+"0x59e2" -> "0x59e8" [style=dashed, label=s2, tooltip="WAR: s2"];
+"0x59e4" -> "0x59ec" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x59e4" -> "0x59f0" [style=dashed, label=a0, tooltip="WAR: a0"];
+"0x59e8" -> "0x59f0" [style=solid, label=s2, tooltip="RAW: s2"];
+"0x59ec" -> "0x59f4" [style=solid, label=a4, tooltip="RAW: a4"];
+}

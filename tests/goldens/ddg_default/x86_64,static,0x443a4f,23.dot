@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x443a4f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x443a4f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, 3</TD></TR></TABLE> }>];
+"0x443a54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x443a54&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rsp, 0x1d8</TD></TR></TABLE> }>];
+"0x443a5b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x443a5b&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">ecx, r8d</TD></TR></TABLE> }>];
+"0x443a5e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x443a5e&#58;&nbsp;</TD><TD ALIGN="LEFT">shl</TD><TD ALIGN="LEFT">ecx, 3</TD></TR></TABLE> }>];
+"0x443a61" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x443a61&#58;&nbsp;</TD><TD ALIGN="LEFT">shl</TD><TD ALIGN="LEFT">eax, cl</TD></TR></TABLE> }>];
+"0x443a63" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x443a63&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbx</TD></TR></TABLE> }>];
+"0x443a64" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x443a64&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">rbp</TD></TR></TABLE> }>];
+"0x443a65" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x443a65&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x443a4f" -> "0x443a5b" [style=solid, label=ecx, tooltip="RAW: ecx; WAW: rcx"];
+"0x443a54" -> "0x443a5b" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x443a54" -> "0x443a63" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x443a5b" -> "0x443a5e" [style=solid, label=ecx, tooltip="RAW: ecx; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, rcx"];
+"0x443a5e" -> "0x443a61" [style=solid, label="flags, cl", tooltip="RAW: cc_dep1, cc_dep2, cc_op, cl; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x443a63" -> "0x443a64" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x443a64" -> "0x443a65" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+}

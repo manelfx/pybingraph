@@ -1,0 +1,26 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x465f14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f14&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [rip + 0x4595e]</TD></TR></TABLE> }>];
+"0x465f1a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f1a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, rsi</TD></TR></TABLE> }>];
+"0x465f1d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f1d&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbp</TD></TR></TABLE> }>];
+"0x465f1e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f1e&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">rbx</TD></TR></TABLE> }>];
+"0x465f1f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f1f&#58;&nbsp;</TD><TD ALIGN="LEFT">shr</TD><TD ALIGN="LEFT">rax, cl</TD></TR></TABLE> }>];
+"0x465f22" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f22&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [rip + 0x45977]</TD></TR></TABLE> }>];
+"0x465f29" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f29&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">r9, [rcx + rax*2]</TD></TR></TABLE> }>];
+"0x465f2d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f2d&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">edx, word ptr [r9]</TD></TR></TABLE> }>];
+"0x465f31" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f31&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">rdx, rdx</TD></TR></TABLE> }>];
+"0x465f34" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x465f34&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x465f70</TD></TR></TABLE> }>];
+"0x465f14" -> "0x465f1f" [style=solid, label=cl, tooltip="RAW: cl"];
+"0x465f14" -> "0x465f22" [style=dotted, label=rcx, tooltip="WAW: rcx"];
+"0x465f1a" -> "0x465f1f" [style=solid, label=rax, tooltip="RAW: rax; WAW: rax"];
+"0x465f1d" -> "0x465f1e" [style=solid, label=rsp, tooltip="RAW: rsp; WAW: rsp"];
+"0x465f1f" -> "0x465f22" [style=dashed, label=rcx, tooltip="WAR: rcx"];
+"0x465f1f" -> "0x465f29" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x465f1f" -> "0x465f31" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x465f22" -> "0x465f29" [style=solid, label=rcx, tooltip="RAW: rcx"];
+"0x465f29" -> "0x465f2d" [style=solid, label=r9, tooltip="RAW: r9"];
+"0x465f2d" -> "0x465f31" [style=solid, label=rdx, tooltip="RAW: rdx"];
+"0x465f31" -> "0x465f34" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

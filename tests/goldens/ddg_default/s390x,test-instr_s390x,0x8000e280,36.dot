@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8000e280" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000e280&#58;&nbsp;</TD><TD ALIGN="LEFT">l</TD><TD ALIGN="LEFT">%r1, 4(%r9)</TD></TR></TABLE> }>];
+"0x8000e284" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000e284&#58;&nbsp;</TD><TD ALIGN="LEFT">ahi</TD><TD ALIGN="LEFT">%r1, 1</TD></TR></TABLE> }>];
+"0x8000e288" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000e288&#58;&nbsp;</TD><TD ALIGN="LEFT">st</TD><TD ALIGN="LEFT">%r1, 4(%r9)</TD></TR></TABLE> }>];
+"0x8000e28c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000e28c&#58;&nbsp;</TD><TD ALIGN="LEFT">lrl</TD><TD ALIGN="LEFT">%r4, 0x80099468</TD></TR></TABLE> }>];
+"0x8000e292" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000e292&#58;&nbsp;</TD><TD ALIGN="LEFT">larl</TD><TD ALIGN="LEFT">%r2, 0x800970f0</TD></TR></TABLE> }>];
+"0x8000e298" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000e298&#58;&nbsp;</TD><TD ALIGN="LEFT">lr</TD><TD ALIGN="LEFT">%r12, %r4</TD></TR></TABLE> }>];
+"0x8000e29a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000e29a&#58;&nbsp;</TD><TD ALIGN="LEFT">ltg</TD><TD ALIGN="LEFT">%r13, 0(%r2)</TD></TR></TABLE> }>];
+"0x8000e2a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000e2a0&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x8000e3b0</TD></TR></TABLE> }>];
+"0x8000e280" -> "0x8000e284" [style=solid, label="r1_32", tooltip="RAW: r1_32; WAW: r1_32"];
+"0x8000e280" -> "0x8000e288" [style=dashed, label="[r9+0x4]", tooltip="WAR: mem[entry_r9+0x4]:4"];
+"0x8000e284" -> "0x8000e288" [style=solid, label="r1_32", tooltip="RAW: r1_32"];
+"0x8000e284" -> "0x8000e29a" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8000e28c" -> "0x8000e298" [style=solid, label="r4_32", tooltip="RAW: r4_32"];
+"0x8000e292" -> "0x8000e29a" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x8000e29a" -> "0x8000e2a0" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+}

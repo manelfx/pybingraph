@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x466d38" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x466d38&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">$v0, ($v1)</TD></TR></TABLE> }>];
+"0x466d3c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x466d3c&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v1, $v1, 1</TD></TR></TABLE> }>];
+"0x466d40" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x466d40&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">$a0, $v0, 0x7f</TD></TR></TABLE> }>];
+"0x466d44" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x466d44&#58;&nbsp;</TD><TD ALIGN="LEFT">sllv</TD><TD ALIGN="LEFT">$a0, $a0, $a1</TD></TR></TABLE> }>];
+"0x466d48" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x466d48&#58;&nbsp;</TD><TD ALIGN="LEFT">seb</TD><TD ALIGN="LEFT">$v0, $v0</TD></TR></TABLE> }>];
+"0x466d4c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x466d4c&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a1, $a1, 7</TD></TR></TABLE> }>];
+"0x466d50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x466d50&#58;&nbsp;</TD><TD ALIGN="LEFT">bltz</TD><TD ALIGN="LEFT">$v0, 0x466d38</TD></TR></TABLE> }>];
+"0x466d54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x466d54&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">$a3, $a3, $a0</TD></TR></TABLE> }>];
+"0x466d38" -> "0x466d3c" [style=dashed, label=v1, tooltip="WAR: v1"];
+"0x466d38" -> "0x466d40" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x466d38" -> "0x466d48" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x466d40" -> "0x466d44" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x466d40" -> "0x466d48" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x466d44" -> "0x466d4c" [style=dashed, label=a1, tooltip="WAR: a1"];
+"0x466d44" -> "0x466d54" [style=solid, label=a0, tooltip="RAW: a0"];
+"0x466d48" -> "0x466d50" [style=solid, label=v0, tooltip="RAW: v0"];
+}

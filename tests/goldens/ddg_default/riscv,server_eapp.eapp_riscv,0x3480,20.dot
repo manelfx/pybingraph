@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x3480" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3480&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">a4, 8(a5)</TD></TR></TABLE> }>];
+"0x3484" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3484&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a5, 1</TD></TR></TABLE> }>];
+"0x3486" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3486&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addw</TD><TD ALIGN="LEFT">a4, a3</TD></TR></TABLE> }>];
+"0x3488" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3488&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">a4, 7(a5)</TD></TR></TABLE> }>];
+"0x348c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x348c&#58;&nbsp;</TD><TD ALIGN="LEFT">srliw</TD><TD ALIGN="LEFT">a3, a4, 8</TD></TR></TABLE> }>];
+"0x3490" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3490&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">a5, s6, -0x10</TD></TR></TABLE> }>];
+"0x3480" -> "0x3484" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x3480" -> "0x3486" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x3480" -> "0x3488" [style=dashed, label="[a5+0x8]", tooltip="WAR: mem[entry_a5+0x8]:1"];
+"0x3484" -> "0x3488" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x3484" -> "0x3490" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x3486" -> "0x3488" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x3486" -> "0x348c" [style=solid, label=a4, tooltip="RAW: a4; WAR: a3"];
+}

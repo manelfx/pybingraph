@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10093aa0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10093aa0&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r8, r6, -0x3d</TD></TR></TABLE> }>];
+"0x10093aa4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10093aa4&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r6, 0</TD></TR></TABLE> }>];
+"0x10093aa8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10093aa8&#58;&nbsp;</TD><TD ALIGN="LEFT">sld</TD><TD ALIGN="LEFT">r8, r30, r8</TD></TR></TABLE> }>];
+"0x10093aac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10093aac&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x100935f4</TD></TR></TABLE> }>];
+"0x10093aa0" -> "0x10093aa4" [style=dashed, label=gpr6, tooltip="WAR: gpr6"];
+"0x10093aa0" -> "0x10093aa8" [style=solid, label=gpr8, tooltip="RAW: gpr8; WAW: gpr8"];
+}

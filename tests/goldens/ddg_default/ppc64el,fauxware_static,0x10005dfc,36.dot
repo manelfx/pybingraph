@@ -1,0 +1,26 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10005dfc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005dfc&#58;&nbsp;</TD><TD ALIGN="LEFT">rotlwi</TD><TD ALIGN="LEFT">r10, r7, 0x18</TD></TR></TABLE> }>];
+"0x10005e00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005e00&#58;&nbsp;</TD><TD ALIGN="LEFT">rlwimi</TD><TD ALIGN="LEFT">r10, r7, 8, 8, 0xf</TD></TR></TABLE> }>];
+"0x10005e04" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005e04&#58;&nbsp;</TD><TD ALIGN="LEFT">rlwimi</TD><TD ALIGN="LEFT">r10, r7, 8, 0x18, 0x1f</TD></TR></TABLE> }>];
+"0x10005e08" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005e08&#58;&nbsp;</TD><TD ALIGN="LEFT">rotlwi</TD><TD ALIGN="LEFT">r7, r8, 0x18</TD></TR></TABLE> }>];
+"0x10005e0c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005e0c&#58;&nbsp;</TD><TD ALIGN="LEFT">rlwimi</TD><TD ALIGN="LEFT">r7, r8, 8, 8, 0xf</TD></TR></TABLE> }>];
+"0x10005e10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005e10&#58;&nbsp;</TD><TD ALIGN="LEFT">clrldi</TD><TD ALIGN="LEFT">r10, r10, 0x20</TD></TR></TABLE> }>];
+"0x10005e14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005e14&#58;&nbsp;</TD><TD ALIGN="LEFT">rlwimi</TD><TD ALIGN="LEFT">r7, r8, 8, 0x18, 0x1f</TD></TR></TABLE> }>];
+"0x10005e18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005e18&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r10, r27, r10</TD></TR></TABLE> }>];
+"0x10005e1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10005e1c&#58;&nbsp;</TD><TD ALIGN="LEFT">clrldi</TD><TD ALIGN="LEFT">r8, r7, 0x20</TD></TR></TABLE> }>];
+"0x10005dfc" -> "0x10005e00" [style=solid, label=gpr10, tooltip="RAW: gpr10; WAW: gpr10"];
+"0x10005dfc" -> "0x10005e08" [style=dashed, label=gpr7, tooltip="WAR: gpr7"];
+"0x10005e00" -> "0x10005e04" [style=solid, label=gpr10, tooltip="RAW: gpr10; WAW: gpr10"];
+"0x10005e00" -> "0x10005e08" [style=dashed, label=gpr7, tooltip="WAR: gpr7"];
+"0x10005e04" -> "0x10005e08" [style=dashed, label=gpr7, tooltip="WAR: gpr7"];
+"0x10005e04" -> "0x10005e10" [style=solid, label=gpr10, tooltip="RAW: gpr10; WAW: gpr10"];
+"0x10005e08" -> "0x10005e0c" [style=solid, label=gpr7, tooltip="RAW: gpr7; WAW: gpr7"];
+"0x10005e08" -> "0x10005e1c" [style=dashed, label=gpr8, tooltip="WAR: gpr8"];
+"0x10005e0c" -> "0x10005e14" [style=solid, label=gpr7, tooltip="RAW: gpr7; WAW: gpr7"];
+"0x10005e0c" -> "0x10005e1c" [style=dashed, label=gpr8, tooltip="WAR: gpr8"];
+"0x10005e10" -> "0x10005e18" [style=solid, label=gpr10, tooltip="RAW: gpr10; WAW: gpr10"];
+"0x10005e14" -> "0x10005e1c" [style=solid, label=gpr7, tooltip="RAW: gpr7; WAR: gpr8"];
+}

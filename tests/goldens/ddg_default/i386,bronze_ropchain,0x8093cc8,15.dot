@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8093cc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8093cc8&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esi, dword ptr [esp + 0xc]</TD></TR></TABLE> }>];
+"0x8093ccc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8093ccc&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">esi, eax</TD></TR></TABLE> }>];
+"0x8093cce" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8093cce&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0xc], esi</TD></TR></TABLE> }>];
+"0x8093cd2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8093cd2&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x8093b94</TD></TR></TABLE> }>];
+"0x8093cc8" -> "0x8093ccc" [style=solid, label=esi, tooltip="RAW: esi; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, esi"];
+"0x8093cc8" -> "0x8093cce" [style=dashed, label="[esp+0xc]", tooltip="WAR: mem[entry_esp+0xc]:4"];
+"0x8093ccc" -> "0x8093cce" [style=solid, label=esi, tooltip="RAW: esi"];
+}

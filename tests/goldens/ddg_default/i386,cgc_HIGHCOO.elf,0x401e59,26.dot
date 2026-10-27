@@ -1,0 +1,27 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x401e59" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e59&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp - 0x18]</TD></TR></TABLE> }>];
+"0x401e5c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e5c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [ebp - 0x14]</TD></TR></TABLE> }>];
+"0x401e5f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e5f&#58;&nbsp;</TD><TD ALIGN="LEFT">shl</TD><TD ALIGN="LEFT">edx, 2</TD></TR></TABLE> }>];
+"0x401e62" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e62&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">eax, edx</TD></TR></TABLE> }>];
+"0x401e64" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e64&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [eax]</TD></TR></TABLE> }>];
+"0x401e66" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e66&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">esp, 8</TD></TR></TABLE> }>];
+"0x401e69" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e69&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">eax</TD></TR></TABLE> }>];
+"0x401e6a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e6a&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">eax, [ebp - 0x1c]</TD></TR></TABLE> }>];
+"0x401e6d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e6d&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">eax</TD></TR></TABLE> }>];
+"0x401e6e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401e6e&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x401903</TD></TR></TABLE> }>];
+"0x401e59" -> "0x401e62" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x401e5c" -> "0x401e5f" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x401e5f" -> "0x401e62" [style=solid, label=edx, tooltip="RAW: edx; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x401e62" -> "0x401e64" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x401e62" -> "0x401e66" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x401e64" -> "0x401e69" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x401e64" -> "0x401e6a" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x401e66" -> "0x401e69" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x401e69" -> "0x401e6a" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x401e69" -> "0x401e6d" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x401e6a" -> "0x401e6d" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x401e6d" -> "0x401e6e" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+}

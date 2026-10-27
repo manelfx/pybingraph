@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10066438" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10066438&#58;&nbsp;</TD><TD ALIGN="LEFT">lvx</TD><TD ALIGN="LEFT">v4, r9, r10</TD></TR></TABLE> }>];
+"0x1006643c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006643c&#58;&nbsp;</TD><TD ALIGN="LEFT">lvx</TD><TD ALIGN="LEFT">v10, r4, r11</TD></TR></TABLE> }>];
+"0x10066440" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10066440&#58;&nbsp;</TD><TD ALIGN="LEFT">vperm</TD><TD ALIGN="LEFT">v5, v10, v5, v6</TD></TR></TABLE> }>];
+"0x10066444" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10066444&#58;&nbsp;</TD><TD ALIGN="LEFT">vcmpequb.</TD><TD ALIGN="LEFT">v7, v5, v4</TD></TR></TABLE> }>];
+"0x10066448" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10066448&#58;&nbsp;</TD><TD ALIGN="LEFT">bge</TD><TD ALIGN="LEFT">cr6, 0x100661d0</TD></TR></TABLE> }>];
+"0x10066438" -> "0x10066444" [style=solid, label=vsr36, tooltip="RAW: vsr36"];
+"0x1006643c" -> "0x10066440" [style=solid, label=vsr42, tooltip="RAW: vsr42"];
+"0x10066440" -> "0x10066444" [style=solid, label=vsr37, tooltip="RAW: vsr37"];
+"0x10066444" -> "0x10066448" [style=solid, label="cr6_321", tooltip="RAW: cr6_321"];
+}

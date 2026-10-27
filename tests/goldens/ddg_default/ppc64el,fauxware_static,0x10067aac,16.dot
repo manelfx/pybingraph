@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10067aac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10067aac&#58;&nbsp;</TD><TD ALIGN="LEFT">srd</TD><TD ALIGN="LEFT">r12, r31, r28</TD></TR></TABLE> }>];
+"0x10067ab0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10067ab0&#58;&nbsp;</TD><TD ALIGN="LEFT">sld</TD><TD ALIGN="LEFT">r27, r31, r29</TD></TR></TABLE> }>];
+"0x10067ab4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10067ab4&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">r31, r12, r24</TD></TR></TABLE> }>];
+"0x10067ab8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10067ab8&#58;&nbsp;</TD><TD ALIGN="LEFT">bdnz</TD><TD ALIGN="LEFT">0x10067a40</TD></TR></TABLE> }>];
+"0x10067aac" -> "0x10067ab4" [style=solid, label=gpr12, tooltip="RAW: gpr12; WAR: gpr31"];
+"0x10067ab0" -> "0x10067ab4" [style=dashed, label=gpr31, tooltip="WAR: gpr31"];
+}

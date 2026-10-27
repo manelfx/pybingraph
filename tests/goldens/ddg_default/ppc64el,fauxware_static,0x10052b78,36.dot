@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10052b78" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10052b78&#58;&nbsp;</TD><TD ALIGN="LEFT">extsw</TD><TD ALIGN="LEFT">r5, r5</TD></TR></TABLE> }>];
+"0x10052b7c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10052b7c&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r19, 1</TD></TR></TABLE> }>];
+"0x10052b80" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10052b80&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r5, r6, r5</TD></TR></TABLE> }>];
+"0x10052b84" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10052b84&#58;&nbsp;</TD><TD ALIGN="LEFT">lbz</TD><TD ALIGN="LEFT">r5, 0xf0(r5)</TD></TR></TABLE> }>];
+"0x10052b88" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10052b88&#58;&nbsp;</TD><TD ALIGN="LEFT">sldi</TD><TD ALIGN="LEFT">r5, r5, 3</TD></TR></TABLE> }>];
+"0x10052b8c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10052b8c&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r5, r6, r5</TD></TR></TABLE> }>];
+"0x10052b90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10052b90&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r5, 0x600(r5)</TD></TR></TABLE> }>];
+"0x10052b94" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10052b94&#58;&nbsp;</TD><TD ALIGN="LEFT">mtctr</TD><TD ALIGN="LEFT">r5</TD></TR></TABLE> }>];
+"0x10052b98" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10052b98&#58;&nbsp;</TD><TD ALIGN="LEFT">bctr</TD><TD></TD></TR></TABLE> }>];
+"0x10052b78" -> "0x10052b80" [style=solid, label=gpr5, tooltip="RAW: gpr5; WAW: gpr5"];
+"0x10052b80" -> "0x10052b84" [style=solid, label=gpr5, tooltip="RAW: gpr5; WAW: gpr5"];
+"0x10052b84" -> "0x10052b88" [style=solid, label=gpr5, tooltip="RAW: gpr5; WAW: gpr5"];
+"0x10052b88" -> "0x10052b8c" [style=solid, label=gpr5, tooltip="RAW: gpr5; WAW: gpr5"];
+"0x10052b8c" -> "0x10052b90" [style=solid, label=gpr5, tooltip="RAW: gpr5; WAW: gpr5"];
+"0x10052b90" -> "0x10052b94" [style=solid, label=gpr5, tooltip="RAW: gpr5"];
+"0x10052b94" -> "0x10052b98" [style=solid, label=ctr, tooltip="RAW: ctr"];
+}

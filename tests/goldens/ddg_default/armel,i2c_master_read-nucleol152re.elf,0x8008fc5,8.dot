@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8008fc5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8008fc5&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r4, sp, &#35;0xb8</TD></TR></TABLE> }>];
+"0x8008fc7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8008fc7&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r6, [sp, &#35;0x8c]</TD></TR></TABLE> }>];
+"0x8008fc9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8008fc9&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r5, [sp, &#35;0x88]</TD></TR></TABLE> }>];
+"0x8008fcb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8008fcb&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">&#35;0x8008c09</TD></TR></TABLE> }>];
+"0x8008fc5" -> "0x8008fc7" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8008fc7" -> "0x8008fc9" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8008fc9" -> "0x8008fcb" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

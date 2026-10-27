@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x417f00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f00&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r9, -0x144(r30)</TD></TR></TABLE> }>];
+"0x417f04" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f04&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r10, 8(r9)</TD></TR></TABLE> }>];
+"0x417f08" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f08&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpw</TD><TD ALIGN="LEFT">cr7, r31, r10</TD></TR></TABLE> }>];
+"0x417f0c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x417f0c&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">cr7, 0x417f70</TD></TR></TABLE> }>];
+"0x417f00" -> "0x417f04" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x417f04" -> "0x417f08" [style=solid, label=gpr10, tooltip="RAW: gpr10"];
+"0x417f08" -> "0x417f0c" [style=solid, label="cr7_321", tooltip="RAW: cr7_321"];
+}

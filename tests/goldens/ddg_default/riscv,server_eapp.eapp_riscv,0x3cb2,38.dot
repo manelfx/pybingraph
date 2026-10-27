@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x3cb2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cb2&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, 0x430(s0)</TD></TR></TABLE> }>];
+"0x3cb6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cb6&#58;&nbsp;</TD><TD ALIGN="LEFT">auipc</TD><TD ALIGN="LEFT">a4, 0x17</TD></TR></TABLE> }>];
+"0x3cba" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cba&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a4, a4, -0x4a6</TD></TR></TABLE> }>];
+"0x3cbe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cbe&#58;&nbsp;</TD><TD ALIGN="LEFT">auipc</TD><TD ALIGN="LEFT">a3, 0x17</TD></TR></TABLE> }>];
+"0x3cc2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cc2&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a3, a3, -0x8e</TD></TR></TABLE> }>];
+"0x3cc6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cc6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a5, 1</TD></TR></TABLE> }>];
+"0x3cc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cc8&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a2, zero, 0x20</TD></TR></TABLE> }>];
+"0x3ccc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3ccc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a1, a4</TD></TR></TABLE> }>];
+"0x3cce" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cce&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a0, a4</TD></TR></TABLE> }>];
+"0x3cd0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cd0&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a5, 0x430(s0)</TD></TR></TABLE> }>];
+"0x3cd4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3cd4&#58;&nbsp;</TD><TD ALIGN="LEFT">jal</TD><TD ALIGN="LEFT">-0x10bc</TD></TR></TABLE> }>];
+"0x3cb2" -> "0x3cc6" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x3cb2" -> "0x3cd0" [style=dashed, label="[s0+0x430]", tooltip="WAR: mem[entry_s0+0x430]:8"];
+"0x3cb6" -> "0x3cba" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x3cba" -> "0x3ccc" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x3cba" -> "0x3cce" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x3cbe" -> "0x3cc2" [style=solid, label=a3, tooltip="RAW: a3; WAW: a3"];
+"0x3cc6" -> "0x3cd0" [style=solid, label=a5, tooltip="RAW: a5"];
+}

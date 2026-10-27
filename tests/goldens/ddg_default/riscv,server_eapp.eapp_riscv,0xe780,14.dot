@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xe780" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe780&#58;&nbsp;</TD><TD ALIGN="LEFT">addiw</TD><TD ALIGN="LEFT">a4, a3, -1</TD></TR></TABLE> }>];
+"0xe784" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe784&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">a4, a4, 0xff</TD></TR></TABLE> }>];
+"0xe788" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe788&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s1, a3</TD></TR></TABLE> }>];
+"0xe78a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe78a&#58;&nbsp;</TD><TD ALIGN="LEFT">bltu</TD><TD ALIGN="LEFT">a1, a4, 0x90</TD></TR></TABLE> }>];
+"0xe780" -> "0xe784" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0xe784" -> "0xe78a" [style=solid, label=a4, tooltip="RAW: a4"];
+}

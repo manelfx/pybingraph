@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8049aa6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8049aa6&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">ecx, eax</TD></TR></TABLE> }>];
+"0x8049aa8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8049aa8&#58;&nbsp;</TD><TD ALIGN="LEFT">setne</TD><TD ALIGN="LEFT">cl</TD></TR></TABLE> }>];
+"0x8049aab" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8049aab&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">ecx, cl</TD></TR></TABLE> }>];
+"0x8049aae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8049aae&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x804998f</TD></TR></TABLE> }>];
+"0x8049aa6" -> "0x8049aa8" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAR: cl"];
+"0x8049aa6" -> "0x8049aab" [style=dashed, label=ecx, tooltip="WAR: ecx"];
+"0x8049aa8" -> "0x8049aab" [style=solid, label=cl, tooltip="RAW: cl; WAW: ecx"];
+}

@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40dfe8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dfe8&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 0x18($s0)</TD></TR></TABLE> }>];
+"0x40dfec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dfec&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v1, $zero, 0x4000</TD></TR></TABLE> }>];
+"0x40dff0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dff0&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">$v0, $v0, 0xf000</TD></TR></TABLE> }>];
+"0x40dff4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dff4&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">$v0, $v1, 0x40e018</TD></TR></TABLE> }>];
+"0x40dff8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dff8&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$v0, $zero</TD></TR></TABLE> }>];
+"0x40dfe8" -> "0x40dff0" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x40dfec" -> "0x40dff4" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x40dff0" -> "0x40dff4" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x40dff0" -> "0x40dff8" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x40dff4" -> "0x40dff8" [style=dashed, label=v0, tooltip="WAR: v0"];
+}

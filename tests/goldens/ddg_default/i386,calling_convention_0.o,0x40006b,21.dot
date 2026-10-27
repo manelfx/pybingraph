@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40006b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40006b&#58;&nbsp;</TD><TD ALIGN="LEFT">movsx</TD><TD ALIGN="LEFT">eax, word ptr [ecx + 0x22]</TD></TR></TABLE> }>];
+"0x40006f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40006f&#58;&nbsp;</TD><TD ALIGN="LEFT">movsx</TD><TD ALIGN="LEFT">ebx, dx</TD></TR></TABLE> }>];
+"0x400072" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400072&#58;&nbsp;</TD><TD ALIGN="LEFT">imul</TD><TD ALIGN="LEFT">eax, ebx</TD></TR></TABLE> }>];
+"0x400075" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400075&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">eax, dword ptr [ecx + 0x34]</TD></TR></TABLE> }>];
+"0x400078" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400078&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">ecx, word ptr [eax]</TD></TR></TABLE> }>];
+"0x40007b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40007b&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">cx, cx</TD></TR></TABLE> }>];
+"0x40007e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40007e&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x4000d9</TD></TR></TABLE> }>];
+"0x40006b" -> "0x400072" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x40006b" -> "0x400078" [style=dashed, label=ecx, tooltip="WAR: ecx"];
+"0x40006f" -> "0x400072" [style=solid, label=ebx, tooltip="RAW: ebx"];
+"0x400072" -> "0x400075" [style=solid, label=eax, tooltip="RAW: eax; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, eax"];
+"0x400075" -> "0x400078" [style=solid, label=eax, tooltip="RAW: eax; WAR: ecx"];
+"0x400075" -> "0x40007b" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x400078" -> "0x40007b" [style=solid, label=cx, tooltip="RAW: cx"];
+"0x40007b" -> "0x40007e" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

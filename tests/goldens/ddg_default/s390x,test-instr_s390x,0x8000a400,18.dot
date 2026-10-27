@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8000a400" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000a400&#58;&nbsp;</TD><TD ALIGN="LEFT">xgrk</TD><TD ALIGN="LEFT">%r3, %r12, %r9</TD></TR></TABLE> }>];
+"0x8000a404" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000a404&#58;&nbsp;</TD><TD ALIGN="LEFT">lpgr</TD><TD ALIGN="LEFT">%r3, %r3</TD></TR></TABLE> }>];
+"0x8000a408" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000a408&#58;&nbsp;</TD><TD ALIGN="LEFT">aghi</TD><TD ALIGN="LEFT">%r3, -1</TD></TR></TABLE> }>];
+"0x8000a40c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000a40c&#58;&nbsp;</TD><TD ALIGN="LEFT">srlg</TD><TD ALIGN="LEFT">%r3, %r3, 0x3f</TD></TR></TABLE> }>];
+"0x8000a400" -> "0x8000a404" [style=solid, label=r3, tooltip="RAW: r3; WAW: 736, 744, 752, 760, r3"];
+"0x8000a404" -> "0x8000a408" [style=solid, label=r3, tooltip="RAW: r3; WAW: 736, 744, 752, 760, r3"];
+"0x8000a408" -> "0x8000a40c" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+}

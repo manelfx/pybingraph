@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x444d14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x444d14&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">ip, [sp, &#35;0xa1]</TD></TR></TABLE> }>];
+"0x444d18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x444d18&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, &#35;1</TD></TR></TABLE> }>];
+"0x444d1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x444d1c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r1, [sp, &#35;0xa5]</TD></TR></TABLE> }>];
+"0x444d20" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x444d20&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, sl</TD></TR></TABLE> }>];
+"0x444d24" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x444d24&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [sp, &#35;8]</TD></TR></TABLE> }>];
+"0x444d28" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x444d28&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">ip, [sp]</TD></TR></TABLE> }>];
+"0x444d2c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x444d2c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrd</TD><TD ALIGN="LEFT">r2, r3, [sp, &#35;0x98]</TD></TR></TABLE> }>];
+"0x444d30" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x444d30&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r1, [sp, &#35;4]</TD></TR></TABLE> }>];
+"0x444d34" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x444d34&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x419dc4</TD></TR></TABLE> }>];
+"0x444d14" -> "0x444d28" [style=solid, label=r12, tooltip="RAW: r12"];
+"0x444d18" -> "0x444d24" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x444d18" -> "0x444d2c" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0x444d1c" -> "0x444d30" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x444d24" -> "0x444d2c" [style=dashed, label=r3, tooltip="WAR: r3"];
+}

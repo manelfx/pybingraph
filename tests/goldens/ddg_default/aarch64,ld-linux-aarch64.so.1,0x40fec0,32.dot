@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40fec0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fec0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">x0, x26</TD></TR></TABLE> }>];
+"0x40fec4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fec4&#58;&nbsp;</TD><TD ALIGN="LEFT">ldp</TD><TD ALIGN="LEFT">x19, x20, [sp, &#35;0x10]</TD></TR></TABLE> }>];
+"0x40fec8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fec8&#58;&nbsp;</TD><TD ALIGN="LEFT">ldp</TD><TD ALIGN="LEFT">x21, x22, [sp, &#35;0x20]</TD></TR></TABLE> }>];
+"0x40fecc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fecc&#58;&nbsp;</TD><TD ALIGN="LEFT">ldp</TD><TD ALIGN="LEFT">x23, x24, [sp, &#35;0x30]</TD></TR></TABLE> }>];
+"0x40fed0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fed0&#58;&nbsp;</TD><TD ALIGN="LEFT">ldp</TD><TD ALIGN="LEFT">x25, x26, [sp, &#35;0x40]</TD></TR></TABLE> }>];
+"0x40fed4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fed4&#58;&nbsp;</TD><TD ALIGN="LEFT">ldp</TD><TD ALIGN="LEFT">x27, x28, [sp, &#35;0x50]</TD></TR></TABLE> }>];
+"0x40fed8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fed8&#58;&nbsp;</TD><TD ALIGN="LEFT">ldp</TD><TD ALIGN="LEFT">x29, x30, [sp], &#35;0x60</TD></TR></TABLE> }>];
+"0x40fedc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fedc&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x40fec0" -> "0x40fed0" [style=dashed, label=x26, tooltip="WAR: x26"];
+"0x40fec4" -> "0x40fed8" [style=dashed, label=xsp, tooltip="WAR: xsp"];
+"0x40fec8" -> "0x40fed8" [style=dashed, label=xsp, tooltip="WAR: xsp"];
+"0x40fecc" -> "0x40fed8" [style=dashed, label=xsp, tooltip="WAR: xsp"];
+"0x40fed0" -> "0x40fed8" [style=dashed, label=xsp, tooltip="WAR: xsp"];
+"0x40fed4" -> "0x40fed8" [style=dashed, label=xsp, tooltip="WAR: xsp"];
+"0x40fed8" -> "0x40fedc" [style=solid, label=x30, tooltip="RAW: x30"];
+}

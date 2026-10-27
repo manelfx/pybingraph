@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x42be50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42be50&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">lr, [ip, &#35;0x34]</TD></TR></TABLE> }>];
+"0x42be54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42be54&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrb</TD><TD ALIGN="LEFT">ip, [ip, &#35;0x64]</TD></TR></TABLE> }>];
+"0x42be58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42be58&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">ip, &#35;0</TD></TR></TABLE> }>];
+"0x42be5c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42be5c&#58;&nbsp;</TD><TD ALIGN="LEFT">stm</TD><TD ALIGN="LEFT">sp, &#123;r8, lr&#125;</TD></TR></TABLE> }>];
+"0x42be60" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42be60&#58;&nbsp;</TD><TD ALIGN="LEFT">moveq</TD><TD ALIGN="LEFT">r2, r7</TD></TR></TABLE> }>];
+"0x42be64" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42be64&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrd</TD><TD ALIGN="LEFT">r6, r7, [r6]</TD></TR></TABLE> }>];
+"0x42be68" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42be68&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">sb, [sp, &#35;0x10]</TD></TR></TABLE> }>];
+"0x42be6c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42be6c&#58;&nbsp;</TD><TD ALIGN="LEFT">strd</TD><TD ALIGN="LEFT">r6, r7, [sp, &#35;8]</TD></TR></TABLE> }>];
+"0x42be70" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42be70&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x400f50</TD></TR></TABLE> }>];
+"0x42be50" -> "0x42be54" [style=dashed, label=r12, tooltip="WAR: r12"];
+"0x42be50" -> "0x42be5c" [style=solid, label=lr, tooltip="RAW: lr"];
+"0x42be50" -> "0x42be70" [style=dotted, label=lr, tooltip="WAW: lr"];
+"0x42be54" -> "0x42be58" [style=solid, label=r12, tooltip="RAW: r12"];
+"0x42be58" -> "0x42be60" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x42be5c" -> "0x42be70" [style=dashed, label=lr, tooltip="WAR: lr"];
+"0x42be60" -> "0x42be64" [style=dashed, label=r7, tooltip="WAR: r7"];
+"0x42be64" -> "0x42be6c" [style=solid, label="r6, r7", tooltip="RAW: r6, r7"];
+}

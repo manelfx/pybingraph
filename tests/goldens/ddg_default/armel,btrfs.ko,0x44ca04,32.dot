@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x44ca04" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44ca04&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r2, sl, r8</TD></TR></TABLE> }>];
+"0x44ca08" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44ca08&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r7</TD></TR></TABLE> }>];
+"0x44ca0c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44ca0c&#58;&nbsp;</TD><TD ALIGN="LEFT">adc</TD><TD ALIGN="LEFT">r3, fp, r8, asr &#35;31</TD></TR></TABLE> }>];
+"0x44ca10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44ca10&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, sb</TD></TR></TABLE> }>];
+"0x44ca14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44ca14&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">sl, r2</TD></TR></TABLE> }>];
+"0x44ca18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44ca18&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">fp, r3</TD></TR></TABLE> }>];
+"0x44ca1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44ca1c&#58;&nbsp;</TD><TD ALIGN="LEFT">strd</TD><TD ALIGN="LEFT">sl, fp, [sp, &#35;0x28]</TD></TR></TABLE> }>];
+"0x44ca20" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44ca20&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x447cf8</TD></TR></TABLE> }>];
+"0x44ca04" -> "0x44ca0c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x44ca04" -> "0x44ca14" [style=solid, label=r2, tooltip="RAW: r2; WAR: r10"];
+"0x44ca0c" -> "0x44ca18" [style=solid, label=r3, tooltip="RAW: r3; WAR: r11"];
+"0x44ca14" -> "0x44ca1c" [style=solid, label=r10, tooltip="RAW: r10"];
+"0x44ca18" -> "0x44ca1c" [style=solid, label=r11, tooltip="RAW: r11"];
+}

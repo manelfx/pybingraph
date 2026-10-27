@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4de343" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4de343&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r13, qword ptr [rsp]</TD></TR></TABLE> }>];
+"0x4de347" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4de347&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, 0xffffffffffffffff</TD></TR></TABLE> }>];
+"0x4de34e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4de34e&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovae</TD><TD ALIGN="LEFT">rax, r13</TD></TR></TABLE> }>];
+"0x4de352" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4de352&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">bpl, 1</TD></TR></TABLE> }>];
+"0x4de356" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4de356&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x4de38d</TD></TR></TABLE> }>];
+"0x4de343" -> "0x4de34e" [style=solid, label="flags, r13", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r13"];
+"0x4de343" -> "0x4de352" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4de347" -> "0x4de34e" [style=solid, label=rax, tooltip="RAW: rax; WAW: rax"];
+"0x4de34e" -> "0x4de352" [style=dashed, label=flags, tooltip="WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4de352" -> "0x4de356" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

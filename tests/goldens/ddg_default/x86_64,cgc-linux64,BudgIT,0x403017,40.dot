@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x403017" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x403017&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rip + 0x2ae2]</TD></TR></TABLE> }>];
+"0x40301e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40301e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rbp - 0x18], rax</TD></TR></TABLE> }>];
+"0x403022" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x403022&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [rip + 0x2ae0]</TD></TR></TABLE> }>];
+"0x403028" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x403028&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rbp - 0x18]</TD></TR></TABLE> }>];
+"0x40302c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40302c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [rax + 0x10], ecx</TD></TR></TABLE> }>];
+"0x40302f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40302f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdi, qword ptr [rip + 0x2aba]</TD></TR></TABLE> }>];
+"0x403036" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x403036&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, qword ptr [rbp - 0x18]</TD></TR></TABLE> }>];
+"0x40303a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40303a&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x403140</TD></TR></TABLE> }>];
+"0x403017" -> "0x40301e" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x403017" -> "0x403028" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x40301e" -> "0x403028" [style=solid, label="[rbp-0x18]", tooltip="RAW: mem[entry_rbp-0x18]:8; WAR: rax"];
+"0x40301e" -> "0x403036" [style=solid, label="[rbp-0x18]", tooltip="RAW: mem[entry_rbp-0x18]:8"];
+"0x403022" -> "0x40302c" [style=solid, label=ecx, tooltip="RAW: ecx"];
+"0x403028" -> "0x40302c" [style=solid, label=rax, tooltip="RAW: rax"];
+}

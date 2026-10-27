@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x45a97e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45a97e&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">edx, edx</TD></TR></TABLE> }>];
+"0x45a980" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45a980&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">r15b, 0x50</TD></TR></TABLE> }>];
+"0x45a984" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45a984&#58;&nbsp;</TD><TD ALIGN="LEFT">setne</TD><TD ALIGN="LEFT">dl</TD></TR></TABLE> }>];
+"0x45a987" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45a987&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">edx, 3</TD></TR></TABLE> }>];
+"0x45a97e" -> "0x45a980" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x45a97e" -> "0x45a984" [style=dotted, label=dl, tooltip="WAW: dl"];
+"0x45a97e" -> "0x45a987" [style=solid, label=edx, tooltip="RAW: edx; WAW: rdx"];
+"0x45a980" -> "0x45a984" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x45a980" -> "0x45a987" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x45a984" -> "0x45a987" [style=solid, label=edx, tooltip="RAW: edx; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: rdx"];
+}

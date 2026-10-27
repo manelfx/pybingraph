@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x6829" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6829&#58;&nbsp;</TD><TD ALIGN="LEFT">mul</TD><TD ALIGN="LEFT">r2, r4, r7</TD></TR></TABLE> }>];
+"0x682d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x682d&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">r7, sb, r2</TD></TR></TABLE> }>];
+"0x6831" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6831&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrb</TD><TD ALIGN="LEFT">r3, [r7, &#35;0x14]</TD></TR></TABLE> }>];
+"0x6833" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6833&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">r4, r2, &#35;0xc</TD></TR></TABLE> }>];
+"0x6837" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6837&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;2</TD></TR></TABLE> }>];
+"0x6839" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6839&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r4, sb</TD></TR></TABLE> }>];
+"0x683b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x683b&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">r8, r5, &#35;0x29</TD></TR></TABLE> }>];
+"0x683f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x683f&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">&#35;0x685b</TD></TR></TABLE> }>];
+"0x6829" -> "0x682d" [style=solid, label=r2, tooltip="RAW: r2; WAR: r7; WAW: itstate"];
+"0x6829" -> "0x6833" [style=solid, label=r2, tooltip="RAW: r2; WAR: r4"];
+"0x682d" -> "0x6831" [style=solid, label=r7, tooltip="RAW: r7; WAW: itstate"];
+"0x6831" -> "0x6833" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x6831" -> "0x6837" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x6833" -> "0x6837" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x6833" -> "0x6839" [style=solid, label=r4, tooltip="RAW: r4; WAW: r4"];
+"0x6837" -> "0x6839" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x6837" -> "0x683f" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x6839" -> "0x683b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x683b" -> "0x683f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

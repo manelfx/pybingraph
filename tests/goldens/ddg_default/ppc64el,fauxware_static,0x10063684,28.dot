@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10063684" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10063684&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r9, r10, -1</TD></TR></TABLE> }>];
+"0x10063688" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10063688&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r7, r30, -4</TD></TR></TABLE> }>];
+"0x1006368c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006368c&#58;&nbsp;</TD><TD ALIGN="LEFT">clrldi</TD><TD ALIGN="LEFT">r9, r9, 0x20</TD></TR></TABLE> }>];
+"0x10063690" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10063690&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r10, r4, -4</TD></TR></TABLE> }>];
+"0x10063694" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10063694&#58;&nbsp;</TD><TD ALIGN="LEFT">sldi</TD><TD ALIGN="LEFT">r5, r9, 2</TD></TR></TABLE> }>];
+"0x10063698" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10063698&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r5, r4, r5</TD></TR></TABLE> }>];
+"0x1006369c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1006369c&#58;&nbsp;</TD><TD ALIGN="LEFT">ori</TD><TD ALIGN="LEFT">r2, r2, 0</TD></TR></TABLE> }>];
+"0x10063684" -> "0x1006368c" [style=solid, label=gpr9, tooltip="RAW: gpr9; WAW: gpr9"];
+"0x10063684" -> "0x10063690" [style=dashed, label=gpr10, tooltip="WAR: gpr10"];
+"0x1006368c" -> "0x10063694" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x10063694" -> "0x10063698" [style=solid, label=gpr5, tooltip="RAW: gpr5; WAW: gpr5"];
+}

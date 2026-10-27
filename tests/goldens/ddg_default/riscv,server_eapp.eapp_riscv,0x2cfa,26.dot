@@ -1,0 +1,26 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x2cfa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2cfa&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, -0x30</TD></TR></TABLE> }>];
+"0x2cfc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2cfc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s0, 0x20(sp)</TD></TR></TABLE> }>];
+"0x2cfe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2cfe&#58;&nbsp;</TD><TD ALIGN="LEFT">auipc</TD><TD ALIGN="LEFT">s0, 0x18</TD></TR></TABLE> }>];
+"0x2d02" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d02&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s0, s0, -0x55e</TD></TR></TABLE> }>];
+"0x2d06" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d06&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a5, 0(s0)</TD></TR></TABLE> }>];
+"0x2d08" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d08&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s1, 0x18(sp)</TD></TR></TABLE> }>];
+"0x2d0a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d0a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">ra, 0x28(sp)</TD></TR></TABLE> }>];
+"0x2d0c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d0c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s2, 0x10(sp)</TD></TR></TABLE> }>];
+"0x2d0e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d0e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s3, 8(sp)</TD></TR></TABLE> }>];
+"0x2d10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d10&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s1, a0</TD></TR></TABLE> }>];
+"0x2d12" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d12&#58;&nbsp;</TD><TD ALIGN="LEFT">c.beqz</TD><TD ALIGN="LEFT">a5, 0x6c</TD></TR></TABLE> }>];
+"0x2cfa" -> "0x2cfc" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2cfa" -> "0x2d08" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2cfa" -> "0x2d0a" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2cfa" -> "0x2d0c" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2cfa" -> "0x2d0e" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2cfc" -> "0x2cfe" [style=dashed, label=s0, tooltip="WAR: s0"];
+"0x2cfe" -> "0x2d02" [style=solid, label=s0, tooltip="RAW: s0; WAW: s0"];
+"0x2d02" -> "0x2d06" [style=solid, label=s0, tooltip="RAW: s0"];
+"0x2d06" -> "0x2d12" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x2d08" -> "0x2d10" [style=dashed, label=s1, tooltip="WAR: s1"];
+}

@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4002b5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002b5&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">r0, r0, r0, lsl &#35;2</TD></TR></TABLE> }>];
+"0x4002b9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002b9&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r3, &#35;1</TD></TR></TABLE> }>];
+"0x4002bb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002bb&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">r0, r1, r0, lsl &#35;1</TD></TR></TABLE> }>];
+"0x4002bf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002bf&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r1, r2, r3</TD></TR></TABLE> }>];
+"0x4002c1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002c1&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r1, &#35;2</TD></TR></TABLE> }>];
+"0x4002c3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002c3&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">r0, r0, &#35;0xff</TD></TR></TABLE> }>];
+"0x4002c7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002c7&#58;&nbsp;</TD><TD ALIGN="LEFT">ble</TD><TD ALIGN="LEFT">&#35;0x4002d1</TD></TR></TABLE> }>];
+"0x4002b5" -> "0x4002b9" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4002b5" -> "0x4002bb" [style=solid, label=r0, tooltip="RAW: r0; WAW: r0"];
+"0x4002b9" -> "0x4002bb" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4002b9" -> "0x4002bf" [style=solid, label=r3, tooltip="RAW: r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4002bb" -> "0x4002bf" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x4002bb" -> "0x4002bf" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4002bb" -> "0x4002c3" [style=solid, label=r0, tooltip="RAW: r0; WAW: r0"];
+"0x4002bf" -> "0x4002c1" [style=solid, label=r1, tooltip="RAW: r1; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+"0x4002c1" -> "0x4002c3" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4002c1" -> "0x4002c7" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4002c3" -> "0x4002c7" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

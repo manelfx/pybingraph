@@ -1,0 +1,17 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x2e4e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2e4e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">sp, -0x20</TD></TR></TABLE> }>];
+"0x2e50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2e50&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s0, 0x10(sp)</TD></TR></TABLE> }>];
+"0x2e52" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2e52&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">ra, 0x18(sp)</TD></TR></TABLE> }>];
+"0x2e54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2e54&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s1, 8(sp)</TD></TR></TABLE> }>];
+"0x2e56" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2e56&#58;&nbsp;</TD><TD ALIGN="LEFT">auipc</TD><TD ALIGN="LEFT">s0, 0x18</TD></TR></TABLE> }>];
+"0x2e5a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2e5a&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s0, s0, -0x6ae</TD></TR></TABLE> }>];
+"0x2e5e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2e5e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a4, 1</TD></TR></TABLE> }>];
+"0x2e4e" -> "0x2e50" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2e4e" -> "0x2e52" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2e4e" -> "0x2e54" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2e50" -> "0x2e56" [style=dashed, label=s0, tooltip="WAR: s0"];
+"0x2e56" -> "0x2e5a" [style=solid, label=s0, tooltip="RAW: s0; WAW: s0"];
+}

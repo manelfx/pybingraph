@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x204a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x204a&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x20(s0)</TD></TR></TABLE> }>];
+"0x204e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x204e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a4, 0(a5)</TD></TR></TABLE> }>];
+"0x2050" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2050&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x20(s0)</TD></TR></TABLE> }>];
+"0x2054" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2054&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a5, a4</TD></TR></TABLE> }>];
+"0x2056" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2056&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a4, -0x28(s0)</TD></TR></TABLE> }>];
+"0x205a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x205a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a4, 8(a4)</TD></TR></TABLE> }>];
+"0x205c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x205c&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">a5, a4, 0xaa</TD></TR></TABLE> }>];
+"0x204a" -> "0x204e" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x204a" -> "0x2050" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x204e" -> "0x2050" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x204e" -> "0x2054" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x204e" -> "0x2056" [style=dotted, label=a4, tooltip="WAW: a4"];
+"0x2050" -> "0x2054" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x2054" -> "0x2056" [style=dashed, label=a4, tooltip="WAR: a4"];
+"0x2054" -> "0x205c" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x2056" -> "0x205a" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x205a" -> "0x205c" [style=solid, label=a4, tooltip="RAW: a4"];
+}

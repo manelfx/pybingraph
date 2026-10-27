@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x805853e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805853e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [ebp + 0x40]</TD></TR></TABLE> }>];
+"0x8058541" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8058541&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">eax, 0x3ef</TD></TR></TABLE> }>];
+"0x8058546" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8058546&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp + 0x40], esi</TD></TR></TABLE> }>];
+"0x8058549" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8058549&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [edx + 0xc], esi</TD></TR></TABLE> }>];
+"0x805854c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805854c&#58;&nbsp;</TD><TD ALIGN="LEFT">jbe</TD><TD ALIGN="LEFT">0x805855c</TD></TR></TABLE> }>];
+"0x805853e" -> "0x8058546" [style=dashed, label="[ebp+0x40]", tooltip="WAR: mem[entry_ebp+0x40]:4"];
+"0x805853e" -> "0x8058549" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x8058541" -> "0x805854c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

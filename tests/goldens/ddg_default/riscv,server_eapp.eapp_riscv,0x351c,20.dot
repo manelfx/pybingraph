@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x351c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x351c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, -0xb0</TD></TR></TABLE> }>];
+"0x351e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x351e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s4, 0x80(sp)</TD></TR></TABLE> }>];
+"0x3520" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3520&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">ra, 0xa8(sp)</TD></TR></TABLE> }>];
+"0x3522" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3522&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s0, 0xa0(sp)</TD></TR></TABLE> }>];
+"0x3524" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3524&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s1, 0x98(sp)</TD></TR></TABLE> }>];
+"0x3526" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3526&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s2, 0x90(sp)</TD></TR></TABLE> }>];
+"0x3528" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3528&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s3, 0x88(sp)</TD></TR></TABLE> }>];
+"0x352a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x352a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s5, 0x78(sp)</TD></TR></TABLE> }>];
+"0x352c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x352c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s4, a1</TD></TR></TABLE> }>];
+"0x352e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x352e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.beqz</TD><TD ALIGN="LEFT">a1, 0xbc</TD></TR></TABLE> }>];
+"0x351c" -> "0x351e" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x351c" -> "0x3520" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x351c" -> "0x3522" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x351c" -> "0x3524" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x351c" -> "0x3526" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x351c" -> "0x3528" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x351c" -> "0x352a" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x351e" -> "0x352c" [style=dashed, label=s4, tooltip="WAR: s4"];
+}

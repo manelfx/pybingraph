@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x71d4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71d4&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a5, 8(a2)</TD></TR></TABLE> }>];
+"0x71d6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71d6&#58;&nbsp;</TD><TD ALIGN="LEFT">lwu</TD><TD ALIGN="LEFT">a1, 0x24(s6)</TD></TR></TABLE> }>];
+"0x71da" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71da&#58;&nbsp;</TD><TD ALIGN="LEFT">c.slli</TD><TD ALIGN="LEFT">t1, 0x20</TD></TR></TABLE> }>];
+"0x71dc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71dc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a5, a0</TD></TR></TABLE> }>];
+"0x71de" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71de&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a5, 0(a5)</TD></TR></TABLE> }>];
+"0x71e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71e0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.swsp</TD><TD ALIGN="LEFT">s5, 0xc(sp)</TD></TR></TABLE> }>];
+"0x71e2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71e2&#58;&nbsp;</TD><TD ALIGN="LEFT">srli</TD><TD ALIGN="LEFT">t1, t1, 0x20</TD></TR></TABLE> }>];
+"0x71e6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71e6&#58;&nbsp;</TD><TD ALIGN="LEFT">srli</TD><TD ALIGN="LEFT">a6, a5, 0x20</TD></TR></TABLE> }>];
+"0x71ea" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71ea&#58;&nbsp;</TD><TD ALIGN="LEFT">remu</TD><TD ALIGN="LEFT">a6, a6, a1</TD></TR></TABLE> }>];
+"0x71ee" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x71ee&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">t3, -0x96</TD></TR></TABLE> }>];
+"0x71d4" -> "0x71dc" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x71d6" -> "0x71ea" [style=solid, label=a1, tooltip="RAW: a1"];
+"0x71da" -> "0x71e2" [style=solid, label=t1, tooltip="RAW: t1; WAW: t1"];
+"0x71dc" -> "0x71de" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x71de" -> "0x71e6" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x71e6" -> "0x71ea" [style=solid, label=a6, tooltip="RAW: a6; WAW: a6"];
+}

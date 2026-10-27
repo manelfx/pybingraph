@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4059ce" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4059ce&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdx, rax</TD></TR></TABLE> }>];
+"0x4059d1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4059d1&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rip + 0x21eea8]</TD></TR></TABLE> }>];
+"0x4059d8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4059d8&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rax, rdx</TD></TR></TABLE> }>];
+"0x4059db" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4059db&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rip + 0x21ee9e], rax</TD></TR></TABLE> }>];
+"0x4059e2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4059e2&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [rip + 0x21ed73]</TD></TR></TABLE> }>];
+"0x4059e9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4059e9&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">al, al</TD></TR></TABLE> }>];
+"0x4059eb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4059eb&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x405a95</TD></TR></TABLE> }>];
+"0x4059ce" -> "0x4059d1" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x4059ce" -> "0x4059d8" [style=solid, label=rdx, tooltip="RAW: rdx"];
+"0x4059d1" -> "0x4059d8" [style=solid, label=rax, tooltip="RAW: rax; WAW: rax"];
+"0x4059d1" -> "0x4059db" [style=dashed, label="[0x624880]", tooltip="WAR: mem[0x624880]:8"];
+"0x4059d8" -> "0x4059db" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x4059d8" -> "0x4059e2" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x4059d8" -> "0x4059e9" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4059db" -> "0x4059e2" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x4059e2" -> "0x4059e9" [style=solid, label=al, tooltip="RAW: al"];
+"0x4059e9" -> "0x4059eb" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

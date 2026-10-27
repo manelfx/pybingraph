@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x44cdaf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44cdaf&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">edx, [rax + 1]</TD></TR></TABLE> }>];
+"0x44cdb2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44cdb2&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">eax, eax</TD></TR></TABLE> }>];
+"0x44cdb4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44cdb4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, 1</TD></TR></TABLE> }>];
+"0x44cdb9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44cdb9&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovg</TD><TD ALIGN="LEFT">eax, edx</TD></TR></TABLE> }>];
+"0x44cdbc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44cdbc&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [rbx + 8], eax</TD></TR></TABLE> }>];
+"0x44cdaf" -> "0x44cdb4" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x44cdaf" -> "0x44cdb9" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x44cdb2" -> "0x44cdb4" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x44cdb2" -> "0x44cdb9" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x44cdb4" -> "0x44cdb9" [style=solid, label=rax, tooltip="RAW: rax; WAW: rax"];
+"0x44cdb9" -> "0x44cdbc" [style=solid, label=eax, tooltip="RAW: eax"];
+}

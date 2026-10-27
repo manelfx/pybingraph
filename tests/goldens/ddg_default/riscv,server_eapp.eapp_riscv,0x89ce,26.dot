@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x89ce" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x89ce&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">a5, 8(sp)</TD></TR></TABLE> }>];
+"0x89d0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x89d0&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a4, zero, 0x3f</TD></TR></TABLE> }>];
+"0x89d4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x89d4&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s7, s7, 0x40</TD></TR></TABLE> }>];
+"0x89d8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x89d8&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a5, a5, -0x40</TD></TR></TABLE> }>];
+"0x89dc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x89dc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">a5, 8(sp)</TD></TR></TABLE> }>];
+"0x89de" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x89de&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">a5, 8(sp)</TD></TR></TABLE> }>];
+"0x89e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x89e0&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s1, s1, 0x40</TD></TR></TABLE> }>];
+"0x89e4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x89e4&#58;&nbsp;</TD><TD ALIGN="LEFT">bltu</TD><TD ALIGN="LEFT">a4, a5, -0x800</TD></TR></TABLE> }>];
+"0x89ce" -> "0x89d8" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x89ce" -> "0x89dc" [style=dashed, label="[sp+0x8]", tooltip="WAR: mem[entry_sp+0x8]:8"];
+"0x89d0" -> "0x89e4" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x89d8" -> "0x89dc" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x89d8" -> "0x89de" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x89dc" -> "0x89de" [style=solid, label="[sp+0x8]", tooltip="RAW: mem[entry_sp+0x8]:8; WAR: a5"];
+"0x89de" -> "0x89e4" [style=solid, label=a5, tooltip="RAW: a5"];
+}

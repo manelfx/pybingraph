@@ -1,0 +1,17 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x544296" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x544296&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [r12 + 0x18], 1</TD></TR></TABLE> }>];
+"0x54429c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x54429c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, qword ptr [rbp - 0x30]</TD></TR></TABLE> }>];
+"0x5442a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5442a0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rbx, 0x400</TD></TR></TABLE> }>];
+"0x5442a7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5442a7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, 0x400</TD></TR></TABLE> }>];
+"0x5442ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5442ac&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovb</TD><TD ALIGN="LEFT">rdx, rbx</TD></TR></TABLE> }>];
+"0x5442b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5442b0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edi, 1</TD></TR></TABLE> }>];
+"0x5442b5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5442b5&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rsi, r15</TD></TR></TABLE> }>];
+"0x5442b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5442b8&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">qword ptr [rip + 0x40ce2]</TD></TR></TABLE> }>];
+"0x54429c" -> "0x5442a0" [style=solid, label=rbx, tooltip="RAW: rbx"];
+"0x54429c" -> "0x5442ac" [style=solid, label=rbx, tooltip="RAW: rbx"];
+"0x5442a0" -> "0x5442ac" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x5442a7" -> "0x5442ac" [style=solid, label=rdx, tooltip="RAW: rdx; WAW: rdx"];
+}

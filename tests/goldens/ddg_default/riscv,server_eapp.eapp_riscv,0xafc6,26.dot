@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xafc6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafc6&#58;&nbsp;</TD><TD ALIGN="LEFT">srai</TD><TD ALIGN="LEFT">a5, s10, 1</TD></TR></TABLE> }>];
+"0xafca" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafca&#58;&nbsp;</TD><TD ALIGN="LEFT">slli</TD><TD ALIGN="LEFT">a2, a5, 2</TD></TR></TABLE> }>];
+"0xafce" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafce&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a5, a2</TD></TR></TABLE> }>];
+"0xafd0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafd0&#58;&nbsp;</TD><TD ALIGN="LEFT">slli</TD><TD ALIGN="LEFT">a2, a5, 5</TD></TR></TABLE> }>];
+"0xafd4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafd4&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">a5, 0x10(sp)</TD></TR></TABLE> }>];
+"0xafd6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafd6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a1, s6</TD></TR></TABLE> }>];
+"0xafd8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafd8&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a0, s0</TD></TR></TABLE> }>];
+"0xafda" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafda&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a2, a5</TD></TR></TABLE> }>];
+"0xafdc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafdc&#58;&nbsp;</TD><TD ALIGN="LEFT">jal</TD><TD ALIGN="LEFT">-0xa72</TD></TR></TABLE> }>];
+"0xafc6" -> "0xafca" [style=solid, label=a5, tooltip="RAW: a5"];
+"0xafc6" -> "0xafce" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0xafca" -> "0xafce" [style=solid, label=a2, tooltip="RAW: a2; WAR: a5"];
+"0xafca" -> "0xafd0" [style=dotted, label=a2, tooltip="WAW: a2"];
+"0xafce" -> "0xafd0" [style=solid, label=a5, tooltip="RAW: a5; WAR: a2"];
+"0xafce" -> "0xafd4" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0xafd0" -> "0xafd4" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0xafd0" -> "0xafda" [style=solid, label=a2, tooltip="RAW: a2; WAW: a2"];
+"0xafd4" -> "0xafda" [style=solid, label=a5, tooltip="RAW: a5"];
+}

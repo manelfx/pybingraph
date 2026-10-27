@@ -1,0 +1,33 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10080400" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080400&#58;&nbsp;</TD><TD ALIGN="LEFT">lis</TD><TD ALIGN="LEFT">r2, 0x100e</TD></TR></TABLE> }>];
+"0x10080404" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080404&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r2, r2, 0x7b00</TD></TR></TABLE> }>];
+"0x10080408" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080408&#58;&nbsp;</TD><TD ALIGN="LEFT">mflr</TD><TD ALIGN="LEFT">r0</TD></TR></TABLE> }>];
+"0x1008040c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1008040c&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r30, -0x10(r1)</TD></TR></TABLE> }>];
+"0x10080410" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080410&#58;&nbsp;</TD><TD ALIGN="LEFT">or.</TD><TD ALIGN="LEFT">r30, r4, r4</TD></TR></TABLE> }>];
+"0x10080414" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080414&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r28, -0x20(r1)</TD></TR></TABLE> }>];
+"0x10080418" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080418&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r31, -8(r1)</TD></TR></TABLE> }>];
+"0x1008041c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1008041c&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r26, -0x30(r1)</TD></TR></TABLE> }>];
+"0x10080420" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080420&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r31, r3</TD></TR></TABLE> }>];
+"0x10080424" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080424&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r28, r5</TD></TR></TABLE> }>];
+"0x10080428" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080428&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r27, -0x28(r1)</TD></TR></TABLE> }>];
+"0x1008042c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1008042c&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r29, -0x18(r1)</TD></TR></TABLE> }>];
+"0x10080430" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080430&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r0, 0x10(r1)</TD></TR></TABLE> }>];
+"0x10080434" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080434&#58;&nbsp;</TD><TD ALIGN="LEFT">stdu</TD><TD ALIGN="LEFT">r1, -0x50(r1)</TD></TR></TABLE> }>];
+"0x10080438" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10080438&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">0x10080520</TD></TR></TABLE> }>];
+"0x10080400" -> "0x10080404" [style=solid, label=gpr2, tooltip="RAW: gpr2; WAW: gpr2"];
+"0x10080408" -> "0x10080430" [style=solid, label=gpr0, tooltip="RAW: gpr0"];
+"0x1008040c" -> "0x10080410" [style=dashed, label=gpr30, tooltip="WAR: gpr30"];
+"0x1008040c" -> "0x10080434" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x10080410" -> "0x10080438" [style=solid, label="cr0_321", tooltip="RAW: cr0_321"];
+"0x10080414" -> "0x10080424" [style=dashed, label=gpr28, tooltip="WAR: gpr28"];
+"0x10080414" -> "0x10080434" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x10080418" -> "0x10080420" [style=dashed, label=gpr31, tooltip="WAR: gpr31"];
+"0x10080418" -> "0x10080434" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x1008041c" -> "0x10080434" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x10080428" -> "0x10080434" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x1008042c" -> "0x10080434" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+"0x10080430" -> "0x10080434" [style=dashed, label=gpr1, tooltip="WAR: gpr1"];
+}

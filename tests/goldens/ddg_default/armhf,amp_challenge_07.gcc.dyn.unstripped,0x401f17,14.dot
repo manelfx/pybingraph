@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x401f17" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401f17&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r5</TD></TR></TABLE> }>];
+"0x401f19" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401f19&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r4</TD></TR></TABLE> }>];
+"0x401f1b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401f1b&#58;&nbsp;</TD><TD ALIGN="LEFT">movs</TD><TD ALIGN="LEFT">r2, &#35;0x64</TD></TR></TABLE> }>];
+"0x401f1d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401f1d&#58;&nbsp;</TD><TD ALIGN="LEFT">pop.w</TD><TD ALIGN="LEFT">&#123;r3, r4, r5, lr&#125;</TD></TR></TABLE> }>];
+"0x401f21" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401f21&#58;&nbsp;</TD><TD ALIGN="LEFT">b.w</TD><TD ALIGN="LEFT">&#35;0x400d31</TD></TR></TABLE> }>];
+"0x401f17" -> "0x401f19" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x401f17" -> "0x401f1d" [style=dashed, label=r5, tooltip="WAR: r5"];
+"0x401f19" -> "0x401f1b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x401f19" -> "0x401f1d" [style=dashed, label=r4, tooltip="WAR: r4"];
+"0x401f1b" -> "0x401f1d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x401f1d" -> "0x401f21" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

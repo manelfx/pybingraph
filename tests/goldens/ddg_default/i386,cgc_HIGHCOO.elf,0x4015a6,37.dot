@@ -1,0 +1,36 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4015a6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015a6&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">dword ptr [ebp - 4], 1</TD></TR></TABLE> }>];
+"0x4015aa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015aa&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [ebp - 8]</TD></TR></TABLE> }>];
+"0x4015ad" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015ad&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, 0x66666667</TD></TR></TABLE> }>];
+"0x4015b2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015b2&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, ecx</TD></TR></TABLE> }>];
+"0x4015b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015b4&#58;&nbsp;</TD><TD ALIGN="LEFT">imul</TD><TD ALIGN="LEFT">edx</TD></TR></TABLE> }>];
+"0x4015b6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015b6&#58;&nbsp;</TD><TD ALIGN="LEFT">sar</TD><TD ALIGN="LEFT">edx, 2</TD></TR></TABLE> }>];
+"0x4015b9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015b9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, ecx</TD></TR></TABLE> }>];
+"0x4015bb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015bb&#58;&nbsp;</TD><TD ALIGN="LEFT">sar</TD><TD ALIGN="LEFT">eax, 0x1f</TD></TR></TABLE> }>];
+"0x4015be" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015be&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">edx, eax</TD></TR></TABLE> }>];
+"0x4015c0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015c0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, edx</TD></TR></TABLE> }>];
+"0x4015c2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015c2&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp - 8], eax</TD></TR></TABLE> }>];
+"0x4015c5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015c5&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dword ptr [ebp - 8], 0</TD></TR></TABLE> }>];
+"0x4015c9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4015c9&#58;&nbsp;</TD><TD ALIGN="LEFT">js</TD><TD ALIGN="LEFT">0x4015a6</TD></TR></TABLE> }>];
+"0x4015a6" -> "0x4015b4" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4015aa" -> "0x4015b2" [style=solid, label=ecx, tooltip="RAW: ecx"];
+"0x4015aa" -> "0x4015b9" [style=solid, label=ecx, tooltip="RAW: ecx"];
+"0x4015aa" -> "0x4015c2" [style=dashed, label="[ebp-0x8]", tooltip="WAR: mem[entry_ebp-0x8]:4"];
+"0x4015ad" -> "0x4015b4" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x4015b2" -> "0x4015b4" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x4015b4" -> "0x4015b6" [style=solid, label=edx, tooltip="RAW: edx; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, edx"];
+"0x4015b4" -> "0x4015b9" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x4015b6" -> "0x4015bb" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4015b6" -> "0x4015be" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x4015b9" -> "0x4015bb" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x4015bb" -> "0x4015be" [style=solid, label=eax, tooltip="RAW: eax; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4015bb" -> "0x4015c0" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x4015be" -> "0x4015c0" [style=solid, label=edx, tooltip="RAW: edx; WAR: eax"];
+"0x4015be" -> "0x4015c5" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4015c0" -> "0x4015c2" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x4015c2" -> "0x4015c5" [style=solid, label="[ebp-0x8]", tooltip="RAW: mem[entry_ebp-0x8]:4"];
+"0x4015c5" -> "0x4015c9" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

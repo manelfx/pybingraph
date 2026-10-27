@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1005f790" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1005f790&#58;&nbsp;</TD><TD ALIGN="LEFT">lhz</TD><TD ALIGN="LEFT">r9, 0xc(r31)</TD></TR></TABLE> }>];
+"0x1005f794" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1005f794&#58;&nbsp;</TD><TD ALIGN="LEFT">ori</TD><TD ALIGN="LEFT">r9, r9, 0x20</TD></TR></TABLE> }>];
+"0x1005f798" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1005f798&#58;&nbsp;</TD><TD ALIGN="LEFT">sth</TD><TD ALIGN="LEFT">r9, 0xc(r31)</TD></TR></TABLE> }>];
+"0x1005f79c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1005f79c&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x1005f5e0</TD></TR></TABLE> }>];
+"0x1005f790" -> "0x1005f794" [style=solid, label=gpr9, tooltip="RAW: gpr9; WAW: gpr9"];
+"0x1005f790" -> "0x1005f798" [style=dashed, label="[gpr31+0xc]", tooltip="WAR: mem[entry_gpr31+0xc]:2"];
+"0x1005f794" -> "0x1005f798" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+}

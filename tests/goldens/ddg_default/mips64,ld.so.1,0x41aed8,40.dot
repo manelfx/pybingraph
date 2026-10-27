@@ -1,0 +1,27 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x41aed8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aed8&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll32</TD><TD ALIGN="LEFT">$v1, $v0, 0</TD></TR></TABLE> }>];
+"0x41aedc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aedc&#58;&nbsp;</TD><TD ALIGN="LEFT">dsrl32</TD><TD ALIGN="LEFT">$v1, $v1, 0</TD></TR></TABLE> }>];
+"0x41aee0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aee0&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll</TD><TD ALIGN="LEFT">$v0, $v1, 2</TD></TR></TABLE> }>];
+"0x41aee4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aee4&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll</TD><TD ALIGN="LEFT">$a0, $v1, 4</TD></TR></TABLE> }>];
+"0x41aee8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aee8&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$v0, $v0, $a0</TD></TR></TABLE> }>];
+"0x41aeec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aeec&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$v0, $s1, $v0</TD></TR></TABLE> }>];
+"0x41aef0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aef0&#58;&nbsp;</TD><TD ALIGN="LEFT">lbu</TD><TD ALIGN="LEFT">$a1, 0x11($v0)</TD></TR></TABLE> }>];
+"0x41aef4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aef4&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $zero, 4</TD></TR></TABLE> }>];
+"0x41aef8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aef8&#58;&nbsp;</TD><TD ALIGN="LEFT">beql</TD><TD ALIGN="LEFT">$a1, $v0, 0x41af80</TD></TR></TABLE> }>];
+"0x41aefc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41aefc&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$s3, $s3, 0x10</TD></TR></TABLE> }>];
+"0x41aed8" -> "0x41aedc" [style=solid, label=v1, tooltip="RAW: v1; WAW: v1"];
+"0x41aed8" -> "0x41aee0" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x41aedc" -> "0x41aee0" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x41aedc" -> "0x41aee4" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x41aee0" -> "0x41aee8" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x41aee4" -> "0x41aee8" [style=solid, label=a0, tooltip="RAW: a0"];
+"0x41aee8" -> "0x41aeec" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x41aeec" -> "0x41aef0" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x41aeec" -> "0x41aef4" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x41aef0" -> "0x41aef4" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x41aef0" -> "0x41aef8" [style=solid, label=a1, tooltip="RAW: a1"];
+"0x41aef4" -> "0x41aef8" [style=solid, label=v0, tooltip="RAW: v0"];
+}

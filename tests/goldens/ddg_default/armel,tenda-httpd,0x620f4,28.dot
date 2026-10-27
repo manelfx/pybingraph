@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x620f4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x620f4&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r0, [fp, &#35;-0x1c]</TD></TR></TABLE> }>];
+"0x620f8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x620f8&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [fp, &#35;-0x1c]</TD></TR></TABLE> }>];
+"0x620fc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x620fc&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [r3, &#35;0x14]</TD></TR></TABLE> }>];
+"0x62100" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x62100&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r3, r3, &#35;0x760</TD></TR></TABLE> }>];
+"0x62104" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x62104&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r3, r3, &#35;0xc</TD></TR></TABLE> }>];
+"0x62108" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x62108&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0x7d0</TD></TR></TABLE> }>];
+"0x6210c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6210c&#58;&nbsp;</TD><TD ALIGN="LEFT">ble</TD><TD ALIGN="LEFT">&#35;0x6211c</TD></TR></TABLE> }>];
+"0x620f4" -> "0x620f8" [style=solid, label="[r11-0x1c]", tooltip="RAW: mem[entry_r11-0x1c]:4"];
+"0x620f8" -> "0x620fc" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x620fc" -> "0x62100" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x62100" -> "0x62104" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x62104" -> "0x62108" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x62108" -> "0x6210c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8075de0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8075de0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">esi, dword ptr [esp + 0x4c]</TD></TR></TABLE> }>];
+"0x8075de4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8075de4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0x14], edx</TD></TR></TABLE> }>];
+"0x8075de8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8075de8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [esp + 0x10]</TD></TR></TABLE> }>];
+"0x8075dec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8075dec&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [esp + 0x14]</TD></TR></TABLE> }>];
+"0x8075df0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8075df0&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [esp + 0x24]</TD></TR></TABLE> }>];
+"0x8075df4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8075df4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edi, dword ptr [esp + 0xc]</TD></TR></TABLE> }>];
+"0x8075df8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8075df8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [eax], ecx</TD></TR></TABLE> }>];
+"0x8075dfa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8075dfa&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x8075cb6</TD></TR></TABLE> }>];
+"0x8075de0" -> "0x8075dfa" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8075de4" -> "0x8075dec" [style=solid, label="[esp+0x14]", tooltip="RAW: mem[entry_esp+0x14]:4"];
+"0x8075de4" -> "0x8075df0" [style=dashed, label=edx, tooltip="WAR: edx"];
+"0x8075de8" -> "0x8075df8" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x8075dec" -> "0x8075df8" [style=solid, label=ecx, tooltip="RAW: ecx"];
+}

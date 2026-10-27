@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80574c3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80574c3&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [esp + 0x18]</TD></TR></TABLE> }>];
+"0x80574c7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80574c7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp], ecx</TD></TR></TABLE> }>];
+"0x80574ca" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80574ca&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0x18], ecx</TD></TR></TABLE> }>];
+"0x80574ce" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80574ce&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">dword ptr [esi + 0x9c]</TD></TR></TABLE> }>];
+"0x80574c3" -> "0x80574c7" [style=solid, label=ecx, tooltip="RAW: ecx"];
+"0x80574c3" -> "0x80574ca" [style=solid, label=ecx, tooltip="RAW: ecx; WAR: mem[entry_esp+0x18]:4"];
+"0x80574c3" -> "0x80574ce" [style=dashed, label=esp, tooltip="WAR: esp"];
+"0x80574c7" -> "0x80574ce" [style=dashed, label=esp, tooltip="WAR: esp"];
+"0x80574ca" -> "0x80574ce" [style=dashed, label=esp, tooltip="WAR: esp"];
+}

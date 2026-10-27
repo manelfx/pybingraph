@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x48efa4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48efa4&#58;&nbsp;</TD><TD ALIGN="LEFT">lrl</TD><TD ALIGN="LEFT">%r1, 0x5a0d8c</TD></TR></TABLE> }>];
+"0x48efaa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48efaa&#58;&nbsp;</TD><TD ALIGN="LEFT">bc</TD><TD ALIGN="LEFT">0, 0</TD></TR></TABLE> }>];
+"0x48efae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48efae&#58;&nbsp;</TD><TD ALIGN="LEFT">lhi</TD><TD ALIGN="LEFT">%r0, 1</TD></TR></TABLE> }>];
+"0x48efb2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48efb2&#58;&nbsp;</TD><TD ALIGN="LEFT">strl</TD><TD ALIGN="LEFT">%r10, 0x5a0d8c</TD></TR></TABLE> }>];
+"0x48efb8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x48efb8&#58;&nbsp;</TD><TD ALIGN="LEFT">j</TD><TD ALIGN="LEFT">0x48ee6c</TD></TR></TABLE> }>];
+"0x48efa4" -> "0x48efb2" [style=dashed, label="[0x5a0d8c]", tooltip="WAR: mem[0x5a0d8c]:4"];
+}

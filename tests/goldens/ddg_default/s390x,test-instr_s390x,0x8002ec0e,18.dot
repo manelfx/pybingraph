@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8002ec0e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002ec0e&#58;&nbsp;</TD><TD ALIGN="LEFT">ahik</TD><TD ALIGN="LEFT">%r3, %r1, 0x3f</TD></TR></TABLE> }>];
+"0x8002ec14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002ec14&#58;&nbsp;</TD><TD ALIGN="LEFT">ltr</TD><TD ALIGN="LEFT">%r1, %r1</TD></TR></TABLE> }>];
+"0x8002ec16" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002ec16&#58;&nbsp;</TD><TD ALIGN="LEFT">locrl</TD><TD ALIGN="LEFT">%r1, %r3</TD></TR></TABLE> }>];
+"0x8002ec1a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002ec1a&#58;&nbsp;</TD><TD ALIGN="LEFT">cgijle</TD><TD ALIGN="LEFT">%r2, 0, 0x80030836</TD></TR></TABLE> }>];
+"0x8002ec0e" -> "0x8002ec14" [style=dashed, label="r1_32", tooltip="WAR: r1_32"];
+"0x8002ec0e" -> "0x8002ec14" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8002ec0e" -> "0x8002ec16" [style=solid, label="r3_32", tooltip="RAW: r3_32"];
+"0x8002ec14" -> "0x8002ec16" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760; WAW: r1_32"];
+}

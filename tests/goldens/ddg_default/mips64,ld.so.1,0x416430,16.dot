@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x416430" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416430&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, -8($s7)</TD></TR></TABLE> }>];
+"0x416434" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416434&#58;&nbsp;</TD><TD ALIGN="LEFT">sltu</TD><TD ALIGN="LEFT">$v1, $fp, $v0</TD></TR></TABLE> }>];
+"0x416438" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416438&#58;&nbsp;</TD><TD ALIGN="LEFT">bnel</TD><TD ALIGN="LEFT">$v1, $zero, 0x416440</TD></TR></TABLE> }>];
+"0x41643c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41643c&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$fp, $v0</TD></TR></TABLE> }>];
+"0x416430" -> "0x416434" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x416430" -> "0x41643c" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x416434" -> "0x416438" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x416434" -> "0x41643c" [style=dashed, label=s8, tooltip="WAR: s8"];
+}

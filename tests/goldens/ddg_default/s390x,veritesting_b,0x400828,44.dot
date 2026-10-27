@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x400828" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400828&#58;&nbsp;</TD><TD ALIGN="LEFT">stmg</TD><TD ALIGN="LEFT">%r9, %r15, 0x48(%r15)</TD></TR></TABLE> }>];
+"0x40082e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40082e&#58;&nbsp;</TD><TD ALIGN="LEFT">ear</TD><TD ALIGN="LEFT">%r1, %a0</TD></TR></TABLE> }>];
+"0x400832" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400832&#58;&nbsp;</TD><TD ALIGN="LEFT">lay</TD><TD ALIGN="LEFT">%r15, -0x170(%r15)</TD></TR></TABLE> }>];
+"0x400838" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400838&#58;&nbsp;</TD><TD ALIGN="LEFT">sllg</TD><TD ALIGN="LEFT">%r1, %r1, 0x20</TD></TR></TABLE> }>];
+"0x40083e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40083e&#58;&nbsp;</TD><TD ALIGN="LEFT">ear</TD><TD ALIGN="LEFT">%r1, %a1</TD></TR></TABLE> }>];
+"0x400842" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400842&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r11, 0xa0(%r15)</TD></TR></TABLE> }>];
+"0x400846" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400846&#58;&nbsp;</TD><TD ALIGN="LEFT">mvc</TD><TD ALIGN="LEFT">0x168(8, %r15), 0x28(%r1)</TD></TR></TABLE> }>];
+"0x40084c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40084c&#58;&nbsp;</TD><TD ALIGN="LEFT">lhi</TD><TD ALIGN="LEFT">%r9, 0</TD></TR></TABLE> }>];
+"0x400850" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400850&#58;&nbsp;</TD><TD ALIGN="LEFT">lghi</TD><TD ALIGN="LEFT">%r10, 0x3c</TD></TR></TABLE> }>];
+"0x400828" -> "0x400832" [style=dashed, label=r15, tooltip="WAR: r15"];
+"0x400828" -> "0x400842" [style=dashed, label=r11, tooltip="WAR: r11"];
+"0x400828" -> "0x40084c" [style=dashed, label="r9_32", tooltip="WAR: r9_32"];
+"0x400828" -> "0x400850" [style=dashed, label=r10, tooltip="WAR: r10"];
+"0x40082e" -> "0x400838" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
+"0x400832" -> "0x400842" [style=solid, label=r15, tooltip="RAW: r15"];
+"0x400832" -> "0x400846" [style=solid, label=r15, tooltip="RAW: r15"];
+"0x400838" -> "0x40083e" [style=dotted, label="r1_32", tooltip="WAW: r1_32"];
+"0x400838" -> "0x400846" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x40083e" -> "0x400846" [style=solid, label=r1, tooltip="RAW: r1"];
+}

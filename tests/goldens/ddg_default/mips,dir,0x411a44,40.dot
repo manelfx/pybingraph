@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x411a44" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a44&#58;&nbsp;</TD><TD ALIGN="LEFT">subu</TD><TD ALIGN="LEFT">$v0, $s0, $s2</TD></TR></TABLE> }>];
+"0x411a48" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a48&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t9, -0x7c9c($gp)</TD></TR></TABLE> }>];
+"0x411a4c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a4c&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">$zero, ($s2)</TD></TR></TABLE> }>];
+"0x411a50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a50&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a1, $s6</TD></TR></TABLE> }>];
+"0x411a54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a54&#58;&nbsp;</TD><TD ALIGN="LEFT">sltu</TD><TD ALIGN="LEFT">$s1, $s5, $v0</TD></TR></TABLE> }>];
+"0x411a58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a58&#58;&nbsp;</TD><TD ALIGN="LEFT">movn</TD><TD ALIGN="LEFT">$v0, $s5, $s1</TD></TR></TABLE> }>];
+"0x411a5c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a5c&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a0, $s2</TD></TR></TABLE> }>];
+"0x411a60" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a60&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$s1, $v0</TD></TR></TABLE> }>];
+"0x411a64" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a64&#58;&nbsp;</TD><TD ALIGN="LEFT">jalr</TD><TD ALIGN="LEFT">$t9</TD></TR></TABLE> }>];
+"0x411a68" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x411a68&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a2, $v0</TD></TR></TABLE> }>];
+"0x411a44" -> "0x411a54" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x411a44" -> "0x411a58" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x411a48" -> "0x411a64" [style=solid, label=t9, tooltip="RAW: t9"];
+"0x411a54" -> "0x411a58" [style=solid, label=s1, tooltip="RAW: s1; WAR: v0"];
+"0x411a54" -> "0x411a60" [style=dotted, label=s1, tooltip="WAW: s1"];
+"0x411a58" -> "0x411a60" [style=solid, label=v0, tooltip="RAW: v0; WAR: s1"];
+"0x411a58" -> "0x411a68" [style=solid, label=v0, tooltip="RAW: v0"];
+}

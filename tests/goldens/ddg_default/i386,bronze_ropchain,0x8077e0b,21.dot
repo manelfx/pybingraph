@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8077e0b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8077e0b&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 0x60], eax</TD></TR></TABLE> }>];
+"0x8077e0f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8077e0f&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">edx, byte ptr [eax - 1]</TD></TR></TABLE> }>];
+"0x8077e13" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8077e13&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">eax, 1</TD></TR></TABLE> }>];
+"0x8077e16" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8077e16&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esi, 1</TD></TR></TABLE> }>];
+"0x8077e19" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8077e19&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [esi + 3], dl</TD></TR></TABLE> }>];
+"0x8077e1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8077e1c&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">eax, ecx</TD></TR></TABLE> }>];
+"0x8077e1e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8077e1e&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x8077e0b</TD></TR></TABLE> }>];
+"0x8077e0b" -> "0x8077e13" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x8077e0f" -> "0x8077e13" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x8077e0f" -> "0x8077e19" [style=solid, label=dl, tooltip="RAW: dl"];
+"0x8077e13" -> "0x8077e16" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8077e13" -> "0x8077e1c" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x8077e16" -> "0x8077e19" [style=solid, label=esi, tooltip="RAW: esi"];
+"0x8077e16" -> "0x8077e1c" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8077e1c" -> "0x8077e1e" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

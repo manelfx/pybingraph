@@ -1,0 +1,36 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x2614" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2614&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">sp, sp, -0x250</TD></TR></TABLE> }>];
+"0x2618" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2618&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">s1, 0x238(sp)</TD></TR></TABLE> }>];
+"0x261c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x261c&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">s2, 0x230(sp)</TD></TR></TABLE> }>];
+"0x2620" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2620&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">s4, 0x220(sp)</TD></TR></TABLE> }>];
+"0x2624" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2624&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">s5, 0x218(sp)</TD></TR></TABLE> }>];
+"0x2628" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2628&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">s2, sp, 0x9f</TD></TR></TABLE> }>];
+"0x262c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x262c&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">ra, 0x248(sp)</TD></TR></TABLE> }>];
+"0x2630" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2630&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">s0, 0x240(sp)</TD></TR></TABLE> }>];
+"0x2634" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2634&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">s3, 0x228(sp)</TD></TR></TABLE> }>];
+"0x2638" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2638&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">s6, 0x210(sp)</TD></TR></TABLE> }>];
+"0x263c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x263c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s1, a1</TD></TR></TABLE> }>];
+"0x263e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x263e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s5, a2</TD></TR></TABLE> }>];
+"0x2640" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2640&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a1, a3</TD></TR></TABLE> }>];
+"0x2642" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2642&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">s4, a4</TD></TR></TABLE> }>];
+"0x2644" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2644&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">s2, s2, -0x40</TD></TR></TABLE> }>];
+"0x2648" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2648&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">a0, 0xe2</TD></TR></TABLE> }>];
+"0x2614" -> "0x2618" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2614" -> "0x261c" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2614" -> "0x2620" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2614" -> "0x2624" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2614" -> "0x2628" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2614" -> "0x262c" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2614" -> "0x2630" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2614" -> "0x2634" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2614" -> "0x2638" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2618" -> "0x263c" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x261c" -> "0x2628" [style=dashed, label=s2, tooltip="WAR: s2"];
+"0x2620" -> "0x2642" [style=dashed, label=s4, tooltip="WAR: s4"];
+"0x2624" -> "0x263e" [style=dashed, label=s5, tooltip="WAR: s5"];
+"0x2628" -> "0x2644" [style=solid, label=s2, tooltip="RAW: s2; WAW: s2"];
+"0x263c" -> "0x2640" [style=dashed, label=a1, tooltip="WAR: a1"];
+}

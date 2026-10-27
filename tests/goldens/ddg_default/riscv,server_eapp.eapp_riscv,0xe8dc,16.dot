@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xe8dc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe8dc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">ra, 0xe8(sp)</TD></TR></TABLE> }>];
+"0xe8de" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe8de&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s0, 0xe0(sp)</TD></TR></TABLE> }>];
+"0xe8e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe8e0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s1, 0xd8(sp)</TD></TR></TABLE> }>];
+"0xe8e2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe8e2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s2, 0xd0(sp)</TD></TR></TABLE> }>];
+"0xe8e4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe8e4&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s3, 0xc8(sp)</TD></TR></TABLE> }>];
+"0xe8e6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe8e6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a0, 0</TD></TR></TABLE> }>];
+"0xe8e8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe8e8&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, 0xf0</TD></TR></TABLE> }>];
+"0xe8ea" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe8ea&#58;&nbsp;</TD><TD ALIGN="LEFT">c.jr</TD><TD ALIGN="LEFT">ra</TD></TR></TABLE> }>];
+"0xe8dc" -> "0xe8e8" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xe8dc" -> "0xe8ea" [style=solid, label=ra, tooltip="RAW: ra"];
+"0xe8de" -> "0xe8e8" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xe8e0" -> "0xe8e8" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xe8e2" -> "0xe8e8" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xe8e4" -> "0xe8e8" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

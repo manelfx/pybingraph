@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8003cbb2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbb2&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r1, 0xc0(%r15)</TD></TR></TABLE> }>];
+"0x8003cbb8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbb8&#58;&nbsp;</TD><TD ALIGN="LEFT">aghik</TD><TD ALIGN="LEFT">%r5, %r1, 1</TD></TR></TABLE> }>];
+"0x8003cbbe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbbe&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r1, 0xc8(%r15)</TD></TR></TABLE> }>];
+"0x8003cbc2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbc2&#58;&nbsp;</TD><TD ALIGN="LEFT">mvghi</TD><TD ALIGN="LEFT">0xb0(%r15), 1</TD></TR></TABLE> }>];
+"0x8003cbc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbc8&#58;&nbsp;</TD><TD ALIGN="LEFT">mvghi</TD><TD ALIGN="LEFT">0xa8(%r15), 0</TD></TR></TABLE> }>];
+"0x8003cbce" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbce&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r1, 0xa0(%r15)</TD></TR></TABLE> }>];
+"0x8003cbd4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbd4&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r4, 0xc0(%r15)</TD></TR></TABLE> }>];
+"0x8003cbd8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbd8&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r2, 0(%r12)</TD></TR></TABLE> }>];
+"0x8003cbde" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbde&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r3, 0xd0(%r15)</TD></TR></TABLE> }>];
+"0x8003cbe2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003cbe2&#58;&nbsp;</TD><TD ALIGN="LEFT">basr</TD><TD ALIGN="LEFT">%r14, %r11</TD></TR></TABLE> }>];
+"0x8003cbb2" -> "0x8003cbb8" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x8003cbb2" -> "0x8003cbbe" [style=dotted, label=r1, tooltip="WAW: r1"];
+"0x8003cbb8" -> "0x8003cbbe" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x8003cbbe" -> "0x8003cbce" [style=solid, label=r1, tooltip="RAW: r1"];
+}

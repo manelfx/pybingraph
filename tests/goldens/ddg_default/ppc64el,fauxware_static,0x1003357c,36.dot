@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1003357c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003357c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r7, 8(r8)</TD></TR></TABLE> }>];
+"0x10033580" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10033580&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">r4, r8, r4</TD></TR></TABLE> }>];
+"0x10033584" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10033584&#58;&nbsp;</TD><TD ALIGN="LEFT">clrldi</TD><TD ALIGN="LEFT">r7, r7, 0x3f</TD></TR></TABLE> }>];
+"0x10033588" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10033588&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">r10, r7, r10</TD></TR></TABLE> }>];
+"0x1003358c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003358c&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r10, 8(r8)</TD></TR></TABLE> }>];
+"0x10033590" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10033590&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r4, 0x10(r9)</TD></TR></TABLE> }>];
+"0x10033594" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10033594&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r6, 0x10(r5)</TD></TR></TABLE> }>];
+"0x10033598" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10033598&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r5, 8(r9)</TD></TR></TABLE> }>];
+"0x1003359c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1003359c&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x100332d0</TD></TR></TABLE> }>];
+"0x1003357c" -> "0x10033584" [style=solid, label=gpr7, tooltip="RAW: gpr7; WAW: gpr7"];
+"0x1003357c" -> "0x1003358c" [style=dashed, label="[gpr8+0x8]", tooltip="WAR: mem[entry_gpr8+0x8]:8"];
+"0x10033580" -> "0x10033590" [style=solid, label=gpr4, tooltip="RAW: gpr4"];
+"0x10033584" -> "0x10033588" [style=solid, label=gpr7, tooltip="RAW: gpr7"];
+"0x10033588" -> "0x1003358c" [style=solid, label=gpr10, tooltip="RAW: gpr10"];
+}

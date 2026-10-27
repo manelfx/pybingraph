@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x5216" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5216&#58;&nbsp;</TD><TD ALIGN="LEFT">c.add</TD><TD ALIGN="LEFT">a2, s1</TD></TR></TABLE> }>];
+"0x5218" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5218&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a2, 0x40(s2)</TD></TR></TABLE> }>];
+"0x521c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x521c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">ra, 0x28(sp)</TD></TR></TABLE> }>];
+"0x521e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x521e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s0, 0x20(sp)</TD></TR></TABLE> }>];
+"0x5220" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5220&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s1, 0x18(sp)</TD></TR></TABLE> }>];
+"0x5222" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5222&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s2, 0x10(sp)</TD></TR></TABLE> }>];
+"0x5224" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5224&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s3, 8(sp)</TD></TR></TABLE> }>];
+"0x5226" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5226&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, 0x30</TD></TR></TABLE> }>];
+"0x5228" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x5228&#58;&nbsp;</TD><TD ALIGN="LEFT">c.jr</TD><TD ALIGN="LEFT">ra</TD></TR></TABLE> }>];
+"0x5216" -> "0x5218" [style=solid, label=a2, tooltip="RAW: a2"];
+"0x5216" -> "0x5220" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x5218" -> "0x5222" [style=dashed, label=s2, tooltip="WAR: s2"];
+"0x521c" -> "0x5226" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x521c" -> "0x5228" [style=solid, label=ra, tooltip="RAW: ra"];
+"0x521e" -> "0x5226" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x5220" -> "0x5226" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x5222" -> "0x5226" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x5224" -> "0x5226" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

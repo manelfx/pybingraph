@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40078c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40078c&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0x10</TD></TR></TABLE> }>];
+"0x40078f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40078f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x1c], eax</TD></TR></TABLE> }>];
+"0x400792" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400792&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">esp, 4</TD></TR></TABLE> }>];
+"0x400795" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400795&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">8</TD></TR></TABLE> }>];
+"0x400797" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400797&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">eax, [ebp - 0x15]</TD></TR></TABLE> }>];
+"0x40079a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40079a&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">eax</TD></TR></TABLE> }>];
+"0x40079b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40079b&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x1c]</TD></TR></TABLE> }>];
+"0x40079e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40079e&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x400570</TD></TR></TABLE> }>];
+"0x40078c" -> "0x400792" [style=solid, label=esp, tooltip="RAW: esp; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, esp"];
+"0x40078f" -> "0x400797" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x40078f" -> "0x40079b" [style=solid, label="[ebp-0x1c]", tooltip="RAW: mem[entry_ebp-0x1c]:4"];
+"0x400792" -> "0x400795" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x400795" -> "0x40079a" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x400797" -> "0x40079a" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x40079a" -> "0x40079b" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x40079b" -> "0x40079e" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+}

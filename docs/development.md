@@ -28,6 +28,32 @@ change when moving modules or changing their responsibilities.
   across calls or unknown paths.
 - `core/annotators/` separates node styling, assembly comments and edge styling.
   These presentation operations do not change discovered control flow.
+- `ddg/effects.py` extracts instruction-local VEX effects and delegates scalar
+  arithmetic to angr/Claripy. Unoptimized IR preserves architectural flag
+  producers; pure temporary reads are collected at their consumers, while
+  actual loads remain effects even when their values are unused. Optional
+  values have an expanded-expression budget independent of dependency facts.
+  Large blocks span bounded VEX lifts only across
+  proven straight-line fallthroughs, retaining state and separate temporary
+  namespaces. `ddg/memory.py` handles conservative byte-range
+  aliases; `ddg/builder.py` computes RAW/WAR/WAW ordering. Neither discovers
+  blocks or follows callees.
+- `ddg/render.py` adapts immutable cached analysis records to one-instruction
+  CFG nodes and the existing `Vis`/`NodeAsm`/`DotOutput` pipeline. DDG edge styles
+  describe dependency kinds, not CFG branch outcomes. Real CFG blocks receive
+  root-relative DDG links through a presentation-only annotator.
+
+DDG analysis caching includes project, start address, exact size and memory
+policy; rendering additionally keys on the dependency selection and format,
+filters only edges, and uses fresh wrappers. Register aliases share archinfo
+byte ranges, including widened architectural writes. Memory roots are symbolic
+and versioned; different pointer registers never imply disjointness. Unsupported stateful IR
+must fail explicitly. Keep external block inputs implicit (no synthetic input
+nodes), and never connect independent instructions just to simplify layout.
+
+Memory policy selects edges, not alias facts: `may` retains unknown relations,
+whereas default `must` omits them. Do not use that omission to infer pointer
+independence, remove possible producers, or claim safe instruction reordering.
 
 Module moves must preserve resolver priority, proof budgets, cache lifetime and
 unknown-target handling. Keep internal imports directed at their implementation
@@ -36,7 +62,10 @@ modules; package entry points expose the public construction and annotation API.
 ## Dependency Changes
 
 Keep runtime dependency bounds compatible with the tested stack. Retain the angr
-pin and `bitstring<5` safeguard unless deliberately upgrading and validating those
-dependencies. Dependency upgrades need unit and applicable golden validation;
+pin and the `bitstring<5` and `pycparser<3.12` safeguards unless deliberately
+upgrading and validating those dependencies. The parser bound preserves the
+private token-stream API used by angr 10.0.4; fresh installs otherwise fail
+during angr import even though the locked environment works.
+Dependency upgrades need unit and applicable golden validation;
 packaging or interpreter-compatibility checks do not replace CFG regression tests.
 Use the [testing guide](testing.md) to select validation for the changed stack.

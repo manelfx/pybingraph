@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x422880" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422880&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 0xc($s6)</TD></TR></TABLE> }>];
+"0x422884" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422884&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $v0, -1</TD></TR></TABLE> }>];
+"0x422888" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422888&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x42260c</TD></TR></TABLE> }>];
+"0x42288c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42288c&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$v0, 0xc($s6)</TD></TR></TABLE> }>];
+"0x422880" -> "0x422884" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x422880" -> "0x42288c" [style=dashed, label="[s6+0xc]", tooltip="WAR: mem[entry_s6+0xc]:4"];
+"0x422884" -> "0x42288c" [style=solid, label=v0, tooltip="RAW: v0"];
+}

@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4174e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4174e0&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v1, ($v1)</TD></TR></TABLE> }>];
+"0x4174e4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4174e4&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v1, 0x4b8($v1)</TD></TR></TABLE> }>];
+"0x4174e8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4174e8&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">$v1, $v1, $a2</TD></TR></TABLE> }>];
+"0x4174ec" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4174ec&#58;&nbsp;</TD><TD ALIGN="LEFT">beql</TD><TD ALIGN="LEFT">$v1, $zero, 0x4174f4</TD></TR></TABLE> }>];
+"0x4174f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4174f0&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a0, $a0, 1</TD></TR></TABLE> }>];
+"0x4174e0" -> "0x4174e4" [style=solid, label=v1, tooltip="RAW: v1; WAW: v1"];
+"0x4174e4" -> "0x4174e8" [style=solid, label=v1, tooltip="RAW: v1; WAW: v1"];
+"0x4174e8" -> "0x4174ec" [style=solid, label=v1, tooltip="RAW: v1"];
+}

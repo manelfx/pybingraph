@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x3395" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3395&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [r5]</TD></TR></TABLE> }>];
+"0x3397" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3397&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [r4, &#35;0x20]</TD></TR></TABLE> }>];
+"0x3399" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3399&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r3, r3, r2</TD></TR></TABLE> }>];
+"0x339b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x339b&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0x28</TD></TR></TABLE> }>];
+"0x3395" -> "0x3397" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x3395" -> "0x3399" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x3397" -> "0x3399" [style=solid, label=r2, tooltip="RAW: r2; WAW: itstate"];
+"0x3399" -> "0x339b" [style=solid, label=r3, tooltip="RAW: r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+}

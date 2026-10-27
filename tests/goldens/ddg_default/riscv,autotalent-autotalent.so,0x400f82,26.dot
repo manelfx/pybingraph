@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x400f82" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400f82&#58;&nbsp;</TD><TD ALIGN="LEFT">flw</TD><TD ALIGN="LEFT">ft4, 0(a7)</TD></TR></TABLE> }>];
+"0x400f86" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400f86&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addiw</TD><TD ALIGN="LEFT">t0, 1</TD></TR></TABLE> }>];
+"0x400f88" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400f88&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a7, 4</TD></TR></TABLE> }>];
+"0x400f8a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400f8a&#58;&nbsp;</TD><TD ALIGN="LEFT">fsw</TD><TD ALIGN="LEFT">ft4, 0(a6)</TD></TR></TABLE> }>];
+"0x400f8e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400f8e&#58;&nbsp;</TD><TD ALIGN="LEFT">flw</TD><TD ALIGN="LEFT">ft5, 0(a3)</TD></TR></TABLE> }>];
+"0x400f92" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400f92&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a6, 4</TD></TR></TABLE> }>];
+"0x400f94" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400f94&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a3, 4</TD></TR></TABLE> }>];
+"0x400f96" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400f96&#58;&nbsp;</TD><TD ALIGN="LEFT">fsw</TD><TD ALIGN="LEFT">ft5, 0(a4)</TD></TR></TABLE> }>];
+"0x400f9a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400f9a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a4, -4</TD></TR></TABLE> }>];
+"0x400f82" -> "0x400f88" [style=dashed, label=a7, tooltip="WAR: a7"];
+"0x400f82" -> "0x400f8a" [style=solid, label=ft4, tooltip="RAW: ft4"];
+"0x400f8a" -> "0x400f92" [style=dashed, label=a6, tooltip="WAR: a6"];
+"0x400f8e" -> "0x400f94" [style=dashed, label=a3, tooltip="WAR: a3"];
+"0x400f8e" -> "0x400f96" [style=solid, label=ft5, tooltip="RAW: ft5"];
+"0x400f96" -> "0x400f9a" [style=dashed, label=a4, tooltip="WAR: a4"];
+}

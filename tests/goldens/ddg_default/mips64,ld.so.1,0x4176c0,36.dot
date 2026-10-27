@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4176c0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4176c0&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$t9, -0x7a88($gp)</TD></TR></TABLE> }>];
+"0x4176c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4176c4&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 8($s0)</TD></TR></TABLE> }>];
+"0x4176c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4176c8&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $v0, 8</TD></TR></TABLE> }>];
+"0x4176cc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4176cc&#58;&nbsp;</TD><TD ALIGN="LEFT">addu</TD><TD ALIGN="LEFT">$a0, $v0, $a0</TD></TR></TABLE> }>];
+"0x4176d0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4176d0&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll32</TD><TD ALIGN="LEFT">$a0, $a0, 0</TD></TR></TABLE> }>];
+"0x4176d4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4176d4&#58;&nbsp;</TD><TD ALIGN="LEFT">dsrl32</TD><TD ALIGN="LEFT">$a0, $a0, 0</TD></TR></TABLE> }>];
+"0x4176d8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4176d8&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$a0, 0x18($s6)</TD></TR></TABLE> }>];
+"0x4176dc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4176dc&#58;&nbsp;</TD><TD ALIGN="LEFT">jalr</TD><TD ALIGN="LEFT">$t9</TD></TR></TABLE> }>];
+"0x4176e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4176e0&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll</TD><TD ALIGN="LEFT">$a0, $a0, 3</TD></TR></TABLE> }>];
+"0x4176c0" -> "0x4176dc" [style=solid, label=t9, tooltip="RAW: t9"];
+"0x4176c4" -> "0x4176c8" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x4176c8" -> "0x4176cc" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x4176cc" -> "0x4176d0" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x4176d0" -> "0x4176d4" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x4176d4" -> "0x4176d8" [style=solid, label=a0, tooltip="RAW: a0"];
+"0x4176d4" -> "0x4176e0" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+"0x4176d8" -> "0x4176e0" [style=dashed, label=a0, tooltip="WAR: a0"];
+}

@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xea9e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xea9e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">ra, 0x1d8(sp)</TD></TR></TABLE> }>];
+"0xeaa0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeaa0&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s0, 0x1d0(sp)</TD></TR></TABLE> }>];
+"0xeaa2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeaa2&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s1, 0x1c8(sp)</TD></TR></TABLE> }>];
+"0xeaa4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeaa4&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s2, 0x1c0(sp)</TD></TR></TABLE> }>];
+"0xeaa6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeaa6&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s3, 0x1b8(sp)</TD></TR></TABLE> }>];
+"0xeaa8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeaa8&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">s4, 0x1b0(sp)</TD></TR></TABLE> }>];
+"0xeaaa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeaaa&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a0, 0</TD></TR></TABLE> }>];
+"0xeaac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeaac&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, 0x1e0</TD></TR></TABLE> }>];
+"0xeaae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeaae&#58;&nbsp;</TD><TD ALIGN="LEFT">c.jr</TD><TD ALIGN="LEFT">ra</TD></TR></TABLE> }>];
+"0xea9e" -> "0xeaac" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xea9e" -> "0xeaae" [style=solid, label=ra, tooltip="RAW: ra"];
+"0xeaa0" -> "0xeaac" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xeaa2" -> "0xeaac" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xeaa4" -> "0xeaac" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xeaa6" -> "0xeaac" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0xeaa8" -> "0xeaac" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

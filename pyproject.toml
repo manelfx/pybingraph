@@ -22,6 +22,8 @@ dependencies = [
     "jinja2>=3.1.6",
     "loguru>=0.7.3",
     "pyelftools>=0.33",
+    # angr 10.0.4 passes a lexer object to the pre-3.12 _TokenStream API.
+    "pycparser>=3.0,<3.12",
     "pydot>=4.0.1",
     "pydantic-settings>=2.16.0",
     #"streamlit>=1.35.0",
@@ -78,8 +80,13 @@ cache-keys = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests/units"]
+pythonpath = ["."]
+# Pydot's parser still uses this deprecated alias. Keep unrelated warnings visible.
+filterwarnings = [
+    "ignore:^'setParseAction' deprecated - use 'set_parse_action'$:pyparsing.PyparsingDeprecationWarning:^pydot\\.dot_parser$",
+]
 markers = [
-    "checkpoint: curated CFG golden regression cases",
+    "checkpoint: curated CFG and DDG golden regression cases",
     "slow: integration tests that require playground binaries",
 ]
 

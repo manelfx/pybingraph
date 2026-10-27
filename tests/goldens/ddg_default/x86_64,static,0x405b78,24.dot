@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x405b78" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405b78&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rbx + 1]</TD></TR></TABLE> }>];
+"0x405b7c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405b7c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [rbx], 0</TD></TR></TABLE> }>];
+"0x405b7f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405b7f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rdx], rax</TD></TR></TABLE> }>];
+"0x405b82" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405b82&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, ebp</TD></TR></TABLE> }>];
+"0x405b84" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405b84&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">eax, 8</TD></TR></TABLE> }>];
+"0x405b87" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405b87&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">byte ptr [rbx + 1], 0</TD></TR></TABLE> }>];
+"0x405b8b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405b8b&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovne</TD><TD ALIGN="LEFT">ebp, eax</TD></TR></TABLE> }>];
+"0x405b8e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x405b8e&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x405b3d</TD></TR></TABLE> }>];
+"0x405b78" -> "0x405b7f" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x405b78" -> "0x405b82" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x405b7f" -> "0x405b82" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x405b82" -> "0x405b84" [style=solid, label=eax, tooltip="RAW: eax; WAW: rax"];
+"0x405b82" -> "0x405b8b" [style=dashed, label=rbp, tooltip="WAR: rbp"];
+"0x405b84" -> "0x405b87" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x405b84" -> "0x405b8b" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x405b87" -> "0x405b8b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8002017" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002017&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrh</TD><TD ALIGN="LEFT">r2, [r0, &#35;0x2a]</TD></TR></TABLE> }>];
+"0x8002019" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002019&#58;&nbsp;</TD><TD ALIGN="LEFT">uxth</TD><TD ALIGN="LEFT">r2, r2</TD></TR></TABLE> }>];
+"0x800201b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800201b&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r2, &#35;0</TD></TR></TABLE> }>];
+"0x800201d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800201d&#58;&nbsp;</TD><TD ALIGN="LEFT">bne.w</TD><TD ALIGN="LEFT">&#35;0x8002383</TD></TR></TABLE> }>];
+"0x8002017" -> "0x8002019" [style=solid, label=r2, tooltip="RAW: r2; WAW: itstate, r2"];
+"0x8002019" -> "0x800201b" [style=solid, label=r2, tooltip="RAW: r2; WAW: itstate"];
+"0x800201b" -> "0x800201d" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+}

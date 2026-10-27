@@ -1,0 +1,25 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4500f3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4500f3&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">ecx, byte ptr [r12 + 0xe]</TD></TR></TABLE> }>];
+"0x4500f9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4500f9&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [rdi + 0xe]</TD></TR></TABLE> }>];
+"0x4500fd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4500fd&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rdx, [r12 + 0xf]</TD></TR></TABLE> }>];
+"0x450102" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450102&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [r12 + 0xe], al</TD></TR></TABLE> }>];
+"0x450107" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450107&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, rdi</TD></TR></TABLE> }>];
+"0x45010a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45010a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [rdi + 0xe], cl</TD></TR></TABLE> }>];
+"0x45010d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x45010d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, r11</TD></TR></TABLE> }>];
+"0x450110" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450110&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rax, 0xf</TD></TR></TABLE> }>];
+"0x450114" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450114&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">rcx, 0xf</TD></TR></TABLE> }>];
+"0x4500f3" -> "0x450102" [style=dashed, label="[r12+0xe]", tooltip="WAR: mem[entry_r12+0xe]:1"];
+"0x4500f3" -> "0x45010a" [style=solid, label=cl, tooltip="RAW: cl"];
+"0x4500f3" -> "0x45010d" [style=dotted, label=rcx, tooltip="WAW: rcx"];
+"0x4500f9" -> "0x450102" [style=solid, label=al, tooltip="RAW: al"];
+"0x4500f9" -> "0x450107" [style=dotted, label=rax, tooltip="WAW: rax"];
+"0x4500f9" -> "0x45010a" [style=dashed, label="[rdi+0xe]", tooltip="WAR: mem[entry_rdi+0xe]:1"];
+"0x450102" -> "0x450107" [style=dashed, label=rax, tooltip="WAR: rax"];
+"0x450107" -> "0x450110" [style=solid, label=rax, tooltip="RAW: rax; WAW: rax"];
+"0x45010a" -> "0x45010d" [style=dashed, label=rcx, tooltip="WAR: rcx"];
+"0x45010d" -> "0x450114" [style=solid, label=rcx, tooltip="RAW: rcx; WAW: rcx"];
+"0x450110" -> "0x450114" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -87,8 +87,8 @@ def test_cfg_api_rejects_the_retired_mode(monkeypatch, tmp_path, endpoint) -> No
             "mode": "extract",
         },
     )
-    # Preserve the route interceptor's existing validation-error response.
-    assert response.status_code == 500
+    # Query validation errors are client errors, not internal analysis failures.
+    assert response.status_code == 422
     assert "Input should be" in response.text
     assert "none" in response.text and "custom" in response.text
 
@@ -158,7 +158,7 @@ def test_cfg_api_has_no_recovery_parameter(monkeypatch, tmp_path, endpoint) -> N
     client = TestClient(app)
     params = {"filepath": binary.name, "function": "0x10", "format": "raw"}
     assert client.get(endpoint, params=params).status_code == 200
-    assert len(calls) == 1 and len(calls[0]) == 8
+    assert len(calls) == 1 and len(calls[0]) == 9
     names = {p["name"] for p in app.openapi()["paths"][endpoint]["get"]["parameters"]}
     assert "recovery" not in names
 

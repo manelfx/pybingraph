@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x807b631" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807b631&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">eax</TD></TR></TABLE> }>];
+"0x807b632" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807b632&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">edx</TD></TR></TABLE> }>];
+"0x807b633" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807b633&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">0x80000</TD></TR></TABLE> }>];
+"0x807b638" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807b638&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x94]</TD></TR></TABLE> }>];
+"0x807b63e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807b63e&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x806cde0</TD></TR></TABLE> }>];
+"0x807b631" -> "0x807b632" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x807b631" -> "0x807b638" [style=dashed, label="[esp]", tooltip="WAR: mem[entry_esp]:4"];
+"0x807b632" -> "0x807b633" [style=solid, label=esp, tooltip="RAW: esp; WAR: mem[entry_esp+0x4]:4; WAW: esp"];
+"0x807b633" -> "0x807b638" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x807b638" -> "0x807b63e" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+}

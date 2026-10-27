@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x2282" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2282&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, -0x70</TD></TR></TABLE> }>];
+"0x2284" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2284&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s0, 0x68(sp)</TD></TR></TABLE> }>];
+"0x2286" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2286&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi4spn</TD><TD ALIGN="LEFT">s0, sp, 0x70</TD></TR></TABLE> }>];
+"0x2288" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2288&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a0, -0x68(s0)</TD></TR></TABLE> }>];
+"0x228c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x228c&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a1, -0x70(s0)</TD></TR></TABLE> }>];
+"0x2290" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2290&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a4, -0x70(s0)</TD></TR></TABLE> }>];
+"0x2294" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2294&#58;&nbsp;</TD><TD ALIGN="LEFT">c.li</TD><TD ALIGN="LEFT">a5, 7</TD></TR></TABLE> }>];
+"0x2296" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2296&#58;&nbsp;</TD><TD ALIGN="LEFT">bgeu</TD><TD ALIGN="LEFT">a5, a4, 0x1a</TD></TR></TABLE> }>];
+"0x2282" -> "0x2284" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2282" -> "0x2286" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x2284" -> "0x2286" [style=dashed, label=s0, tooltip="WAR: s0"];
+"0x2286" -> "0x2288" [style=solid, label=s0, tooltip="RAW: s0"];
+"0x2286" -> "0x228c" [style=solid, label=s0, tooltip="RAW: s0"];
+"0x2286" -> "0x2290" [style=solid, label=s0, tooltip="RAW: s0"];
+"0x228c" -> "0x2290" [style=solid, label="[sp-0x70]", tooltip="RAW: mem[entry_sp-0x70]:8"];
+"0x2290" -> "0x2296" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x2294" -> "0x2296" [style=solid, label=a5, tooltip="RAW: a5"];
+}

@@ -191,6 +191,8 @@ JSON.
 | `GET /api/symtab?filepath=<path>` | `{"items": [...]}` function-symbol response |
 | `GET /cfg?filepath=<path>&function=<addr>` | SVG CFG |
 | `GET /api/cfg?filepath=<path>&function=<addr>&format=dot` | `{"graph": "..."}` CFG response |
+| `GET /ddg?filepath=<path>&address=<addr>&size=<bytes>` | SVG block-local DDG |
+| `GET /api/ddg?filepath=<path>&address=<addr>&size=<bytes>&format=dot` | `{"graph": "..."}` DDG response |
 
 `function` accepts either decimal or `0x`-prefixed hexadecimal addresses. CFG
 JSON responses support `format=svg|dot|raw|xdot`; `raw` is unprocessed DOT,
@@ -203,6 +205,61 @@ parameters. A request value overrides the corresponding
 application setting for that render only.
 Both symbol-table and CFG routes also accept `demangle=true|false`, overriding
 the global setting for that request. Symbol-table links retain this override.
+
+### Instruction Dependencies
+
+Click a real basic block in a CFG to open its DDG in the current tab. DDGs analyze
+only the supplied start address and byte size, without discovering a CFG or executing
+callees. Each node is one instruction; independent instructions remain visible.
+Edges are labeled with resources: solid **RAW** (read after write), dashed **WAR**
+(write after read), and dotted **WAW** (write after write). If a RAW edge is
+visible, parallel WAR/WAW edges are folded into its tooltip: they impose the
+same instruction ordering. Without RAW selected, those edges remain visible.
+All dependency kinds are retained in analysis. Register aliases and implicit
+VEX effects are included; `flags` groups VEX's lazy condition-code fields, whose
+individual names remain in the tooltip. This is conservative flag-state
+tracking, not individual-bit dependency analysis.
+Calls show their local instruction effects, not inferred callee behavior or
+argument consumption.
+
+DDGs display all kinds by default (`dependencies=raw,war,waw`). Select any
+nonempty comma-separated combination such as `raw` or `raw,waw` to filter them.
+The global default is controlled by `--ddg-dependencies` or
+`BINGRAPH_DDG_DEPENDENCIES`; client mode also accepts `--dependencies`.
+Filtering changes only displayed edges, retaining all instruction nodes and
+the complete cached dependency analysis.
+
+Memory-edge policies are:
+
+- `always`: retain conservative constraints, even for proven disjoint ranges.
+- `may`: omit proven disjoint ranges, but retain possible aliases.
+- `must` (default): include only proven overlapping ranges, omitting unknown aliases.
+
+`must` is deliberately incomplete: no edge between `[rdi]` and `[rsi]` does not
+prove independence or safe reordering. This choice does not change pointer
+identity, register dependencies or the proofs used to kill earlier stores.
+
+Edge labels use compact operands such as `[rdi+0x8]`; hover
+tooltips retain the dependency kind, access width and `may alias` qualifiers.
+Loaded pointer values use their reading register where a register-plus-offset
+form is established, such as `[s2]`; otherwise an opaque address shows `[?]`.
+The original symbolic address remains in the tooltip and in alias analysis.
+Configure the default with `--ddg-memory always|may|must` or `BINGRAPH_DDG_MEMORY`.
+DDGs currently have one analysis pipeline, not a
+separate mode knob.
+
+Regions must fully decode and lift as one block, including any delay slots.
+Limits are 4,096 bytes and 256 instructions. Unsupported stateful VEX operations
+(including genuinely conditional memory, atomic operations and opaque helpers) report an error
+rather than silently producing an incomplete graph. Memory dependencies describe
+ordering, not hardware timing or a complete instruction scheduling model.
+
+For example:
+
+```bash
+uv run bingraph --root ./angr-binaries/tests client --endpoint /ddg \
+  --filepath x86_64/switch --address 0x400544 --size 34 --memory must --format raw
+```
 
 ## Configuration
 

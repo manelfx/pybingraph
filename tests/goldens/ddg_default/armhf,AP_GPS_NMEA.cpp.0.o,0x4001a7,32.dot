@@ -1,0 +1,34 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4001a7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001a7&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr.w</TD><TD ALIGN="LEFT">r2, [r4, &#35;0xa4]</TD></TR></TABLE> }>];
+"0x4001ab" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001ab&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrd</TD><TD ALIGN="LEFT">r0, r3, [r4, &#35;8]</TD></TR></TABLE> }>];
+"0x4001af" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001af&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r2, r5, r2</TD></TR></TABLE> }>];
+"0x4001b1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001b1&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrb</TD><TD ALIGN="LEFT">r1, [r3]</TD></TR></TABLE> }>];
+"0x4001b3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001b3&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">r3, r0, r1, lsl &#35;1</TD></TR></TABLE> }>];
+"0x4001b7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001b7&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrsh.w</TD><TD ALIGN="LEFT">r3, [r3, &#35;0x16]</TD></TR></TABLE> }>];
+"0x4001bb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001bb&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r2, r2, r3</TD></TR></TABLE> }>];
+"0x4001bd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001bd&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r2, &#35;0</TD></TR></TABLE> }>];
+"0x4001bf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001bf&#58;&nbsp;</TD><TD ALIGN="LEFT">it</TD><TD ALIGN="LEFT">lt</TD></TR></TABLE> }>];
+"0x4001c1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001c1&#58;&nbsp;</TD><TD ALIGN="LEFT">rsblt</TD><TD ALIGN="LEFT">r2, r2, &#35;0</TD></TR></TABLE> }>];
+"0x4001c3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001c3&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r2, &#35;0x32</TD></TR></TABLE> }>];
+"0x4001c5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4001c5&#58;&nbsp;</TD><TD ALIGN="LEFT">ble</TD><TD ALIGN="LEFT">&#35;0x4001d1</TD></TR></TABLE> }>];
+"0x4001a7" -> "0x4001ab" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4001a7" -> "0x4001af" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
+"0x4001ab" -> "0x4001af" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4001ab" -> "0x4001b1" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x4001ab" -> "0x4001b3" [style=solid, label=r0, tooltip="RAW: r0; WAW: r3"];
+"0x4001af" -> "0x4001b1" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4001af" -> "0x4001bb" [style=solid, label=r2, tooltip="RAW: r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r2"];
+"0x4001b1" -> "0x4001b3" [style=solid, label=r1, tooltip="RAW: r1; WAR: r3; WAW: itstate"];
+"0x4001b3" -> "0x4001b7" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
+"0x4001b7" -> "0x4001bb" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate"];
+"0x4001bb" -> "0x4001bd" [style=solid, label=r2, tooltip="RAW: r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+"0x4001bb" -> "0x4001c1" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
+"0x4001bd" -> "0x4001bf" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4001bd" -> "0x4001c1" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAR: r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4001bf" -> "0x4001c1" [style=solid, label=itstate, tooltip="RAW: itstate; WAW: itstate"];
+"0x4001c1" -> "0x4001c3" [style=solid, label="itstate, r2", tooltip="RAW: itstate, r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+"0x4001c3" -> "0x4001c5" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+}

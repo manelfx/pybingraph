@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x120001fa4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001fa4&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$v1, $v0</TD></TR></TABLE> }>];
+"0x120001fa8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001fa8&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, -0x7ec0($gp)</TD></TR></TABLE> }>];
+"0x120001fac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001fac&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, ($v0)</TD></TR></TABLE> }>];
+"0x120001fb0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001fb0&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a0, $v1</TD></TR></TABLE> }>];
+"0x120001fb4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001fb4&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a1, $v0</TD></TR></TABLE> }>];
+"0x120001fb8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001fb8&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, -0x7f00($gp)</TD></TR></TABLE> }>];
+"0x120001fbc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001fbc&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$t9, $v0</TD></TR></TABLE> }>];
+"0x120001fc0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001fc0&#58;&nbsp;</TD><TD ALIGN="LEFT">jalr</TD><TD ALIGN="LEFT">$t9</TD></TR></TABLE> }>];
+"0x120001fc4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120001fc4&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x120001fa4" -> "0x120001fa8" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x120001fa4" -> "0x120001fb0" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x120001fa8" -> "0x120001fac" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x120001fac" -> "0x120001fb4" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x120001fac" -> "0x120001fb8" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x120001fb4" -> "0x120001fb8" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x120001fb8" -> "0x120001fbc" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x120001fbc" -> "0x120001fc0" [style=solid, label=t9, tooltip="RAW: t9"];
+}

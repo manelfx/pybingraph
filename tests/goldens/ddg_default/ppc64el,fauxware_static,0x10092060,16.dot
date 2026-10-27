@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10092060" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10092060&#58;&nbsp;</TD><TD ALIGN="LEFT">nor</TD><TD ALIGN="LEFT">r6, r3, r3</TD></TR></TABLE> }>];
+"0x10092064" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10092064&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpwi</TD><TD ALIGN="LEFT">cr7, r6, 0x74</TD></TR></TABLE> }>];
+"0x10092068" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10092068&#58;&nbsp;</TD><TD ALIGN="LEFT">extsw</TD><TD ALIGN="LEFT">r6, r6</TD></TR></TABLE> }>];
+"0x1009206c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1009206c&#58;&nbsp;</TD><TD ALIGN="LEFT">ble</TD><TD ALIGN="LEFT">cr7, 0x10091e10</TD></TR></TABLE> }>];
+"0x10092060" -> "0x10092064" [style=solid, label=gpr6, tooltip="RAW: gpr6"];
+"0x10092060" -> "0x10092068" [style=solid, label=gpr6, tooltip="RAW: gpr6; WAW: gpr6"];
+"0x10092064" -> "0x10092068" [style=dashed, label=gpr6, tooltip="WAR: gpr6"];
+"0x10092064" -> "0x1009206c" [style=solid, label="cr7_321", tooltip="RAW: cr7_321"];
+}

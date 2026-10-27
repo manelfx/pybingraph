@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40f78c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40f78c&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$s1, $v0</TD></TR></TABLE> }>];
+"0x40f790" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40f790&#58;&nbsp;</TD><TD ALIGN="LEFT">srl</TD><TD ALIGN="LEFT">$v0, $v0, 0x1e</TD></TR></TABLE> }>];
+"0x40f794" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40f794&#58;&nbsp;</TD><TD ALIGN="LEFT">bnez</TD><TD ALIGN="LEFT">$v0, 0x40f80c</TD></TR></TABLE> }>];
+"0x40f798" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40f798&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$gp, 0x10($sp)</TD></TR></TABLE> }>];
+"0x40f78c" -> "0x40f790" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x40f790" -> "0x40f794" [style=solid, label=v0, tooltip="RAW: v0"];
+}

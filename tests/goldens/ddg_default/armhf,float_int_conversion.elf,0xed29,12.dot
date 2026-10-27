@@ -1,0 +1,17 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xed29" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xed29&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr.w</TD><TD ALIGN="LEFT">r2, [r0, &#35;0x2dc]</TD></TR></TABLE> }>];
+"0xed2d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xed2d&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">&#123;r3, r4, r5, lr&#125;</TD></TR></TABLE> }>];
+"0xed2f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xed2f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r4, r1</TD></TR></TABLE> }>];
+"0xed31" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xed31&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r5, r0</TD></TR></TABLE> }>];
+"0xed33" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xed33&#58;&nbsp;</TD><TD ALIGN="LEFT">cbz</TD><TD ALIGN="LEFT">r2, &#35;0xed59</TD></TR></TABLE> }>];
+"0xed29" -> "0xed2d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xed29" -> "0xed33" [style=solid, label=r2, tooltip="RAW: r2"];
+"0xed2d" -> "0xed2f" [style=dashed, label=r4, tooltip="WAR: r4"];
+"0xed2d" -> "0xed2f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xed2d" -> "0xed31" [style=dashed, label=r5, tooltip="WAR: r5"];
+"0xed2f" -> "0xed31" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xed31" -> "0xed33" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

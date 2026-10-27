@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xeea5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeea5&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;1</TD></TR></TABLE> }>];
+"0xeea7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeea7&#58;&nbsp;</TD><TD ALIGN="LEFT">it</TD><TD ALIGN="LEFT">eq</TD></TR></TABLE> }>];
+"0xeea9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeea9&#58;&nbsp;</TD><TD ALIGN="LEFT">moveq</TD><TD ALIGN="LEFT">r0, &#35;3</TD></TR></TABLE> }>];
+"0xeeab" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xeeab&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">&#35;0xeeb7</TD></TR></TABLE> }>];
+"0xeea5" -> "0xeea7" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xeea5" -> "0xeea9" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0xeea7" -> "0xeea9" [style=solid, label=itstate, tooltip="RAW: itstate; WAW: itstate"];
+"0xeea9" -> "0xeeab" [style=solid, label="flags, itstate", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate; WAW: itstate"];
+}

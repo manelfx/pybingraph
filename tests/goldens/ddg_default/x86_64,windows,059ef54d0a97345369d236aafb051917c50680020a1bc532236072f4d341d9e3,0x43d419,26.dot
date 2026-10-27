@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x43d419" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43d419&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdx, qword ptr [rip + 0xa2608]</TD></TR></TABLE> }>];
+"0x43d420" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43d420&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rcx + 0xa0], rdx</TD></TR></TABLE> }>];
+"0x43d427" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43d427&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [rsp + 0x20]</TD></TR></TABLE> }>];
+"0x43d42c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43d42c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">qword ptr [rip + 0xa25f5], rcx</TD></TR></TABLE> }>];
+"0x43d419" -> "0x43d420" [style=solid, label=rdx, tooltip="RAW: rdx"];
+"0x43d419" -> "0x43d42c" [style=dashed, label="[0x4dfa28]", tooltip="WAR: mem[0x4dfa28]:8"];
+"0x43d420" -> "0x43d427" [style=dashed, label=rcx, tooltip="WAR: rcx"];
+"0x43d427" -> "0x43d42c" [style=solid, label=rcx, tooltip="RAW: rcx"];
+}

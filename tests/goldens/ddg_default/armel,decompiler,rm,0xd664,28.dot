@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xd664" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd664&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [fp, &#35;-0x14]</TD></TR></TABLE> }>];
+"0xd668" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd668&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r3, r3, &#35;1</TD></TR></TABLE> }>];
+"0xd66c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd66c&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [fp, &#35;-0x14]</TD></TR></TABLE> }>];
+"0xd670" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd670&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [fp, &#35;-0x14]</TD></TR></TABLE> }>];
+"0xd674" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd674&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [fp, &#35;-0x5c]</TD></TR></TABLE> }>];
+"0xd678" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd678&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r2, r3</TD></TR></TABLE> }>];
+"0xd67c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd67c&#58;&nbsp;</TD><TD ALIGN="LEFT">bhs</TD><TD ALIGN="LEFT">&#35;0xd694</TD></TR></TABLE> }>];
+"0xd664" -> "0xd668" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0xd664" -> "0xd66c" [style=dashed, label="[r11-0x14]", tooltip="WAR: mem[entry_r11-0x14]:4"];
+"0xd668" -> "0xd66c" [style=solid, label=r3, tooltip="RAW: r3"];
+"0xd668" -> "0xd674" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0xd66c" -> "0xd670" [style=solid, label="[r11-0x14]", tooltip="RAW: mem[entry_r11-0x14]:4"];
+"0xd66c" -> "0xd674" [style=dashed, label=r3, tooltip="WAR: r3"];
+"0xd670" -> "0xd678" [style=solid, label=r2, tooltip="RAW: r2"];
+"0xd674" -> "0xd678" [style=solid, label=r3, tooltip="RAW: r3"];
+"0xd678" -> "0xd67c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x422ac0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422ac0&#58;&nbsp;</TD><TD ALIGN="LEFT">swl</TD><TD ALIGN="LEFT">$a0, 3($a3)</TD></TR></TABLE> }>];
+"0x422ac4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422ac4&#58;&nbsp;</TD><TD ALIGN="LEFT">swr</TD><TD ALIGN="LEFT">$a0, ($a3)</TD></TR></TABLE> }>];
+"0x422ac8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422ac8&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$a0, $v0, 4</TD></TR></TABLE> }>];
+"0x422acc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422acc&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a3, $t8</TD></TR></TABLE> }>];
+"0x422ad0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422ad0&#58;&nbsp;</TD><TD ALIGN="LEFT">sltu</TD><TD ALIGN="LEFT">$t8, $s0, $a0</TD></TR></TABLE> }>];
+"0x422ad4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422ad4&#58;&nbsp;</TD><TD ALIGN="LEFT">bnez</TD><TD ALIGN="LEFT">$t8, 0x422b28</TD></TR></TABLE> }>];
+"0x422ad8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422ad8&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$t8, $a3, 4</TD></TR></TABLE> }>];
+"0x422ac0" -> "0x422ac8" [style=dashed, label=a0, tooltip="WAR: a0"];
+"0x422ac0" -> "0x422acc" [style=dashed, label=a3, tooltip="WAR: a3"];
+"0x422ac4" -> "0x422ac8" [style=dashed, label=a0, tooltip="WAR: a0"];
+"0x422ac4" -> "0x422acc" [style=dashed, label=a3, tooltip="WAR: a3"];
+"0x422ac8" -> "0x422ad0" [style=solid, label=a0, tooltip="RAW: a0"];
+"0x422acc" -> "0x422ad0" [style=dashed, label=t8, tooltip="WAR: t8"];
+"0x422acc" -> "0x422ad8" [style=solid, label=a3, tooltip="RAW: a3"];
+"0x422ad0" -> "0x422ad4" [style=solid, label=t8, tooltip="RAW: t8"];
+"0x422ad0" -> "0x422ad8" [style=dotted, label=t8, tooltip="WAW: t8"];
+"0x422ad4" -> "0x422ad8" [style=dashed, label=t8, tooltip="WAR: t8"];
+}

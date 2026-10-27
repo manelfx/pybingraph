@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40ded0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ded0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rdi, 0xa</TD></TR></TABLE> }>];
+"0x40ded4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ded4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, 0xa</TD></TR></TABLE> }>];
+"0x40ded9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ded9&#58;&nbsp;</TD><TD ALIGN="LEFT">movabs</TD><TD ALIGN="LEFT">r9, 0xaaaaaaaaaaaaaaab</TD></TR></TABLE> }>];
+"0x40dee3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dee3&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovae</TD><TD ALIGN="LEFT">rsi, rdi</TD></TR></TABLE> }>];
+"0x40dee7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40dee7&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">rsi, 1</TD></TR></TABLE> }>];
+"0x40deeb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40deeb&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rsi, -1</TD></TR></TABLE> }>];
+"0x40deef" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40deef&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x40df5f</TD></TR></TABLE> }>];
+"0x40ded0" -> "0x40dee3" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40ded0" -> "0x40dee7" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40ded4" -> "0x40dee3" [style=solid, label=rsi, tooltip="RAW: rsi; WAW: rsi"];
+"0x40dee3" -> "0x40dee7" [style=solid, label=rsi, tooltip="RAW: rsi; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: rsi"];
+"0x40dee7" -> "0x40deeb" [style=solid, label=rsi, tooltip="RAW: rsi; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40deeb" -> "0x40deef" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

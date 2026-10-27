@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80017404" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80017404&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r1, 0xd8(%r15)</TD></TR></TABLE> }>];
+"0x8001740a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8001740a&#58;&nbsp;</TD><TD ALIGN="LEFT">agrk</TD><TD ALIGN="LEFT">%r5, %r2, %r1</TD></TR></TABLE> }>];
+"0x8001740e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8001740e&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r5, 0(%r5, %r8)</TD></TR></TABLE> }>];
+"0x80017412" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80017412&#58;&nbsp;</TD><TD ALIGN="LEFT">cgije</TD><TD ALIGN="LEFT">%r1, -1, 0x80017442</TD></TR></TABLE> }>];
+"0x80017404" -> "0x8001740a" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x80017404" -> "0x80017412" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x8001740a" -> "0x8001740e" [style=solid, label=r5, tooltip="RAW: r5; WAW: r5"];
+}

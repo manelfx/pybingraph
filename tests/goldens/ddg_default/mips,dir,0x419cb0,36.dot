@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x419cb0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x419cb0&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a0, $s0</TD></TR></TABLE> }>];
+"0x419cb4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x419cb4&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s3, 0x30($sp)</TD></TR></TABLE> }>];
+"0x419cb8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x419cb8&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s2, 0x2c($sp)</TD></TR></TABLE> }>];
+"0x419cbc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x419cbc&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s0, 0x24($sp)</TD></TR></TABLE> }>];
+"0x419cc0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x419cc0&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$t9, -0x7d98($gp)</TD></TR></TABLE> }>];
+"0x419cc4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x419cc4&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$s1, 0x48($sp)</TD></TR></TABLE> }>];
+"0x419cc8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x419cc8&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s1, 0x28($sp)</TD></TR></TABLE> }>];
+"0x419ccc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x419ccc&#58;&nbsp;</TD><TD ALIGN="LEFT">jr</TD><TD ALIGN="LEFT">$t9</TD></TR></TABLE> }>];
+"0x419cd0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x419cd0&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$sp, $sp, 0x38</TD></TR></TABLE> }>];
+"0x419cb0" -> "0x419cbc" [style=dashed, label=s0, tooltip="WAR: s0"];
+"0x419cb4" -> "0x419cd0" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x419cb8" -> "0x419cd0" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x419cbc" -> "0x419cd0" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x419cc0" -> "0x419ccc" [style=solid, label=t9, tooltip="RAW: t9"];
+"0x419cc4" -> "0x419cc8" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x419cc4" -> "0x419cd0" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x419cc8" -> "0x419cd0" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

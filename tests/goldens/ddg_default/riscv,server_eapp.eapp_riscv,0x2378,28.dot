@@ -1,0 +1,25 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x2378" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2378&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x18(s0)</TD></TR></TABLE> }>];
+"0x237c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x237c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a5, 8</TD></TR></TABLE> }>];
+"0x237e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x237e&#58;&nbsp;</TD><TD ALIGN="LEFT">neg</TD><TD ALIGN="LEFT">a4, a5</TD></TR></TABLE> }>];
+"0x2382" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2382&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x68(s0)</TD></TR></TABLE> }>];
+"0x2386" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2386&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a5, -1</TD></TR></TABLE> }>];
+"0x2388" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2388&#58;&nbsp;</TD><TD ALIGN="LEFT">c.and</TD><TD ALIGN="LEFT">a5, a4</TD></TR></TABLE> }>];
+"0x238a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x238a&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a5, -0x38(s0)</TD></TR></TABLE> }>];
+"0x238e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x238e&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a5, -0x38(s0)</TD></TR></TABLE> }>];
+"0x2392" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2392&#58;&nbsp;</TD><TD ALIGN="LEFT">c.beqz</TD><TD ALIGN="LEFT">a5, 0x1c</TD></TR></TABLE> }>];
+"0x2378" -> "0x237c" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x237c" -> "0x237e" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x237c" -> "0x2382" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x237e" -> "0x2382" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x237e" -> "0x2388" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x2382" -> "0x2386" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x2386" -> "0x2388" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x2388" -> "0x238a" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x2388" -> "0x238e" [style=dotted, label=a5, tooltip="WAW: a5"];
+"0x238a" -> "0x238e" [style=solid, label="[s0-0x38]", tooltip="RAW: mem[entry_s0-0x38]:8; WAR: a5"];
+"0x238e" -> "0x2392" [style=solid, label=a5, tooltip="RAW: a5"];
+}

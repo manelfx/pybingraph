@@ -1,0 +1,21 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x805e2f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805e2f0&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esp, 0x10</TD></TR></TABLE> }>];
+"0x805e2f3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805e2f3&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp - 0xc]</TD></TR></TABLE> }>];
+"0x805e2f6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805e2f6&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x10], eax</TD></TR></TABLE> }>];
+"0x805e2f9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805e2f9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp + 8]</TD></TR></TABLE> }>];
+"0x805e2fc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805e2fc&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">edx, byte ptr [eax + 0x28]</TD></TR></TABLE> }>];
+"0x805e300" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805e300&#58;&nbsp;</TD><TD ALIGN="LEFT">or</TD><TD ALIGN="LEFT">edx, 2</TD></TR></TABLE> }>];
+"0x805e303" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x805e303&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [eax + 0x28], dl</TD></TR></TABLE> }>];
+"0x805e2f0" -> "0x805e300" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x805e2f3" -> "0x805e2f6" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x805e2f3" -> "0x805e2f9" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x805e2f6" -> "0x805e2f9" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x805e2f9" -> "0x805e2fc" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x805e2f9" -> "0x805e303" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x805e2fc" -> "0x805e300" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x805e2fc" -> "0x805e303" [style=dashed, label="[eax+0x28]", tooltip="WAR: mem[ddg_unknown_2+0x28]:1"];
+"0x805e300" -> "0x805e303" [style=solid, label=dl, tooltip="RAW: dl"];
+}

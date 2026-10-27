@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40167c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40167c&#58;&nbsp;</TD><TD ALIGN="LEFT">flw</TD><TD ALIGN="LEFT">ft11, 0(s2)</TD></TR></TABLE> }>];
+"0x401680" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401680&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a5, 4</TD></TR></TABLE> }>];
+"0x401682" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401682&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">s2, 4</TD></TR></TABLE> }>];
+"0x401684" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401684&#58;&nbsp;</TD><TD ALIGN="LEFT">fsw</TD><TD ALIGN="LEFT">ft11, -4(a5)</TD></TR></TABLE> }>];
+"0x40167c" -> "0x401682" [style=dashed, label=s2, tooltip="WAR: s2"];
+"0x40167c" -> "0x401684" [style=solid, label=ft11, tooltip="RAW: ft11"];
+"0x401680" -> "0x401684" [style=solid, label=a5, tooltip="RAW: a5"];
+}

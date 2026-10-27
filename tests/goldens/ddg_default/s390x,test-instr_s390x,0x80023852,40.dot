@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80023852" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80023852&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r3, 0x20(%r13)</TD></TR></TABLE> }>];
+"0x80023858" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80023858&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r4, 1(%r1)</TD></TR></TABLE> }>];
+"0x8002385c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002385c&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r4, 0(%r8)</TD></TR></TABLE> }>];
+"0x80023862" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80023862&#58;&nbsp;</TD><TD ALIGN="LEFT">ic</TD><TD ALIGN="LEFT">%r1, 0(%r1)</TD></TR></TABLE> }>];
+"0x80023866" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80023866&#58;&nbsp;</TD><TD ALIGN="LEFT">stc</TD><TD ALIGN="LEFT">%r1, 4(%r2, %r3)</TD></TR></TABLE> }>];
+"0x8002386a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002386a&#58;&nbsp;</TD><TD ALIGN="LEFT">aghi</TD><TD ALIGN="LEFT">%r2, 1</TD></TR></TABLE> }>];
+"0x8002386e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002386e&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r1, 0(%r8)</TD></TR></TABLE> }>];
+"0x80023874" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80023874&#58;&nbsp;</TD><TD ALIGN="LEFT">clgrjh</TD><TD ALIGN="LEFT">%r11, %r1, 0x80023852</TD></TR></TABLE> }>];
+"0x80023852" -> "0x80023866" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x80023858" -> "0x8002385c" [style=solid, label=r4, tooltip="RAW: r4"];
+"0x80023858" -> "0x80023862" [style=dashed, label=591, tooltip="WAR: 591"];
+"0x80023858" -> "0x8002386e" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x8002385c" -> "0x8002386e" [style=solid, label="[r8]", tooltip="RAW: mem[entry_r8]:8"];
+"0x80023862" -> "0x80023866" [style=solid, label=591, tooltip="RAW: 591"];
+"0x80023862" -> "0x8002386e" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x80023862" -> "0x8002386e" [style=dotted, label=r1, tooltip="WAW: r1"];
+"0x80023866" -> "0x8002386a" [style=dashed, label=r2, tooltip="WAR: r2"];
+"0x80023866" -> "0x8002386e" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x8002386e" -> "0x80023874" [style=solid, label=r1, tooltip="RAW: r1"];
+}

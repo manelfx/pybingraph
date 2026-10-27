@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xe60c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe60c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, -0x70</TD></TR></TABLE> }>];
+"0xe60e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe60e&#58;&nbsp;</TD><TD ALIGN="LEFT">addiw</TD><TD ALIGN="LEFT">a4, a1, -1</TD></TR></TABLE> }>];
+"0xe612" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe612&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">ra, 0x68(sp)</TD></TR></TABLE> }>];
+"0xe614" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe614&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s0, 0x60(sp)</TD></TR></TABLE> }>];
+"0xe616" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe616&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s1, 0x58(sp)</TD></TR></TABLE> }>];
+"0xe618" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe618&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">a4, a4, 0xff</TD></TR></TABLE> }>];
+"0xe61c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe61c&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a6, zero, 0x3f</TD></TR></TABLE> }>];
+"0xe620" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe620&#58;&nbsp;</TD><TD ALIGN="LEFT">bltu</TD><TD ALIGN="LEFT">a6, a4, 0x76</TD></TR></TABLE> }>];
+"0xe60c" -> "0xe612" [style=solid, label=sp, tooltip="RAW: sp"];
+"0xe60c" -> "0xe614" [style=solid, label=sp, tooltip="RAW: sp"];
+"0xe60c" -> "0xe616" [style=solid, label=sp, tooltip="RAW: sp"];
+"0xe60e" -> "0xe618" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0xe618" -> "0xe620" [style=solid, label=a4, tooltip="RAW: a4"];
+"0xe61c" -> "0xe620" [style=solid, label=a6, tooltip="RAW: a6"];
+}

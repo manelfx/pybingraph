@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xe95e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe95e&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">a2, 0x160(s0)</TD></TR></TABLE> }>];
+"0xe962" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe962&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a2, a2, -0x80</TD></TR></TABLE> }>];
+"0xe966" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe966&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a2, 0x160(s0)</TD></TR></TABLE> }>];
+"0xe96a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe96a&#58;&nbsp;</TD><TD ALIGN="LEFT">bltu</TD><TD ALIGN="LEFT">s6, a2, 0xb2</TD></TR></TABLE> }>];
+"0xe95e" -> "0xe962" [style=solid, label=a2, tooltip="RAW: a2; WAW: a2"];
+"0xe95e" -> "0xe966" [style=dashed, label="[s0+0x160]", tooltip="WAR: mem[entry_s0+0x160]:8"];
+"0xe962" -> "0xe966" [style=solid, label=a2, tooltip="RAW: a2"];
+"0xe962" -> "0xe96a" [style=solid, label=a2, tooltip="RAW: a2"];
+}

@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x2d30" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d30&#58;&nbsp;</TD><TD ALIGN="LEFT">negw</TD><TD ALIGN="LEFT">s2, s1</TD></TR></TABLE> }>];
+"0x2d34" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d34&#58;&nbsp;</TD><TD ALIGN="LEFT">remuw</TD><TD ALIGN="LEFT">s2, s2, s1</TD></TR></TABLE> }>];
+"0x2d38" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d38&#58;&nbsp;</TD><TD ALIGN="LEFT">auipc</TD><TD ALIGN="LEFT">s3, 0x18</TD></TR></TABLE> }>];
+"0x2d3c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2d3c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">s3, -0x798(s3)</TD></TR></TABLE> }>];
+"0x2d30" -> "0x2d34" [style=solid, label=s2, tooltip="RAW: s2; WAW: s2"];
+"0x2d38" -> "0x2d3c" [style=solid, label=s3, tooltip="RAW: s3; WAW: s3"];
+}

@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x41f034" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f034&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">word ptr [rsp + 0xd0], 5</TD></TR></TABLE> }>];
+"0x41f03d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f03d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, 0</TD></TR></TABLE> }>];
+"0x41f042" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f042&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovb</TD><TD ALIGN="LEFT">rdx, qword ptr [rsp + 0xe0]</TD></TR></TABLE> }>];
+"0x41f04b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f04b&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [rsp + 0x1f0]</TD></TR></TABLE> }>];
+"0x41f053" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f053&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">byte ptr [rcx + 0xe0], 0</TD></TR></TABLE> }>];
+"0x41f05a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f05a&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, 0</TD></TR></TABLE> }>];
+"0x41f05f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f05f&#58;&nbsp;</TD><TD ALIGN="LEFT">cmove</TD><TD ALIGN="LEFT">rdx, rcx</TD></TR></TABLE> }>];
+"0x41f063" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41f063&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x41f25b</TD></TR></TABLE> }>];
+"0x41f034" -> "0x41f042" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x41f034" -> "0x41f053" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x41f03d" -> "0x41f042" [style=solid, label=rdx, tooltip="RAW: rdx; WAW: rdx"];
+"0x41f042" -> "0x41f053" [style=dashed, label=flags, tooltip="WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x41f042" -> "0x41f05f" [style=solid, label=rdx, tooltip="RAW: rdx; WAW: rdx"];
+"0x41f04b" -> "0x41f053" [style=solid, label=rcx, tooltip="RAW: rcx"];
+"0x41f04b" -> "0x41f05a" [style=dotted, label=rcx, tooltip="WAW: rcx"];
+"0x41f053" -> "0x41f05a" [style=dashed, label=rcx, tooltip="WAR: rcx"];
+"0x41f053" -> "0x41f05f" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x41f05a" -> "0x41f05f" [style=solid, label=rcx, tooltip="RAW: rcx"];
+}

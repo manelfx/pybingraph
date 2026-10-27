@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40fd90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fd90&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">x23, xzr</TD></TR></TABLE> }>];
+"0x40fd94" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fd94&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">x3, [x24]</TD></TR></TABLE> }>];
+"0x40fd98" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fd98&#58;&nbsp;</TD><TD ALIGN="LEFT">cset</TD><TD ALIGN="LEFT">x20, eq</TD></TR></TABLE> }>];
+"0x40fd9c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fd9c&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">x20, x3</TD></TR></TABLE> }>];
+"0x40fda0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40fda0&#58;&nbsp;</TD><TD ALIGN="LEFT">b.hs</TD><TD ALIGN="LEFT">&#35;0x40fe88</TD></TR></TABLE> }>];
+"0x40fd90" -> "0x40fd98" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40fd90" -> "0x40fd9c" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40fd94" -> "0x40fd9c" [style=solid, label=x3, tooltip="RAW: x3"];
+"0x40fd98" -> "0x40fd9c" [style=solid, label=x20, tooltip="RAW: x20; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40fd9c" -> "0x40fda0" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

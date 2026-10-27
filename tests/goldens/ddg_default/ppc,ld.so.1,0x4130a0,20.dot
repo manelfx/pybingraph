@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4130a0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4130a0&#58;&nbsp;</TD><TD ALIGN="LEFT">cntlzw</TD><TD ALIGN="LEFT">r29, r27</TD></TR></TABLE> }>];
+"0x4130a4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4130a4&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r8, 0(r26)</TD></TR></TABLE> }>];
+"0x4130a8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4130a8&#58;&nbsp;</TD><TD ALIGN="LEFT">srwi</TD><TD ALIGN="LEFT">r29, r29, 5</TD></TR></TABLE> }>];
+"0x4130ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4130ac&#58;&nbsp;</TD><TD ALIGN="LEFT">cmplw</TD><TD ALIGN="LEFT">cr7, r29, r8</TD></TR></TABLE> }>];
+"0x4130b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4130b0&#58;&nbsp;</TD><TD ALIGN="LEFT">bge</TD><TD ALIGN="LEFT">cr7, 0x413190</TD></TR></TABLE> }>];
+"0x4130a0" -> "0x4130a8" [style=solid, label=gpr29, tooltip="RAW: gpr29; WAW: gpr29"];
+"0x4130a4" -> "0x4130ac" [style=solid, label=gpr8, tooltip="RAW: gpr8"];
+"0x4130a8" -> "0x4130ac" [style=solid, label=gpr29, tooltip="RAW: gpr29"];
+"0x4130ac" -> "0x4130b0" [style=solid, label="cr7_321", tooltip="RAW: cr7_321"];
+}

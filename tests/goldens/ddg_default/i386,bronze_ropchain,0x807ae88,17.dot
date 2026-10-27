@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x807ae88" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807ae88&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">eax, 1</TD></TR></TABLE> }>];
+"0x807ae8b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807ae8b&#58;&nbsp;</TD><TD ALIGN="LEFT">movsx</TD><TD ALIGN="LEFT">ecx, byte ptr [eax - 1]</TD></TR></TABLE> }>];
+"0x807ae8f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807ae8f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">ecx, dword ptr [edx + ecx*4]</TD></TR></TABLE> }>];
+"0x807ae92" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807ae92&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">cl, cl</TD></TR></TABLE> }>];
+"0x807ae94" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807ae94&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [eax - 1], cl</TD></TR></TABLE> }>];
+"0x807ae97" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x807ae97&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x807ae88</TD></TR></TABLE> }>];
+"0x807ae88" -> "0x807ae8b" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x807ae88" -> "0x807ae92" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x807ae88" -> "0x807ae94" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x807ae8b" -> "0x807ae8f" [style=solid, label=ecx, tooltip="RAW: ecx; WAW: ecx"];
+"0x807ae8b" -> "0x807ae94" [style=dashed, label="[eax]", tooltip="WAR: mem[entry_eax]:1"];
+"0x807ae8f" -> "0x807ae92" [style=solid, label=cl, tooltip="RAW: cl"];
+"0x807ae8f" -> "0x807ae94" [style=solid, label=cl, tooltip="RAW: cl"];
+"0x807ae92" -> "0x807ae97" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

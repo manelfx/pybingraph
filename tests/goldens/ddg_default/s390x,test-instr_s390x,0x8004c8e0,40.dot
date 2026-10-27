@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8004c8e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004c8e0&#58;&nbsp;</TD><TD ALIGN="LEFT">sllg</TD><TD ALIGN="LEFT">%r3, %r3, 3</TD></TR></TABLE> }>];
+"0x8004c8e6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004c8e6&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r1, 0(%r3, %r5)</TD></TR></TABLE> }>];
+"0x8004c8ea" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004c8ea&#58;&nbsp;</TD><TD ALIGN="LEFT">mvghi</TD><TD ALIGN="LEFT">0(%r1), 0</TD></TR></TABLE> }>];
+"0x8004c8f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004c8f0&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r2, 0x388(%r8)</TD></TR></TABLE> }>];
+"0x8004c8f6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004c8f6&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r5, 0x388(%r8)</TD></TR></TABLE> }>];
+"0x8004c8fc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004c8fc&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r1, 0xb0(%r11)</TD></TR></TABLE> }>];
+"0x8004c902" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004c902&#58;&nbsp;</TD><TD ALIGN="LEFT">cgrje</TD><TD ALIGN="LEFT">%r1, %r2, 0x8004c97e</TD></TR></TABLE> }>];
+"0x8004c8e0" -> "0x8004c8e6" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x8004c8e6" -> "0x8004c8ea" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x8004c8e6" -> "0x8004c8fc" [style=dotted, label=r1, tooltip="WAW: r1"];
+"0x8004c8ea" -> "0x8004c8fc" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x8004c8f0" -> "0x8004c8f6" [style=dashed, label="[r8+0x388]", tooltip="WAR: mem[entry_r8+0x388]:8"];
+"0x8004c8f0" -> "0x8004c902" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x8004c8fc" -> "0x8004c902" [style=solid, label=r1, tooltip="RAW: r1"];
+}

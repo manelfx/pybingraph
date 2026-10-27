@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8003d83" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003d83&#58;&nbsp;</TD><TD ALIGN="LEFT">lsls</TD><TD ALIGN="LEFT">r4, r4, &#35;1</TD></TR></TABLE> }>];
+"0x8003d85" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003d85&#58;&nbsp;</TD><TD ALIGN="LEFT">tst</TD><TD ALIGN="LEFT">r3, r4</TD></TR></TABLE> }>];
+"0x8003d87" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003d87&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">r0, r0, &#35;4</TD></TR></TABLE> }>];
+"0x8003d8b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003d8b&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">&#35;0x8003d83</TD></TR></TABLE> }>];
+"0x8003d83" -> "0x8003d85" [style=solid, label="flags, r4", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r4; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+"0x8003d85" -> "0x8003d87" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8003d85" -> "0x8003d8b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8003d87" -> "0x8003d8b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+}

@@ -1,9 +1,10 @@
 # Portions adapted from bingraphvis (BSD-2-Clause); see NOTICE.
 
-"""Synthetic-node coloring for graph presentation, without modifying CFGs."""
+"""Node styling and navigation metadata, without modifying analysis graphs."""
 
 from __future__ import annotations
 
+from urllib.parse import urlencode
 from bingraph.core.vis import Node, NodeAnnotator
 
 
@@ -23,3 +24,22 @@ class ColorSimprocedures(NodeAnnotator):
             node.pydot.set_fillcolor("#ffcccc")
         else:
             node.pydot.set_fillcolor("#dddddd")
+
+
+class LinkDDG(NodeAnnotator):
+    """Link real BBs to exact byte-region DDGs in the current browser tab."""
+
+    def __init__(self, filepath: str):
+        self.filepath = filepath
+
+    def annotate_node(self, node: Node) -> None:
+        if node.obj.is_simprocedure or not node.obj.size:
+            return
+        query = urlencode(
+            {
+                "filepath": self.filepath,
+                "address": hex(node.obj.addr),
+                "size": node.obj.size,
+            }
+        )
+        node.pydot.set("URL", "/ddg?" + query)

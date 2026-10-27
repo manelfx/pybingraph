@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x47e570" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x47e570&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rip + 0x24aa11]</TD></TR></TABLE> }>];
+"0x47e577" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x47e577&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, 0x4b43ef</TD></TR></TABLE> }>];
+"0x47e57c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x47e57c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rax]</TD></TR></TABLE> }>];
+"0x47e57f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x47e57f&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">rax, rax</TD></TR></TABLE> }>];
+"0x47e582" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x47e582&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovne</TD><TD ALIGN="LEFT">rsi, rax</TD></TR></TABLE> }>];
+"0x47e586" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x47e586&#58;&nbsp;</TD><TD ALIGN="LEFT">jmp</TD><TD ALIGN="LEFT">0x47e518</TD></TR></TABLE> }>];
+"0x47e570" -> "0x47e57c" [style=solid, label=rax, tooltip="RAW: rax; WAW: rax"];
+"0x47e577" -> "0x47e582" [style=solid, label=rsi, tooltip="RAW: rsi; WAW: rsi"];
+"0x47e57c" -> "0x47e57f" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x47e57c" -> "0x47e582" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x47e57f" -> "0x47e582" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

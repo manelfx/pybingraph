@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x401552" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401552&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r9, 0xd8(%r15)</TD></TR></TABLE> }>];
+"0x401558" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401558&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r1, 0(%r9, %r1)</TD></TR></TABLE> }>];
+"0x40155c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40155c&#58;&nbsp;</TD><TD ALIGN="LEFT">mvi</TD><TD ALIGN="LEFT">0(%r1), 0</TD></TR></TABLE> }>];
+"0x401560" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401560&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r6, 0xb8(%r15)</TD></TR></TABLE> }>];
+"0x401566" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401566&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r4, 0xd8(%r15)</TD></TR></TABLE> }>];
+"0x40156c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40156c&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r5, 0xb0(%r15)</TD></TR></TABLE> }>];
+"0x401572" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401572&#58;&nbsp;</TD><TD ALIGN="LEFT">agrk</TD><TD ALIGN="LEFT">%r1, %r6, %r4</TD></TR></TABLE> }>];
+"0x401576" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401576&#58;&nbsp;</TD><TD ALIGN="LEFT">cgrje</TD><TD ALIGN="LEFT">%r5, %r10, 0x401710</TD></TR></TABLE> }>];
+"0x401552" -> "0x401566" [style=solid, label="[r15+0xd8]", tooltip="RAW: mem[entry_r15+0xd8]:8"];
+"0x401558" -> "0x40155c" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x401558" -> "0x401572" [style=dotted, label=r1, tooltip="WAW: r1"];
+"0x40155c" -> "0x401572" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x401560" -> "0x401572" [style=solid, label=r6, tooltip="RAW: r6"];
+"0x401566" -> "0x401572" [style=solid, label=r4, tooltip="RAW: r4"];
+"0x40156c" -> "0x401576" [style=solid, label=r5, tooltip="RAW: r5"];
+}

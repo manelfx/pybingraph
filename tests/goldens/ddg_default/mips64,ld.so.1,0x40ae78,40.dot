@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40ae78" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae78&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 8($a1)</TD></TR></TABLE> }>];
+"0x40ae7c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae7c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v1, 0x128($s2)</TD></TR></TABLE> }>];
+"0x40ae80" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae80&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$zero, 0x10($sp)</TD></TR></TABLE> }>];
+"0x40ae84" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae84&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll32</TD><TD ALIGN="LEFT">$v0, $v0, 0</TD></TR></TABLE> }>];
+"0x40ae88" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae88&#58;&nbsp;</TD><TD ALIGN="LEFT">dsrl32</TD><TD ALIGN="LEFT">$v0, $v0, 0</TD></TR></TABLE> }>];
+"0x40ae8c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae8c&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$v0, $v0, 1</TD></TR></TABLE> }>];
+"0x40ae90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae90&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll</TD><TD ALIGN="LEFT">$v0, $v0, 4</TD></TR></TABLE> }>];
+"0x40ae94" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae94&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$a1, $a1, $v0</TD></TR></TABLE> }>];
+"0x40ae98" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae98&#58;&nbsp;</TD><TD ALIGN="LEFT">beqz</TD><TD ALIGN="LEFT">$v1, 0x40af70</TD></TR></TABLE> }>];
+"0x40ae9c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40ae9c&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$a1, ($sp)</TD></TR></TABLE> }>];
+"0x40ae78" -> "0x40ae84" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x40ae78" -> "0x40ae94" [style=dashed, label=a1, tooltip="WAR: a1"];
+"0x40ae7c" -> "0x40ae98" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x40ae84" -> "0x40ae88" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x40ae88" -> "0x40ae8c" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x40ae8c" -> "0x40ae90" [style=solid, label=v0, tooltip="RAW: v0; WAW: v0"];
+"0x40ae90" -> "0x40ae94" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x40ae94" -> "0x40ae9c" [style=solid, label=a1, tooltip="RAW: a1"];
+}

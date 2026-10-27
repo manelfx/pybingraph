@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x401c3a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401c3a&#58;&nbsp;</TD><TD ALIGN="LEFT">movsx</TD><TD ALIGN="LEFT">eax, word ptr [ebp - 0x10]</TD></TR></TABLE> }>];
+"0x401c3e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401c3e&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">dword ptr [ebp - 0xc], eax</TD></TR></TABLE> }>];
+"0x401c41" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401c41&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">edx, word ptr [ebp - 0xe]</TD></TR></TABLE> }>];
+"0x401c45" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401c45&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, word ptr [ebp - 0x10]</TD></TR></TABLE> }>];
+"0x401c49" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401c49&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">edx, eax</TD></TR></TABLE> }>];
+"0x401c4b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401c4b&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, edx</TD></TR></TABLE> }>];
+"0x401c4d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401c4d&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">word ptr [ebp - 0xe], ax</TD></TR></TABLE> }>];
+"0x401c3a" -> "0x401c3e" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x401c3a" -> "0x401c45" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x401c3e" -> "0x401c45" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x401c3e" -> "0x401c49" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x401c41" -> "0x401c49" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
+"0x401c41" -> "0x401c4d" [style=dashed, label="[ebp-0xe]", tooltip="WAR: mem[entry_ebp-0xe]:2"];
+"0x401c45" -> "0x401c49" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x401c45" -> "0x401c4b" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x401c49" -> "0x401c4b" [style=solid, label=edx, tooltip="RAW: edx; WAR: eax"];
+"0x401c4b" -> "0x401c4d" [style=solid, label=ax, tooltip="RAW: ax"];
+}

@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x37fa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x37fa&#58;&nbsp;</TD><TD ALIGN="LEFT">c.lwsp</TD><TD ALIGN="LEFT">a5, 0x10(sp)</TD></TR></TABLE> }>];
+"0x37fc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x37fc&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">a5, a5, s9</TD></TR></TABLE> }>];
+"0x3800" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3800&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addiw</TD><TD ALIGN="LEFT">a5, 0</TD></TR></TABLE> }>];
+"0x3802" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x3802&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">a5, s8, 0x2a</TD></TR></TABLE> }>];
+"0x37fa" -> "0x37fc" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x37fc" -> "0x3800" [style=solid, label=a5, tooltip="RAW: a5; WAW: a5"];
+"0x3800" -> "0x3802" [style=solid, label=a5, tooltip="RAW: a5"];
+}

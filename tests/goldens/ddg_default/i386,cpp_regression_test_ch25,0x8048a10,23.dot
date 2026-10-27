@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8048a10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a10&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">eax, byte ptr [eax]</TD></TR></TABLE> }>];
+"0x8048a13" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a13&#58;&nbsp;</TD><TD ALIGN="LEFT">xor</TD><TD ALIGN="LEFT">eax, esi</TD></TR></TABLE> }>];
+"0x8048a15" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a15&#58;&nbsp;</TD><TD ALIGN="LEFT">movsx</TD><TD ALIGN="LEFT">eax, al</TD></TR></TABLE> }>];
+"0x8048a18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a18&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp + 4], eax</TD></TR></TABLE> }>];
+"0x8048a1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a1c&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp + 8]</TD></TR></TABLE> }>];
+"0x8048a1f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a1f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esp], eax</TD></TR></TABLE> }>];
+"0x8048a22" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8048a22&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x8048780</TD></TR></TABLE> }>];
+"0x8048a10" -> "0x8048a13" [style=solid, label=eax, tooltip="RAW: eax; WAW: eax"];
+"0x8048a13" -> "0x8048a15" [style=solid, label=al, tooltip="RAW: al; WAW: eax"];
+"0x8048a15" -> "0x8048a18" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x8048a15" -> "0x8048a1c" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x8048a18" -> "0x8048a1c" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x8048a18" -> "0x8048a22" [style=dashed, label=esp, tooltip="WAR: esp"];
+"0x8048a1c" -> "0x8048a1f" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x8048a1f" -> "0x8048a22" [style=dashed, label=esp, tooltip="WAR: esp"];
+}

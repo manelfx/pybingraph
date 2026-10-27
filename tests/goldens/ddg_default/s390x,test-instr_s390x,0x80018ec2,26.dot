@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80018ec2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80018ec2&#58;&nbsp;</TD><TD ALIGN="LEFT">lghi</TD><TD ALIGN="LEFT">%r3, 3</TD></TR></TABLE> }>];
+"0x80018ec6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80018ec6&#58;&nbsp;</TD><TD ALIGN="LEFT">chi</TD><TD ALIGN="LEFT">%r2, 0x8a</TD></TR></TABLE> }>];
+"0x80018eca" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80018eca&#58;&nbsp;</TD><TD ALIGN="LEFT">lghi</TD><TD ALIGN="LEFT">%r1, 0x105</TD></TR></TABLE> }>];
+"0x80018ece" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80018ece&#58;&nbsp;</TD><TD ALIGN="LEFT">lghi</TD><TD ALIGN="LEFT">%r2, 2</TD></TR></TABLE> }>];
+"0x80018ed2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80018ed2&#58;&nbsp;</TD><TD ALIGN="LEFT">locgrne</TD><TD ALIGN="LEFT">%r2, %r3</TD></TR></TABLE> }>];
+"0x80018ed6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80018ed6&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r3, 0xa8(%r15)</TD></TR></TABLE> }>];
+"0x80018eda" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80018eda&#58;&nbsp;</TD><TD ALIGN="LEFT">svc</TD><TD ALIGN="LEFT">0</TD></TR></TABLE> }>];
+"0x80018ec2" -> "0x80018ed2" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x80018ec2" -> "0x80018ed6" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0x80018ec6" -> "0x80018ece" [style=dashed, label=r2, tooltip="WAR: r2"];
+"0x80018ec6" -> "0x80018ed2" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x80018eca" -> "0x80018eda" [style=solid, label="r1_32", tooltip="RAW: r1_32"];
+"0x80018ece" -> "0x80018ed2" [style=dotted, label=r2, tooltip="WAW: r2"];
+"0x80018ed2" -> "0x80018ed6" [style=dashed, label=r3, tooltip="WAR: r3"];
+}

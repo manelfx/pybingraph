@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x416b94" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416b94&#58;&nbsp;</TD><TD ALIGN="LEFT">rdhwr</TD><TD ALIGN="LEFT">$v1, $29</TD></TR></TABLE> }>];
+"0x416b98" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416b98&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$a0, -0x7f18($t1)</TD></TR></TABLE> }>];
+"0x416b9c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416b9c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v1, -0x7010($v1)</TD></TR></TABLE> }>];
+"0x416ba0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416ba0&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$a1, 0x10f0($a0)</TD></TR></TABLE> }>];
+"0x416ba4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416ba4&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$a3, ($v1)</TD></TR></TABLE> }>];
+"0x416ba8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416ba8&#58;&nbsp;</TD><TD ALIGN="LEFT">bnel</TD><TD ALIGN="LEFT">$a3, $a1, 0x416bf8</TD></TR></TABLE> }>];
+"0x416bac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x416bac&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$a1, -0x10($v1)</TD></TR></TABLE> }>];
+"0x416b94" -> "0x416b9c" [style=solid, label=v1, tooltip="RAW: v1; WAW: v1"];
+"0x416b98" -> "0x416ba0" [style=solid, label=a0, tooltip="RAW: a0"];
+"0x416b9c" -> "0x416ba4" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x416b9c" -> "0x416bac" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x416ba0" -> "0x416ba8" [style=solid, label=a1, tooltip="RAW: a1"];
+"0x416ba0" -> "0x416bac" [style=dotted, label=a1, tooltip="WAW: a1"];
+"0x416ba4" -> "0x416ba8" [style=solid, label=a3, tooltip="RAW: a3"];
+"0x416ba8" -> "0x416bac" [style=dashed, label=a1, tooltip="WAR: a1"];
+}

@@ -1,0 +1,18 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10029e30" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029e30&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x10029e34" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029e34&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r9, r2, -0x6a98</TD></TR></TABLE> }>];
+"0x10029e38" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029e38&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r26, 0x70(r1)</TD></TR></TABLE> }>];
+"0x10029e3c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029e3c&#58;&nbsp;</TD><TD ALIGN="LEFT">std</TD><TD ALIGN="LEFT">r27, 0x78(r1)</TD></TR></TABLE> }>];
+"0x10029e40" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029e40&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">r5, 0(r9)</TD></TR></TABLE> }>];
+"0x10029e44" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029e44&#58;&nbsp;</TD><TD ALIGN="LEFT">lbz</TD><TD ALIGN="LEFT">r9, 0(r5)</TD></TR></TABLE> }>];
+"0x10029e48" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029e48&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpwi</TD><TD ALIGN="LEFT">cr7, r9, 0</TD></TR></TABLE> }>];
+"0x10029e4c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10029e4c&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">cr7, 0x1002a050</TD></TR></TABLE> }>];
+"0x10029e34" -> "0x10029e40" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x10029e34" -> "0x10029e44" [style=dotted, label=gpr9, tooltip="WAW: gpr9"];
+"0x10029e40" -> "0x10029e44" [style=solid, label=gpr5, tooltip="RAW: gpr5; WAR: gpr9"];
+"0x10029e44" -> "0x10029e48" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x10029e48" -> "0x10029e4c" [style=solid, label="cr7_321", tooltip="RAW: cr7_321"];
+}

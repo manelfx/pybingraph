@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x450ef8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450ef8&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r1, [sb, &#35;0x344]</TD></TR></TABLE> }>];
+"0x450efc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450efc&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [sb, &#35;0x348]</TD></TR></TABLE> }>];
+"0x450f00" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450f00&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [sp, &#35;0x30]</TD></TR></TABLE> }>];
+"0x450f04" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450f04&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r8, [r1, &#35;4]</TD></TR></TABLE> }>];
+"0x450f08" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450f08&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r1, [sp, &#35;0x30]</TD></TR></TABLE> }>];
+"0x450f0c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450f0c&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [r2]</TD></TR></TABLE> }>];
+"0x450f10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450f10&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r2, [r3, &#35;4]</TD></TR></TABLE> }>];
+"0x450f14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450f14&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r6, [sb, &#35;0x344]</TD></TR></TABLE> }>];
+"0x450f18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x450f18&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r6, [sb, &#35;0x348]</TD></TR></TABLE> }>];
+"0x450ef8" -> "0x450f04" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x450ef8" -> "0x450f08" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x450ef8" -> "0x450f14" [style=dashed, label="[r9+0x344]", tooltip="WAR: mem[entry_r9+0x344]:4"];
+"0x450efc" -> "0x450f0c" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x450efc" -> "0x450f10" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x450efc" -> "0x450f18" [style=dashed, label="[r9+0x348]", tooltip="WAR: mem[entry_r9+0x348]:4"];
+"0x450f00" -> "0x450f08" [style=dashed, label="[sp+0x30]", tooltip="WAR: mem[entry_sp+0x30]:4"];
+"0x450f00" -> "0x450f0c" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x450f00" -> "0x450f10" [style=solid, label=r3, tooltip="RAW: r3"];
+}

@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x401978" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401978&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r3, 8(%r2)</TD></TR></TABLE> }>];
+"0x40197e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40197e&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r3, 8(%r9)</TD></TR></TABLE> }>];
+"0x401984" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401984&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r1, 0(%r2)</TD></TR></TABLE> }>];
+"0x40198a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40198a&#58;&nbsp;</TD><TD ALIGN="LEFT">mvi</TD><TD ALIGN="LEFT">0x10(%r2), 0</TD></TR></TABLE> }>];
+"0x40198e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40198e&#58;&nbsp;</TD><TD ALIGN="LEFT">mvghi</TD><TD ALIGN="LEFT">8(%r2), 0</TD></TR></TABLE> }>];
+"0x401994" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x401994&#58;&nbsp;</TD><TD ALIGN="LEFT">cg</TD><TD ALIGN="LEFT">%r13, 0xc8(%r15)</TD></TR></TABLE> }>];
+"0x40199a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40199a&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x4019aa</TD></TR></TABLE> }>];
+"0x401978" -> "0x40197e" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x401978" -> "0x40198e" [style=dashed, label="[r2+0x8]", tooltip="WAR: mem[entry_r2+0x8]:8"];
+"0x401994" -> "0x40199a" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+}

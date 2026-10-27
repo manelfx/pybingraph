@@ -1,0 +1,25 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xe81e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe81e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi16sp</TD><TD ALIGN="LEFT">sp, -0xf0</TD></TR></TABLE> }>];
+"0xe820" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe820&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a6, a1</TD></TR></TABLE> }>];
+"0xe822" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe822&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addiw</TD><TD ALIGN="LEFT">a1, -1</TD></TR></TABLE> }>];
+"0xe824" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe824&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">ra, 0xe8(sp)</TD></TR></TABLE> }>];
+"0xe826" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe826&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s0, 0xe0(sp)</TD></TR></TABLE> }>];
+"0xe828" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe828&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s1, 0xd8(sp)</TD></TR></TABLE> }>];
+"0xe82a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe82a&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s2, 0xd0(sp)</TD></TR></TABLE> }>];
+"0xe82c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe82c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sdsp</TD><TD ALIGN="LEFT">s3, 0xc8(sp)</TD></TR></TABLE> }>];
+"0xe82e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe82e&#58;&nbsp;</TD><TD ALIGN="LEFT">andi</TD><TD ALIGN="LEFT">a7, a1, 0xff</TD></TR></TABLE> }>];
+"0xe832" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe832&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">t1, zero, 0x3f</TD></TR></TABLE> }>];
+"0xe836" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xe836&#58;&nbsp;</TD><TD ALIGN="LEFT">bltu</TD><TD ALIGN="LEFT">t1, a7, 0xc2</TD></TR></TABLE> }>];
+"0xe81e" -> "0xe824" [style=solid, label=sp, tooltip="RAW: sp"];
+"0xe81e" -> "0xe826" [style=solid, label=sp, tooltip="RAW: sp"];
+"0xe81e" -> "0xe828" [style=solid, label=sp, tooltip="RAW: sp"];
+"0xe81e" -> "0xe82a" [style=solid, label=sp, tooltip="RAW: sp"];
+"0xe81e" -> "0xe82c" [style=solid, label=sp, tooltip="RAW: sp"];
+"0xe820" -> "0xe822" [style=dashed, label=a1, tooltip="WAR: a1"];
+"0xe822" -> "0xe82e" [style=solid, label=a1, tooltip="RAW: a1"];
+"0xe82e" -> "0xe836" [style=solid, label=a7, tooltip="RAW: a7"];
+"0xe832" -> "0xe836" [style=solid, label=t1, tooltip="RAW: t1"];
+}

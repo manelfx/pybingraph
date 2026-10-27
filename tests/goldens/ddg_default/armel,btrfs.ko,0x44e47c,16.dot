@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x44e47c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44e47c&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r0, &#35;0</TD></TR></TABLE> }>];
+"0x44e480" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44e480&#58;&nbsp;</TD><TD ALIGN="LEFT">orrne</TD><TD ALIGN="LEFT">r5, r5, &#35;0x80</TD></TR></TABLE> }>];
+"0x44e484" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44e484&#58;&nbsp;</TD><TD ALIGN="LEFT">uxthne</TD><TD ALIGN="LEFT">r5, r5</TD></TR></TABLE> }>];
+"0x44e488" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44e488&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">&#35;0x44e440</TD></TR></TABLE> }>];
+"0x44e47c" -> "0x44e480" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x44e47c" -> "0x44e484" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x44e47c" -> "0x44e488" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x44e480" -> "0x44e484" [style=solid, label=r5, tooltip="RAW: r5; WAW: r5"];
+}

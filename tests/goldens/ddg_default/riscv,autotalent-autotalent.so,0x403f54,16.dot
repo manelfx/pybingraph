@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x403f54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x403f54&#58;&nbsp;</TD><TD ALIGN="LEFT">c.mv</TD><TD ALIGN="LEFT">a3, a0</TD></TR></TABLE> }>];
+"0x403f56" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x403f56&#58;&nbsp;</TD><TD ALIGN="LEFT">c.sd</TD><TD ALIGN="LEFT">a3, 0xf0(s0)</TD></TR></TABLE> }>];
+"0x403f58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x403f58&#58;&nbsp;</TD><TD ALIGN="LEFT">auipc</TD><TD ALIGN="LEFT">a0, 1</TD></TR></TABLE> }>];
+"0x403f5c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x403f5c&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">a0, a0, 0x328</TD></TR></TABLE> }>];
+"0x403f60" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x403f60&#58;&nbsp;</TD><TD ALIGN="LEFT">jal</TD><TD ALIGN="LEFT">-0x3590</TD></TR></TABLE> }>];
+"0x403f54" -> "0x403f56" [style=solid, label=a3, tooltip="RAW: a3"];
+"0x403f54" -> "0x403f58" [style=dashed, label=a0, tooltip="WAR: a0"];
+"0x403f58" -> "0x403f5c" [style=solid, label=a0, tooltip="RAW: a0; WAW: a0"];
+}

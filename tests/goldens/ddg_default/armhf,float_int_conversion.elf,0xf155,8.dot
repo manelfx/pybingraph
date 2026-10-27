@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xf155" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf155&#58;&nbsp;</TD><TD ALIGN="LEFT">ite</TD><TD ALIGN="LEFT">eq</TD></TR></TABLE> }>];
+"0xf157" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf157&#58;&nbsp;</TD><TD ALIGN="LEFT">moveq</TD><TD ALIGN="LEFT">r0, &#35;1</TD></TR></TABLE> }>];
+"0xf159" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf159&#58;&nbsp;</TD><TD ALIGN="LEFT">movne</TD><TD ALIGN="LEFT">r0, &#35;0</TD></TR></TABLE> }>];
+"0xf15b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xf15b&#58;&nbsp;</TD><TD ALIGN="LEFT">bx</TD><TD ALIGN="LEFT">lr</TD></TR></TABLE> }>];
+"0xf155" -> "0xf157" [style=solid, label=itstate, tooltip="RAW: itstate; WAW: itstate"];
+"0xf157" -> "0xf159" [style=solid, label="flags, itstate, r0", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate, r0; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate, r0"];
+"0xf159" -> "0xf15b" [style=solid, label=itstate, tooltip="RAW: itstate; WAW: itstate"];
+}

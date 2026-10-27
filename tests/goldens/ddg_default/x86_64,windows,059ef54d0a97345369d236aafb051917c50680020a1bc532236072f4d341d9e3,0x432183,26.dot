@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x432183" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x432183&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rcx, qword ptr [r14 + 0x30]</TD></TR></TABLE> }>];
+"0x432187" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x432187&#58;&nbsp;</TD><TD ALIGN="LEFT">movzx</TD><TD ALIGN="LEFT">edx, byte ptr [rcx + 0xe7]</TD></TR></TABLE> }>];
+"0x43218e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43218e&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">ebx, [rdx - 1]</TD></TR></TABLE> }>];
+"0x432191" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x432191&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x432192" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x432192&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">byte ptr [rcx + 0xe7], bl</TD></TR></TABLE> }>];
+"0x432198" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x432198&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dl, 1</TD></TR></TABLE> }>];
+"0x43219b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43219b&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x4321ab</TD></TR></TABLE> }>];
+"0x432183" -> "0x432187" [style=solid, label=rcx, tooltip="RAW: rcx"];
+"0x432183" -> "0x432192" [style=solid, label=rcx, tooltip="RAW: rcx"];
+"0x432187" -> "0x43218e" [style=solid, label=rdx, tooltip="RAW: rdx"];
+"0x432187" -> "0x432192" [style=dashed, label="[rcx+0xe7]", tooltip="WAR: mem[ddg_unknown_1+0xe7]:1"];
+"0x432187" -> "0x432198" [style=solid, label=dl, tooltip="RAW: dl"];
+"0x43218e" -> "0x432192" [style=solid, label=bl, tooltip="RAW: bl"];
+"0x432198" -> "0x43219b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

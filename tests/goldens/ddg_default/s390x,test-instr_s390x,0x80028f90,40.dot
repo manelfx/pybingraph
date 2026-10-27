@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80028f90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028f90&#58;&nbsp;</TD><TD ALIGN="LEFT">larl</TD><TD ALIGN="LEFT">%r2, 0x8007da30</TD></TR></TABLE> }>];
+"0x80028f96" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028f96&#58;&nbsp;</TD><TD ALIGN="LEFT">lr</TD><TD ALIGN="LEFT">%r8, %r1</TD></TR></TABLE> }>];
+"0x80028f98" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028f98&#58;&nbsp;</TD><TD ALIGN="LEFT">ahik</TD><TD ALIGN="LEFT">%r1, %r4, -2</TD></TR></TABLE> }>];
+"0x80028f9e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028f9e&#58;&nbsp;</TD><TD ALIGN="LEFT">lgfr</TD><TD ALIGN="LEFT">%r1, %r1</TD></TR></TABLE> }>];
+"0x80028fa2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028fa2&#58;&nbsp;</TD><TD ALIGN="LEFT">sllg</TD><TD ALIGN="LEFT">%r3, %r1, 3</TD></TR></TABLE> }>];
+"0x80028fa8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028fa8&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r6, 0(%r3, %r2)</TD></TR></TABLE> }>];
+"0x80028fae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028fae&#58;&nbsp;</TD><TD ALIGN="LEFT">larl</TD><TD ALIGN="LEFT">%r2, 0x8007da0a</TD></TR></TABLE> }>];
+"0x80028fb4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028fb4&#58;&nbsp;</TD><TD ALIGN="LEFT">ic</TD><TD ALIGN="LEFT">%r2, 0(%r1, %r2)</TD></TR></TABLE> }>];
+"0x80028f90" -> "0x80028fa8" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x80028f90" -> "0x80028fae" [style=dotted, label=r2, tooltip="WAW: r2"];
+"0x80028f96" -> "0x80028f98" [style=dashed, label="r1_32", tooltip="WAR: r1_32"];
+"0x80028f98" -> "0x80028f9e" [style=solid, label="r1_32", tooltip="RAW: r1_32; WAW: r1"];
+"0x80028f9e" -> "0x80028fa2" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x80028f9e" -> "0x80028fb4" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x80028fa2" -> "0x80028fa8" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x80028fa8" -> "0x80028fae" [style=dashed, label=r2, tooltip="WAR: r2"];
+"0x80028fae" -> "0x80028fb4" [style=solid, label=r2, tooltip="RAW: r2; WAW: 599"];
+}

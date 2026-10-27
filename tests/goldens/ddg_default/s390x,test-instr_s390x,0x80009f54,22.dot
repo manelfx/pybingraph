@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80009f54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80009f54&#58;&nbsp;</TD><TD ALIGN="LEFT">sgrk</TD><TD ALIGN="LEFT">%r12, %r1, %r10</TD></TR></TABLE> }>];
+"0x80009f58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80009f58&#58;&nbsp;</TD><TD ALIGN="LEFT">lhi</TD><TD ALIGN="LEFT">%r7, 1</TD></TR></TABLE> }>];
+"0x80009f5c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80009f5c&#58;&nbsp;</TD><TD ALIGN="LEFT">srag</TD><TD ALIGN="LEFT">%r12, %r12, 2</TD></TR></TABLE> }>];
+"0x80009f62" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80009f62&#58;&nbsp;</TD><TD ALIGN="LEFT">aghi</TD><TD ALIGN="LEFT">%r12, 1</TD></TR></TABLE> }>];
+"0x80009f66" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80009f66&#58;&nbsp;</TD><TD ALIGN="LEFT">j</TD><TD ALIGN="LEFT">0x80009e10</TD></TR></TABLE> }>];
+"0x80009f54" -> "0x80009f5c" [style=solid, label=r12, tooltip="RAW: r12; WAW: 736, 744, 752, 760, r12"];
+"0x80009f5c" -> "0x80009f62" [style=solid, label=r12, tooltip="RAW: r12; WAW: 736, 744, 752, 760, r12"];
+}

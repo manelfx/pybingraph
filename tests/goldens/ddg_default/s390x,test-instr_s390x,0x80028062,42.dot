@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80028062" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028062&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r1, 0xb0(%r15)</TD></TR></TABLE> }>];
+"0x80028068" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028068&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r2, -0x10(%r1)</TD></TR></TABLE> }>];
+"0x8002806e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002806e&#58;&nbsp;</TD><TD ALIGN="LEFT">lay</TD><TD ALIGN="LEFT">%r1, -0x10(%r1)</TD></TR></TABLE> }>];
+"0x80028074" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028074&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r2, 0xa8(%r15)</TD></TR></TABLE> }>];
+"0x8002807a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002807a&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r2, 8(%r1)</TD></TR></TABLE> }>];
+"0x80028080" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028080&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r1, 0xb0(%r15)</TD></TR></TABLE> }>];
+"0x80028086" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80028086&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r2, 0xa0(%r15)</TD></TR></TABLE> }>];
+"0x80028062" -> "0x80028068" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x80028062" -> "0x8002806e" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
+"0x80028062" -> "0x80028080" [style=dashed, label="[r15+0xb0]", tooltip="WAR: mem[entry_r15+0xb0]:8"];
+"0x80028068" -> "0x8002806e" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x80028068" -> "0x80028074" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x80028068" -> "0x8002807a" [style=dotted, label=r2, tooltip="WAW: r2"];
+"0x8002806e" -> "0x8002807a" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x8002806e" -> "0x80028080" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x80028074" -> "0x8002807a" [style=dashed, label=r2, tooltip="WAR: r2"];
+"0x8002807a" -> "0x80028086" [style=solid, label=r2, tooltip="RAW: r2"];
+}

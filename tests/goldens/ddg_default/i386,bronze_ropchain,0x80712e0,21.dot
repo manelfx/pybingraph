@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80712e0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80712e0&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">ecx, [ecx + ecx*4]</TD></TR></TABLE> }>];
+"0x80712e3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80712e3&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">esi, 1</TD></TR></TABLE> }>];
+"0x80712e6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80712e6&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">ecx, [edx + ecx*2 - 0x30]</TD></TR></TABLE> }>];
+"0x80712ea" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80712ea&#58;&nbsp;</TD><TD ALIGN="LEFT">movsx</TD><TD ALIGN="LEFT">edx, byte ptr [esi]</TD></TR></TABLE> }>];
+"0x80712ed" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80712ed&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">ebx, [edx - 0x30]</TD></TR></TABLE> }>];
+"0x80712f0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80712f0&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">bl, 9</TD></TR></TABLE> }>];
+"0x80712f3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80712f3&#58;&nbsp;</TD><TD ALIGN="LEFT">jbe</TD><TD ALIGN="LEFT">0x80712e0</TD></TR></TABLE> }>];
+"0x80712e0" -> "0x80712e6" [style=solid, label=ecx, tooltip="RAW: ecx; WAW: ecx"];
+"0x80712e3" -> "0x80712ea" [style=solid, label=esi, tooltip="RAW: esi"];
+"0x80712e3" -> "0x80712f0" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x80712e6" -> "0x80712ea" [style=dashed, label=edx, tooltip="WAR: edx"];
+"0x80712ea" -> "0x80712ed" [style=solid, label=edx, tooltip="RAW: edx"];
+"0x80712ed" -> "0x80712f0" [style=solid, label=bl, tooltip="RAW: bl"];
+"0x80712f0" -> "0x80712f3" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x485f6f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x485f6f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdx, qword ptr [rbp - 0x320]</TD></TR></TABLE> }>];
+"0x485f76" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x485f76&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">rax, [rdx + 7]</TD></TR></TABLE> }>];
+"0x485f7a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x485f7a&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rdx, -7</TD></TR></TABLE> }>];
+"0x485f7e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x485f7e&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rdx, 0xffffffffffffffff</TD></TR></TABLE> }>];
+"0x485f85" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x485f85&#58;&nbsp;</TD><TD ALIGN="LEFT">cmovae</TD><TD ALIGN="LEFT">rax, rdx</TD></TR></TABLE> }>];
+"0x485f89" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x485f89&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">rax, qword ptr [rbp - 0x318]</TD></TR></TABLE> }>];
+"0x485f90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x485f90&#58;&nbsp;</TD><TD ALIGN="LEFT">jb</TD><TD ALIGN="LEFT">0x4861fe</TD></TR></TABLE> }>];
+"0x485f6f" -> "0x485f76" [style=solid, label=rdx, tooltip="RAW: rdx"];
+"0x485f6f" -> "0x485f7a" [style=solid, label=rdx, tooltip="RAW: rdx"];
+"0x485f6f" -> "0x485f7e" [style=dotted, label=rdx, tooltip="WAW: rdx"];
+"0x485f76" -> "0x485f7e" [style=dashed, label=rdx, tooltip="WAR: rdx"];
+"0x485f76" -> "0x485f85" [style=solid, label=rax, tooltip="RAW: rax; WAW: rax"];
+"0x485f7a" -> "0x485f7e" [style=dashed, label=rdx, tooltip="WAR: rdx"];
+"0x485f7a" -> "0x485f85" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x485f7a" -> "0x485f89" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x485f7e" -> "0x485f85" [style=solid, label=rdx, tooltip="RAW: rdx"];
+"0x485f85" -> "0x485f89" [style=solid, label=rax, tooltip="RAW: rax; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: rax"];
+"0x485f89" -> "0x485f90" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

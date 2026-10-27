@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80032586" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80032586&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r2, 1(%r1)</TD></TR></TABLE> }>];
+"0x8003258a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003258a&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r2, 0x28(%r11)</TD></TR></TABLE> }>];
+"0x80032590" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80032590&#58;&nbsp;</TD><TD ALIGN="LEFT">mvi</TD><TD ALIGN="LEFT">0(%r1), 0x30</TD></TR></TABLE> }>];
+"0x80032594" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80032594&#58;&nbsp;</TD><TD ALIGN="LEFT">l</TD><TD ALIGN="LEFT">%r1, 8(%r6)</TD></TR></TABLE> }>];
+"0x80032598" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80032598&#58;&nbsp;</TD><TD ALIGN="LEFT">ahik</TD><TD ALIGN="LEFT">%r3, %r1, 0x17</TD></TR></TABLE> }>];
+"0x80032586" -> "0x8003258a" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x80032586" -> "0x80032594" [style=dashed, label="r1_32", tooltip="WAR: r1_32"];
+"0x80032590" -> "0x80032594" [style=dashed, label="r1_32", tooltip="WAR: r1_32"];
+"0x80032594" -> "0x80032598" [style=solid, label="r1_32", tooltip="RAW: r1_32"];
+}

@@ -30,32 +30,13 @@ Handle imported functions and unresolved calls explicitly; do not imply that
 known call edges describe every possible callee. Validate representative call
 sites before adding the API/UI and renderer.
 
-=== Render a block-level data-dependency graph ===
+=== Extend block-level dependency analysis ===
 
-Given a function and one of its CFG basic blocks, show which assembly
-instructions produce values consumed by later instructions in that block.
-Start with a block-local graph; do not require whole-function symbolic
-execution or `CFGEmulated` merely to inspect one block.
-
-- Use the selected CFG node's exact instruction addresses and bounds, then
-  lift that block to VEX. Map IR statements to their assembly instruction via
-  instruction markers; do not assume every IR statement has its own address.
-- Track read-after-write dependencies through VEX temporaries, architectural
-  registers (including overlapping aliases), and memory where the accessed
-  location can be identified. Collapse statement-level chains into labeled
-  instruction-to-instruction edges without inventing dependencies between
-  unrelated instructions.
-- Represent values read before any in-block definition as block inputs. Keep
-  uncertain memory aliases, calls, unsupported IR, and lift failures explicit
-  rather than drawing definite producer edges from a guess. Distinguish
-  register, memory, and unknown dependencies in the output.
-- Keep analysis separate from rendering. Provide a small query for a selected
-  block and a graph view with instruction labels, input nodes, and a clear
-  legend. Decide later whether it belongs in the CFG UI or a separate view.
-- Validate on register chains, partial-register writes, stack stores/loads,
-  live-in reads, and at least one non-x86 block. Compare with angr's
-  reaching-definitions/DDG analyses on small examples before considering
-  inter-block provenance or control dependencies.
+Consider guarded memory, atomic operations, indexed register banks and opaque
+VEX helpers after defining conservative effects and focused negative tests.
+Do not silently ignore unsupported side effects or introduce architecture-specific
+instruction matchers where angr/VEX already supplies semantics. Expand the DDG
+manifest by distinct dependency patterns, keeping runtime and graph sizes bounded.
 
 === Consolidate exact indirect-jump proofs ===
 

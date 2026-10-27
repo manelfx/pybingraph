@@ -1,0 +1,14 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x422a1c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422a1c&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r9, r3</TD></TR></TABLE> }>];
+"0x422a20" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422a20&#58;&nbsp;</TD><TD ALIGN="LEFT">xori</TD><TD ALIGN="LEFT">r9, r9, 1</TD></TR></TABLE> }>];
+"0x422a24" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422a24&#58;&nbsp;</TD><TD ALIGN="LEFT">clrlwi</TD><TD ALIGN="LEFT">r9, r9, 0x18</TD></TR></TABLE> }>];
+"0x422a28" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422a28&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpwi</TD><TD ALIGN="LEFT">cr7, r9, 0</TD></TR></TABLE> }>];
+"0x422a2c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x422a2c&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">cr7, 0x422a48</TD></TR></TABLE> }>];
+"0x422a1c" -> "0x422a20" [style=solid, label=gpr9, tooltip="RAW: gpr9; WAW: gpr9"];
+"0x422a20" -> "0x422a24" [style=solid, label=gpr9, tooltip="RAW: gpr9; WAW: gpr9"];
+"0x422a24" -> "0x422a28" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x422a28" -> "0x422a2c" [style=solid, label="cr7_321", tooltip="RAW: cr7_321"];
+}

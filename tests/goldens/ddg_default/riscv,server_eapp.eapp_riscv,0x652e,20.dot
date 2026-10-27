@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x652e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x652e&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a4, 0(a5)</TD></TR></TABLE> }>];
+"0x6530" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6530&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ld</TD><TD ALIGN="LEFT">a3, 0(a0)</TD></TR></TABLE> }>];
+"0x6532" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6532&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a5, 8</TD></TR></TABLE> }>];
+"0x6534" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6534&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addi</TD><TD ALIGN="LEFT">a0, 8</TD></TR></TABLE> }>];
+"0x6536" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6536&#58;&nbsp;</TD><TD ALIGN="LEFT">c.xor</TD><TD ALIGN="LEFT">a4, a3</TD></TR></TABLE> }>];
+"0x6538" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x6538&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">a4, -8(a5)</TD></TR></TABLE> }>];
+"0x653c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x653c&#58;&nbsp;</TD><TD ALIGN="LEFT">c.ldsp</TD><TD ALIGN="LEFT">a4, 0(sp)</TD></TR></TABLE> }>];
+"0x653e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x653e&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">a4, a5, -0x10</TD></TR></TABLE> }>];
+"0x652e" -> "0x6532" [style=dashed, label=a5, tooltip="WAR: a5"];
+"0x652e" -> "0x6536" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x652e" -> "0x6538" [style=dashed, label="[a5]", tooltip="WAR: mem[entry_a5]:8"];
+"0x6530" -> "0x6534" [style=dashed, label=a0, tooltip="WAR: a0"];
+"0x6530" -> "0x6536" [style=solid, label=a3, tooltip="RAW: a3"];
+"0x6532" -> "0x6538" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x6532" -> "0x653e" [style=solid, label=a5, tooltip="RAW: a5"];
+"0x6536" -> "0x6538" [style=solid, label=a4, tooltip="RAW: a4"];
+"0x6536" -> "0x653c" [style=dotted, label=a4, tooltip="WAW: a4"];
+"0x6538" -> "0x653c" [style=dashed, label=a4, tooltip="WAR: a4"];
+"0x653c" -> "0x653e" [style=solid, label=a4, tooltip="RAW: a4"];
+}

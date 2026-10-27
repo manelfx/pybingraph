@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8678" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8678&#58;&nbsp;</TD><TD ALIGN="LEFT">eor</TD><TD ALIGN="LEFT">ip, r0, r1</TD></TR></TABLE> }>];
+"0x867c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x867c&#58;&nbsp;</TD><TD ALIGN="LEFT">rsbmi</TD><TD ALIGN="LEFT">r1, r1, &#35;0</TD></TR></TABLE> }>];
+"0x8680" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8680&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r2, r1, &#35;1</TD></TR></TABLE> }>];
+"0x8684" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8684&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">&#35;0x884c</TD></TR></TABLE> }>];
+"0x8678" -> "0x867c" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0x867c" -> "0x8680" [style=solid, label=r1, tooltip="RAW: r1; WAR: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8680" -> "0x8684" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10098db0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10098db0&#58;&nbsp;</TD><TD ALIGN="LEFT">addi</TD><TD ALIGN="LEFT">r4, r4, -0x50</TD></TR></TABLE> }>];
+"0x10098db4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10098db4&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpwi</TD><TD ALIGN="LEFT">cr7, r4, 0x91</TD></TR></TABLE> }>];
+"0x10098db8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10098db8&#58;&nbsp;</TD><TD ALIGN="LEFT">extsw</TD><TD ALIGN="LEFT">r4, r4</TD></TR></TABLE> }>];
+"0x10098dbc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10098dbc&#58;&nbsp;</TD><TD ALIGN="LEFT">bgt</TD><TD ALIGN="LEFT">cr7, 0x10098b6c</TD></TR></TABLE> }>];
+"0x10098db0" -> "0x10098db4" [style=solid, label=gpr4, tooltip="RAW: gpr4"];
+"0x10098db0" -> "0x10098db8" [style=solid, label=gpr4, tooltip="RAW: gpr4; WAW: gpr4"];
+"0x10098db4" -> "0x10098db8" [style=dashed, label=gpr4, tooltip="WAR: gpr4"];
+"0x10098db4" -> "0x10098dbc" [style=solid, label="cr7_321", tooltip="RAW: cr7_321"];
+}

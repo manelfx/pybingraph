@@ -1,0 +1,12 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x42e164" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42e164&#58;&nbsp;</TD><TD ALIGN="LEFT">movdqa</TD><TD ALIGN="LEFT">xmm2, xmmword ptr [rdi + 0x10]</TD></TR></TABLE> }>];
+"0x42e169" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42e169&#58;&nbsp;</TD><TD ALIGN="LEFT">pxor</TD><TD ALIGN="LEFT">xmm2, xmmword ptr [rsi + 0x10]</TD></TR></TABLE> }>];
+"0x42e16e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42e16e&#58;&nbsp;</TD><TD ALIGN="LEFT">ptest</TD><TD ALIGN="LEFT">xmm0, xmm2</TD></TR></TABLE> }>];
+"0x42e173" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x42e173&#58;&nbsp;</TD><TD ALIGN="LEFT">jae</TD><TD ALIGN="LEFT">0x42e765</TD></TR></TABLE> }>];
+"0x42e164" -> "0x42e169" [style=solid, label=xmm2, tooltip="RAW: xmm2; WAW: xmm2"];
+"0x42e169" -> "0x42e16e" [style=solid, label=xmm2, tooltip="RAW: xmm2"];
+"0x42e16e" -> "0x42e173" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

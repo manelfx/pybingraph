@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x402084" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402084&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">edx</TD></TR></TABLE> }>];
+"0x402085" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402085&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">ecx</TD></TR></TABLE> }>];
+"0x402086" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402086&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">edx, dword ptr [esp + 0x14]</TD></TR></TABLE> }>];
+"0x40208a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40208a&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">edx</TD></TR></TABLE> }>];
+"0x40208b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40208b&#58;&nbsp;</TD><TD ALIGN="LEFT">push</TD><TD ALIGN="LEFT">eax</TD></TR></TABLE> }>];
+"0x40208c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40208c&#58;&nbsp;</TD><TD ALIGN="LEFT">call</TD><TD ALIGN="LEFT">0x400fc0</TD></TR></TABLE> }>];
+"0x402084" -> "0x402085" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x402084" -> "0x402086" [style=dotted, label=edx, tooltip="WAW: edx"];
+"0x402084" -> "0x40208b" [style=dashed, label="[esp]", tooltip="WAR: mem[entry_esp]:4"];
+"0x402085" -> "0x402086" [style=solid, label=esp, tooltip="RAW: esp"];
+"0x402085" -> "0x40208a" [style=solid, label=esp, tooltip="RAW: esp; WAR: mem[entry_esp+0x4]:4; WAW: esp"];
+"0x402086" -> "0x40208a" [style=solid, label=edx, tooltip="RAW: edx; WAR: esp"];
+"0x40208a" -> "0x40208b" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+"0x40208b" -> "0x40208c" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+}

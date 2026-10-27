@@ -1,0 +1,38 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0xb668" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb668&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [fp, &#35;-0xc]</TD></TR></TABLE> }>];
+"0xb66c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb66c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [fp, &#35;-0x24]</TD></TR></TABLE> }>];
+"0xb670" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb670&#58;&nbsp;</TD><TD ALIGN="LEFT">mul</TD><TD ALIGN="LEFT">r3, r2, r3</TD></TR></TABLE> }>];
+"0xb674" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb674&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [fp, &#35;-0x20]</TD></TR></TABLE> }>];
+"0xb678" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb678&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r2, r2, r3</TD></TR></TABLE> }>];
+"0xb67c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb67c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [fp, &#35;-0x24]</TD></TR></TABLE> }>];
+"0xb680" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb680&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r1, [fp, &#35;-8]</TD></TR></TABLE> }>];
+"0xb684" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb684&#58;&nbsp;</TD><TD ALIGN="LEFT">mul</TD><TD ALIGN="LEFT">r3, r1, r3</TD></TR></TABLE> }>];
+"0xb688" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb688&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r1, [fp, &#35;-0x20]</TD></TR></TABLE> }>];
+"0xb68c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb68c&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r3, r1, r3</TD></TR></TABLE> }>];
+"0xb690" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb690&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r2</TD></TR></TABLE> }>];
+"0xb694" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb694&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r3</TD></TR></TABLE> }>];
+"0xb698" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb698&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r2, [fp, &#35;-0x24]</TD></TR></TABLE> }>];
+"0xb69c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xb69c&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x9078</TD></TR></TABLE> }>];
+"0xb668" -> "0xb670" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0xb66c" -> "0xb670" [style=solid, label=r2, tooltip="RAW: r2"];
+"0xb66c" -> "0xb674" [style=dotted, label=r2, tooltip="WAW: r2"];
+"0xb670" -> "0xb674" [style=dashed, label=r2, tooltip="WAR: r2"];
+"0xb670" -> "0xb678" [style=solid, label=r3, tooltip="RAW: r3"];
+"0xb670" -> "0xb67c" [style=dotted, label=r3, tooltip="WAW: r3"];
+"0xb674" -> "0xb678" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
+"0xb678" -> "0xb67c" [style=dashed, label=r3, tooltip="WAR: r3"];
+"0xb678" -> "0xb690" [style=solid, label=r2, tooltip="RAW: r2"];
+"0xb678" -> "0xb698" [style=dotted, label=r2, tooltip="WAW: r2"];
+"0xb67c" -> "0xb684" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0xb680" -> "0xb684" [style=solid, label=r1, tooltip="RAW: r1"];
+"0xb680" -> "0xb688" [style=dotted, label=r1, tooltip="WAW: r1"];
+"0xb684" -> "0xb688" [style=dashed, label=r1, tooltip="WAR: r1"];
+"0xb684" -> "0xb68c" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0xb688" -> "0xb68c" [style=solid, label=r1, tooltip="RAW: r1"];
+"0xb688" -> "0xb694" [style=dotted, label=r1, tooltip="WAW: r1"];
+"0xb68c" -> "0xb694" [style=solid, label=r3, tooltip="RAW: r3; WAR: r1"];
+"0xb690" -> "0xb698" [style=dashed, label=r2, tooltip="WAR: r2"];
+}

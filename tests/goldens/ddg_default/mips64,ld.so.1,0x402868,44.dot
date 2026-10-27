@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x402868" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402868&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$v1, $v0, 0x1f</TD></TR></TABLE> }>];
+"0x40286c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40286c&#58;&nbsp;</TD><TD ALIGN="LEFT">dsrl</TD><TD ALIGN="LEFT">$v1, $v1, 4</TD></TR></TABLE> }>];
+"0x402870" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402870&#58;&nbsp;</TD><TD ALIGN="LEFT">dsll</TD><TD ALIGN="LEFT">$v1, $v1, 4</TD></TR></TABLE> }>];
+"0x402874" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402874&#58;&nbsp;</TD><TD ALIGN="LEFT">dsubu</TD><TD ALIGN="LEFT">$sp, $sp, $v1</TD></TR></TABLE> }>];
+"0x402878" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402878&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$t9, -0x7f28($gp)</TD></TR></TABLE> }>];
+"0x40287c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40287c&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$v1, $sp, $v0</TD></TR></TABLE> }>];
+"0x402880" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402880&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a1, $s6</TD></TR></TABLE> }>];
+"0x402884" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402884&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a0, $sp</TD></TR></TABLE> }>];
+"0x402888" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402888&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$a2, $v0</TD></TR></TABLE> }>];
+"0x40288c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40288c&#58;&nbsp;</TD><TD ALIGN="LEFT">bal</TD><TD ALIGN="LEFT">0x41e590</TD></TR></TABLE> }>];
+"0x402890" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402890&#58;&nbsp;</TD><TD ALIGN="LEFT">sb</TD><TD ALIGN="LEFT">$zero, ($v1)</TD></TR></TABLE> }>];
+"0x402868" -> "0x40286c" [style=solid, label=v1, tooltip="RAW: v1; WAW: v1"];
+"0x40286c" -> "0x402870" [style=solid, label=v1, tooltip="RAW: v1; WAW: v1"];
+"0x402870" -> "0x402874" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x402870" -> "0x40287c" [style=dotted, label=v1, tooltip="WAW: v1"];
+"0x402874" -> "0x40287c" [style=solid, label=sp, tooltip="RAW: sp; WAR: v1"];
+"0x402874" -> "0x402884" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x40287c" -> "0x402890" [style=solid, label=v1, tooltip="RAW: v1"];
+}

@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x10076204" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10076204&#58;&nbsp;</TD><TD ALIGN="LEFT">lbz</TD><TD ALIGN="LEFT">r9, 0(r6)</TD></TR></TABLE> }>];
+"0x10076208" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10076208&#58;&nbsp;</TD><TD ALIGN="LEFT">lwz</TD><TD ALIGN="LEFT">r10, 0x60(r1)</TD></TR></TABLE> }>];
+"0x1007620c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1007620c&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r5, 1</TD></TR></TABLE> }>];
+"0x10076210" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10076210&#58;&nbsp;</TD><TD ALIGN="LEFT">li</TD><TD ALIGN="LEFT">r26, 0</TD></TR></TABLE> }>];
+"0x10076214" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10076214&#58;&nbsp;</TD><TD ALIGN="LEFT">rotlwi</TD><TD ALIGN="LEFT">r10, r10, 0xc</TD></TR></TABLE> }>];
+"0x10076218" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10076218&#58;&nbsp;</TD><TD ALIGN="LEFT">mtocrf</TD><TD ALIGN="LEFT">4, r10</TD></TR></TABLE> }>];
+"0x1007621c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1007621c&#58;&nbsp;</TD><TD ALIGN="LEFT">rotlwi</TD><TD ALIGN="LEFT">r10, r10, 0x14</TD></TR></TABLE> }>];
+"0x10076220" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10076220&#58;&nbsp;</TD><TD ALIGN="LEFT">cmplwi</TD><TD ALIGN="LEFT">cr7, r9, 0x50</TD></TR></TABLE> }>];
+"0x10076224" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10076224&#58;&nbsp;</TD><TD ALIGN="LEFT">mr</TD><TD ALIGN="LEFT">r10, r9</TD></TR></TABLE> }>];
+"0x10076228" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x10076228&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">cr7, 0x10075970</TD></TR></TABLE> }>];
+"0x10076204" -> "0x10076220" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x10076204" -> "0x10076224" [style=solid, label=gpr9, tooltip="RAW: gpr9"];
+"0x10076208" -> "0x10076214" [style=solid, label=gpr10, tooltip="RAW: gpr10; WAW: gpr10"];
+"0x10076214" -> "0x10076218" [style=solid, label=gpr10, tooltip="RAW: gpr10"];
+"0x10076214" -> "0x1007621c" [style=solid, label=gpr10, tooltip="RAW: gpr10; WAW: gpr10"];
+"0x10076218" -> "0x1007621c" [style=dashed, label=gpr10, tooltip="WAR: gpr10"];
+"0x1007621c" -> "0x10076224" [style=dotted, label=gpr10, tooltip="WAW: gpr10"];
+"0x10076220" -> "0x10076228" [style=solid, label="cr7_321", tooltip="RAW: cr7_321"];
+}

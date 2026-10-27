@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x40c6ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40c6ac&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, 4($s2)</TD></TR></TABLE> }>];
+"0x40c6b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40c6b0&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$a0, ($s2)</TD></TR></TABLE> }>];
+"0x40c6b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40c6b4&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$v0, 4($a0)</TD></TR></TABLE> }>];
+"0x40c6b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40c6b8&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$a0, ($v0)</TD></TR></TABLE> }>];
+"0x40c6bc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40c6bc&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$v0, -0x48($s2)</TD></TR></TABLE> }>];
+"0x40c6c0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40c6c0&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$s2, ($s2)</TD></TR></TABLE> }>];
+"0x40c6c4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40c6c4&#58;&nbsp;</TD><TD ALIGN="LEFT">sw</TD><TD ALIGN="LEFT">$s2, 4($s2)</TD></TR></TABLE> }>];
+"0x40c6c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40c6c8&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$fp, 0x28($v0)</TD></TR></TABLE> }>];
+"0x40c6ac" -> "0x40c6b4" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x40c6ac" -> "0x40c6b8" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x40c6ac" -> "0x40c6bc" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x40c6ac" -> "0x40c6c4" [style=dashed, label="[s2+0x4]", tooltip="WAR: mem[entry_s2+0x4]:4"];
+"0x40c6b0" -> "0x40c6b4" [style=solid, label=a0, tooltip="RAW: a0"];
+"0x40c6b0" -> "0x40c6b8" [style=solid, label=a0, tooltip="RAW: a0"];
+"0x40c6b0" -> "0x40c6c0" [style=dashed, label="[s2]", tooltip="WAR: mem[entry_s2]:4"];
+"0x40c6b4" -> "0x40c6bc" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x40c6b8" -> "0x40c6bc" [style=dashed, label=v0, tooltip="WAR: v0"];
+"0x40c6bc" -> "0x40c6c8" [style=solid, label=v0, tooltip="RAW: v0"];
+}

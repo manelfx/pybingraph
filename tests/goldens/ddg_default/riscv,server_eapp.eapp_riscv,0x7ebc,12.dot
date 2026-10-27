@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x7ebc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7ebc&#58;&nbsp;</TD><TD ALIGN="LEFT">c.addiw</TD><TD ALIGN="LEFT">a4, -1</TD></TR></TABLE> }>];
+"0x7ebe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7ebe&#58;&nbsp;</TD><TD ALIGN="LEFT">c.or</TD><TD ALIGN="LEFT">a4, a5</TD></TR></TABLE> }>];
+"0x7ec0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7ec0&#58;&nbsp;</TD><TD ALIGN="LEFT">sext.w</TD><TD ALIGN="LEFT">a5, a4</TD></TR></TABLE> }>];
+"0x7ec4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x7ec4&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">a3, t1, -0xe</TD></TR></TABLE> }>];
+"0x7ebc" -> "0x7ebe" [style=solid, label=a4, tooltip="RAW: a4; WAW: a4"];
+"0x7ebe" -> "0x7ec0" [style=solid, label=a4, tooltip="RAW: a4; WAR: a5"];
+}

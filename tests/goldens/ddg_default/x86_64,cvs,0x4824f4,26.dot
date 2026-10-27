@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x4824f4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4824f4&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rbx, qword ptr [rsp + 8]</TD></TR></TABLE> }>];
+"0x4824f9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4824f9&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">qword ptr [rsp + 0x18], 1</TD></TR></TABLE> }>];
+"0x4824ff" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4824ff&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">rax, qword ptr [rsp + 0x18]</TD></TR></TABLE> }>];
+"0x482504" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x482504&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">rax, qword ptr [rbx + 0x10]</TD></TR></TABLE> }>];
+"0x482508" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x482508&#58;&nbsp;</TD><TD ALIGN="LEFT">jae</TD><TD ALIGN="LEFT">0x48275c</TD></TR></TABLE> }>];
+"0x4824f4" -> "0x482504" [style=solid, label=rbx, tooltip="RAW: rbx"];
+"0x4824f9" -> "0x4824ff" [style=solid, label="[rsp+0x18]", tooltip="RAW: mem[entry_rsp+0x18]:8"];
+"0x4824f9" -> "0x482504" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x4824ff" -> "0x482504" [style=solid, label=rax, tooltip="RAW: rax"];
+"0x482504" -> "0x482508" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

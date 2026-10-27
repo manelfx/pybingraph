@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x412166" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412166&#58;&nbsp;</TD><TD ALIGN="LEFT">risbgn</TD><TD ALIGN="LEFT">%r1, %r1, 0x2c, 0xbb, 4</TD></TR></TABLE> }>];
+"0x41216c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41216c&#58;&nbsp;</TD><TD ALIGN="LEFT">la</TD><TD ALIGN="LEFT">%r5, 0(%r1, %r11)</TD></TR></TABLE> }>];
+"0x412170" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412170&#58;&nbsp;</TD><TD ALIGN="LEFT">lh</TD><TD ALIGN="LEFT">%r0, 8(%r5)</TD></TR></TABLE> }>];
+"0x412174" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412174&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r4, 0(%r5)</TD></TR></TABLE> }>];
+"0x41217a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41217a&#58;&nbsp;</TD><TD ALIGN="LEFT">lr</TD><TD ALIGN="LEFT">%r1, %r0</TD></TR></TABLE> }>];
+"0x41217c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x41217c&#58;&nbsp;</TD><TD ALIGN="LEFT">tmll</TD><TD ALIGN="LEFT">%r0, 0xffff</TD></TR></TABLE> }>];
+"0x412180" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412180&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x41215a</TD></TR></TABLE> }>];
+"0x412166" -> "0x41216c" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x412166" -> "0x41217a" [style=dotted, label="r1_32", tooltip="WAW: r1_32"];
+"0x41216c" -> "0x412170" [style=solid, label=r5, tooltip="RAW: r5"];
+"0x41216c" -> "0x412174" [style=solid, label=r5, tooltip="RAW: r5"];
+"0x41216c" -> "0x41217a" [style=dashed, label="r1_32", tooltip="WAR: r1_32"];
+"0x412170" -> "0x41217a" [style=solid, label=580, tooltip="RAW: 580"];
+"0x412170" -> "0x41217c" [style=solid, label=r0, tooltip="RAW: r0"];
+"0x41217c" -> "0x412180" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+}

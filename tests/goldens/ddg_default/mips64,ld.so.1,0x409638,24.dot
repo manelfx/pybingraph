@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x409638" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x409638&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$v1, $v1, -4</TD></TR></TABLE> }>];
+"0x40963c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40963c&#58;&nbsp;</TD><TD ALIGN="LEFT">dmult</TD><TD ALIGN="LEFT">$v1, $s3</TD></TR></TABLE> }>];
+"0x409640" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x409640&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$t9, -0x7a88($gp)</TD></TR></TABLE> }>];
+"0x409644" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x409644&#58;&nbsp;</TD><TD ALIGN="LEFT">mflo</TD><TD ALIGN="LEFT">$v1</TD></TR></TABLE> }>];
+"0x409648" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x409648&#58;&nbsp;</TD><TD ALIGN="LEFT">jalr</TD><TD ALIGN="LEFT">$t9</TD></TR></TABLE> }>];
+"0x40964c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40964c&#58;&nbsp;</TD><TD ALIGN="LEFT">daddu</TD><TD ALIGN="LEFT">$a0, $a0, $v1</TD></TR></TABLE> }>];
+"0x409638" -> "0x40963c" [style=solid, label=v1, tooltip="RAW: v1"];
+"0x409638" -> "0x409644" [style=dotted, label=v1, tooltip="WAW: v1"];
+"0x40963c" -> "0x409644" [style=solid, label=lo, tooltip="RAW: lo; WAR: v1"];
+"0x409640" -> "0x409648" [style=solid, label=t9, tooltip="RAW: t9"];
+"0x409644" -> "0x40964c" [style=solid, label=v1, tooltip="RAW: v1"];
+}

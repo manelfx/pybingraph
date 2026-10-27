@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x43e06c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43e06c&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0</TD></TR></TABLE> }>];
+"0x43e070" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43e070&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r3, [sp, &#35;0x64]</TD></TR></TABLE> }>];
+"0x43e074" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43e074&#58;&nbsp;</TD><TD ALIGN="LEFT">cmpeq</TD><TD ALIGN="LEFT">r2, &#35;0x2000000</TD></TR></TABLE> }>];
+"0x43e078" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43e078&#58;&nbsp;</TD><TD ALIGN="LEFT">andhi</TD><TD ALIGN="LEFT">r4, r3, &#35;1</TD></TR></TABLE> }>];
+"0x43e07c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x43e07c&#58;&nbsp;</TD><TD ALIGN="LEFT">movls</TD><TD ALIGN="LEFT">r4, &#35;0</TD></TR></TABLE> }>];
+"0x43e06c" -> "0x43e070" [style=dashed, label=r3, tooltip="WAR: r3"];
+"0x43e06c" -> "0x43e074" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x43e070" -> "0x43e078" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x43e074" -> "0x43e078" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x43e074" -> "0x43e07c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x43e078" -> "0x43e07c" [style=solid, label=r4, tooltip="RAW: r4; WAW: r4"];
+}

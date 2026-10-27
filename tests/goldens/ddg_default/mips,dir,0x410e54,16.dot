@@ -1,0 +1,11 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x410e54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x410e54&#58;&nbsp;</TD><TD ALIGN="LEFT">lw</TD><TD ALIGN="LEFT">$s6, -0x7fd4($gp)</TD></TR></TABLE> }>];
+"0x410e58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x410e58&#58;&nbsp;</TD><TD ALIGN="LEFT">ldc1</TD><TD ALIGN="LEFT">$f0, 0xab8($s6)</TD></TR></TABLE> }>];
+"0x410e5c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x410e5c&#58;&nbsp;</TD><TD ALIGN="LEFT">b</TD><TD ALIGN="LEFT">0x410bac</TD></TR></TABLE> }>];
+"0x410e60" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x410e60&#58;&nbsp;</TD><TD ALIGN="LEFT">mul.d</TD><TD ALIGN="LEFT">$f20, $f20, $f0</TD></TR></TABLE> }>];
+"0x410e54" -> "0x410e58" [style=solid, label=s6, tooltip="RAW: s6"];
+"0x410e58" -> "0x410e60" [style=solid, label="f0_lo, f1_lo", tooltip="RAW: f0_lo, f1_lo"];
+}

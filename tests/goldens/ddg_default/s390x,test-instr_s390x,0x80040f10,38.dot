@@ -1,0 +1,24 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80040f10" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80040f10&#58;&nbsp;</TD><TD ALIGN="LEFT">l</TD><TD ALIGN="LEFT">%r1, 0(%r2)</TD></TR></TABLE> }>];
+"0x80040f14" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80040f14&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r13, %r2</TD></TR></TABLE> }>];
+"0x80040f18" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80040f18&#58;&nbsp;</TD><TD ALIGN="LEFT">lr</TD><TD ALIGN="LEFT">%r2, %r1</TD></TR></TABLE> }>];
+"0x80040f1a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80040f1a&#58;&nbsp;</TD><TD ALIGN="LEFT">oill</TD><TD ALIGN="LEFT">%r2, 0x8000</TD></TR></TABLE> }>];
+"0x80040f1e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80040f1e&#58;&nbsp;</TD><TD ALIGN="LEFT">st</TD><TD ALIGN="LEFT">%r2, 0(%r13)</TD></TR></TABLE> }>];
+"0x80040f22" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80040f22&#58;&nbsp;</TD><TD ALIGN="LEFT">mvghi</TD><TD ALIGN="LEFT">0xa0(%r15), 0</TD></TR></TABLE> }>];
+"0x80040f28" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80040f28&#58;&nbsp;</TD><TD ALIGN="LEFT">mvghi</TD><TD ALIGN="LEFT">0xa8(%r15), 0</TD></TR></TABLE> }>];
+"0x80040f2e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80040f2e&#58;&nbsp;</TD><TD ALIGN="LEFT">tmll</TD><TD ALIGN="LEFT">%r1, 0x10</TD></TR></TABLE> }>];
+"0x80040f32" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80040f32&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x80040f56</TD></TR></TABLE> }>];
+"0x80040f10" -> "0x80040f18" [style=solid, label="r1_32", tooltip="RAW: r1_32; WAR: r2_32"];
+"0x80040f10" -> "0x80040f1e" [style=dashed, label="[r2]", tooltip="WAR: mem[entry_r2]:4"];
+"0x80040f10" -> "0x80040f2e" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x80040f14" -> "0x80040f18" [style=dashed, label="r2_32", tooltip="WAR: r2_32"];
+"0x80040f14" -> "0x80040f1e" [style=solid, label=r13, tooltip="RAW: r13"];
+"0x80040f18" -> "0x80040f1a" [style=solid, label=598, tooltip="RAW: 598; WAW: 598"];
+"0x80040f18" -> "0x80040f1e" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
+"0x80040f1a" -> "0x80040f1e" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
+"0x80040f1a" -> "0x80040f2e" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x80040f2e" -> "0x80040f32" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+}

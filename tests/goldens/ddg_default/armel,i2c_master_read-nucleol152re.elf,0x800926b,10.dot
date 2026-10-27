@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x800926b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800926b&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r5, &#35;0x10</TD></TR></TABLE> }>];
+"0x800926d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800926d&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r7, [pc, &#35;0x278]</TD></TR></TABLE> }>];
+"0x800926f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800926f&#58;&nbsp;</TD><TD ALIGN="LEFT">it</TD><TD ALIGN="LEFT">gt</TD></TR></TABLE> }>];
+"0x8009271" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8009271&#58;&nbsp;</TD><TD ALIGN="LEFT">movgt</TD><TD ALIGN="LEFT">r6, &#35;0x10</TD></TR></TABLE> }>];
+"0x8009273" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8009273&#58;&nbsp;</TD><TD ALIGN="LEFT">bgt</TD><TD ALIGN="LEFT">&#35;0x8009281</TD></TR></TABLE> }>];
+"0x800926b" -> "0x800926d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x800926b" -> "0x8009271" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x800926d" -> "0x800926f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x800926f" -> "0x8009271" [style=solid, label=itstate, tooltip="RAW: itstate; WAW: itstate"];
+"0x8009271" -> "0x8009273" [style=solid, label="flags, itstate", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate; WAW: itstate"];
+}

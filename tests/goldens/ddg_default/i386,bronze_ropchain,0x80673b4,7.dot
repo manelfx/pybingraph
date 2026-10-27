@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80673b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80673b4&#58;&nbsp;</TD><TD ALIGN="LEFT">sub</TD><TD ALIGN="LEFT">edi, 0x10</TD></TR></TABLE> }>];
+"0x80673b7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80673b7&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">eax, edi</TD></TR></TABLE> }>];
+"0x80673b9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80673b9&#58;&nbsp;</TD><TD ALIGN="LEFT">pop</TD><TD ALIGN="LEFT">edi</TD></TR></TABLE> }>];
+"0x80673ba" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80673ba&#58;&nbsp;</TD><TD ALIGN="LEFT">ret</TD><TD></TD></TR></TABLE> }>];
+"0x80673b4" -> "0x80673b7" [style=solid, label=edi, tooltip="RAW: edi; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x80673b4" -> "0x80673b9" [style=dotted, label=edi, tooltip="WAW: edi"];
+"0x80673b7" -> "0x80673b9" [style=dashed, label=edi, tooltip="WAR: edi"];
+"0x80673b9" -> "0x80673ba" [style=solid, label=esp, tooltip="RAW: esp; WAW: esp"];
+}

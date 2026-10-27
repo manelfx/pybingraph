@@ -1,0 +1,22 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x442630" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442630&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r4, [sp, &#35;0x28]</TD></TR></TABLE> }>];
+"0x442634" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442634&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrd</TD><TD ALIGN="LEFT">r2, r3, [r4, &#35;0xa8]</TD></TR></TABLE> }>];
+"0x442638" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442638&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r4</TD></TR></TABLE> }>];
+"0x44263c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44263c&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r2, r2, &#35;1</TD></TR></TABLE> }>];
+"0x442640" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442640&#58;&nbsp;</TD><TD ALIGN="LEFT">adc</TD><TD ALIGN="LEFT">r3, r3, &#35;0</TD></TR></TABLE> }>];
+"0x442644" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442644&#58;&nbsp;</TD><TD ALIGN="LEFT">strd</TD><TD ALIGN="LEFT">r2, r3, [r4, &#35;0xa8]</TD></TR></TABLE> }>];
+"0x442648" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x442648&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r0, sp, &#35;0x60</TD></TR></TABLE> }>];
+"0x44264c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44264c&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x5004c8</TD></TR></TABLE> }>];
+"0x442630" -> "0x442634" [style=solid, label=r4, tooltip="RAW: r4"];
+"0x442630" -> "0x442638" [style=solid, label=r4, tooltip="RAW: r4"];
+"0x442630" -> "0x442644" [style=solid, label=r4, tooltip="RAW: r4"];
+"0x442634" -> "0x44263c" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
+"0x442634" -> "0x442640" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x442634" -> "0x442644" [style=dashed, label="[r4+0xa8], [r4+0xac]", tooltip="WAR: mem[ddg_unknown_1+0xa8]:4, mem[ddg_unknown_1+0xac]:4"];
+"0x44263c" -> "0x442640" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x44263c" -> "0x442644" [style=solid, label=r2, tooltip="RAW: r2"];
+"0x442640" -> "0x442644" [style=solid, label=r3, tooltip="RAW: r3"];
+}

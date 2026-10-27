@@ -1,0 +1,36 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x44c160" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c160&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r3, &#35;0</TD></TR></TABLE> }>];
+"0x44c164" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c164&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r2, &#35;0x2d</TD></TR></TABLE> }>];
+"0x44c168" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c168&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">sl, [sp, &#35;0x8e]</TD></TR></TABLE> }>];
+"0x44c16c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c16c&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrd</TD><TD ALIGN="LEFT">r6, r7, [sp, &#35;0x28]</TD></TR></TABLE> }>];
+"0x44c170" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c170&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">fp, [sp, &#35;0x92]</TD></TR></TABLE> }>];
+"0x44c174" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c174&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r6, r6, sl</TD></TR></TABLE> }>];
+"0x44c178" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c178&#58;&nbsp;</TD><TD ALIGN="LEFT">str</TD><TD ALIGN="LEFT">r3, [sp, &#35;8]</TD></TR></TABLE> }>];
+"0x44c17c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c17c&#58;&nbsp;</TD><TD ALIGN="LEFT">sbc</TD><TD ALIGN="LEFT">r7, r7, fp</TD></TR></TABLE> }>];
+"0x44c180" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c180&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">sl, r6</TD></TR></TABLE> }>];
+"0x44c184" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c184&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">fp, r7</TD></TR></TABLE> }>];
+"0x44c188" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c188&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r7, r0, &#35;0x65</TD></TR></TABLE> }>];
+"0x44c18c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c18c&#58;&nbsp;</TD><TD ALIGN="LEFT">strd</TD><TD ALIGN="LEFT">sl, fp, [sp]</TD></TR></TABLE> }>];
+"0x44c190" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c190&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r4</TD></TR></TABLE> }>];
+"0x44c194" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c194&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r7</TD></TR></TABLE> }>];
+"0x44c198" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x44c198&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x44f45c</TD></TR></TABLE> }>];
+"0x44c160" -> "0x44c178" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x44c168" -> "0x44c174" [style=solid, label=r10, tooltip="RAW: r10"];
+"0x44c168" -> "0x44c180" [style=dotted, label=r10, tooltip="WAW: r10"];
+"0x44c16c" -> "0x44c174" [style=solid, label=r6, tooltip="RAW: r6; WAW: r6"];
+"0x44c16c" -> "0x44c17c" [style=solid, label=r7, tooltip="RAW: r7; WAW: r7"];
+"0x44c170" -> "0x44c17c" [style=solid, label=r11, tooltip="RAW: r11"];
+"0x44c170" -> "0x44c184" [style=dotted, label=r11, tooltip="WAW: r11"];
+"0x44c174" -> "0x44c17c" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x44c174" -> "0x44c180" [style=solid, label=r6, tooltip="RAW: r6; WAR: r10"];
+"0x44c17c" -> "0x44c184" [style=solid, label=r7, tooltip="RAW: r7; WAR: r11"];
+"0x44c17c" -> "0x44c188" [style=dotted, label=r7, tooltip="WAW: r7"];
+"0x44c180" -> "0x44c18c" [style=solid, label=r10, tooltip="RAW: r10"];
+"0x44c184" -> "0x44c188" [style=dashed, label=r7, tooltip="WAR: r7"];
+"0x44c184" -> "0x44c18c" [style=solid, label=r11, tooltip="RAW: r11"];
+"0x44c188" -> "0x44c190" [style=dashed, label=r0, tooltip="WAR: r0"];
+"0x44c188" -> "0x44c194" [style=solid, label=r7, tooltip="RAW: r7"];
+}

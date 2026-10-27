@@ -21,7 +21,7 @@ from bingraph.cfg.models import CustomCFG
 from bingraph.core import get_cfg
 from bingraph.core.annotators.comments import CommentsDataRef
 from bingraph.core.annotators.edges import ColorEdgesVex
-from bingraph.core.annotators.nodes import ColorSimprocedures
+from bingraph.core.annotators.nodes import ColorSimprocedures, LinkDDG
 from bingraph.core.comments import collect_custom_comments
 from bingraph.core.contents import NodeAsm, NodeHead
 from bingraph.core.outputs import DotOutput, validate_text_cfg_format
@@ -39,19 +39,24 @@ def plot_cfg(
     exits: CfgExits,
     format: str,
     demangle: bool = False,
+    filepath: str | None = None,
 ) -> None:
     """Write one CFG view using the requested annotation, exit and layout policies.
 
     Collect custom references only when comments are requested, then attach
     node/assembly content and style existing edges through the Vis pipeline.
     Demangling changes displayed names before shortening, never analysis
-    identifiers. DotOutput owns format-specific Graphviz output at ``fname``.
+    identifiers. The optional request-relative filepath adds DDG links to real
+    blocks, never SIMPs. DotOutput owns format-specific Graphviz output at
+    ``fname``.
     """
 
     logger.info(f"Start CFG plotting function at {hex(func_addr)} as {format}")
 
     annotators: list[Annotator] = []
     annotators.append(ColorSimprocedures())
+    if filepath is not None:
+        annotators.append(LinkDDG(filepath))
     if comments:
         if isinstance(cfg, CustomCFG):
             collect_custom_comments(cfg)
@@ -81,6 +86,7 @@ def render_cfg(
     cfg_exits: CfgExits,
     format: str,
     demangle: bool = False,
+    filepath: str | None = None,
 ) -> str:
     """Return textual Graphviz output for a function and its full view settings.
 
@@ -91,9 +97,9 @@ def render_cfg(
     starts.
 
     The cache includes mode, comments, exit policy, layout, output format and
-    demangling so one presentation cannot leak into another. Missing functions
-    raise KeyError; analysis, rendering and file errors remain visible to the
-    API/corpus caller. Temporary output is removed after the text is read.
+    demangling and link filepath so one presentation cannot leak into another.
+    Missing functions raise KeyError; analysis, rendering and file errors remain
+    visible to the API/corpus caller. Temporary output is removed after reading.
     """
     validate_text_cfg_format(format)
     # Obtain the CFG first. We still prefer its block when the lift succeeds,
@@ -119,6 +125,7 @@ def render_cfg(
             exits=cfg_exits,
             format=format,
             demangle=demangle,
+            filepath=filepath,
         )
         output_path = output_base.with_suffix(f".{format}")
         output = output_path.read_text(encoding="utf-8")

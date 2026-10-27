@@ -1,0 +1,16 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x1dff" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1dff&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp.w</TD><TD ALIGN="LEFT">ip, &#35;0</TD></TR></TABLE> }>];
+"0x1e03" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1e03&#58;&nbsp;</TD><TD ALIGN="LEFT">mov.w</TD><TD ALIGN="LEFT">r2, &#35;1</TD></TR></TABLE> }>];
+"0x1e07" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1e07&#58;&nbsp;</TD><TD ALIGN="LEFT">ite</TD><TD ALIGN="LEFT">ne</TD></TR></TABLE> }>];
+"0x1e09" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1e09&#58;&nbsp;</TD><TD ALIGN="LEFT">movne.w</TD><TD ALIGN="LEFT">lr, &#35;0x37</TD></TR></TABLE> }>];
+"0x1e0d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x1e0d&#58;&nbsp;</TD><TD ALIGN="LEFT">moveq.w</TD><TD ALIGN="LEFT">lr, &#35;0x57</TD></TR></TABLE> }>];
+"0x1dff" -> "0x1e03" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x1dff" -> "0x1e09" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x1dff" -> "0x1e0d" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x1e03" -> "0x1e07" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x1e07" -> "0x1e09" [style=solid, label=itstate, tooltip="RAW: itstate; WAW: itstate"];
+"0x1e09" -> "0x1e0d" [style=solid, label="itstate, lr", tooltip="RAW: itstate, lr; WAW: itstate, lr"];
+}

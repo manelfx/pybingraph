@@ -1,0 +1,15 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x80006d38" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80006d38&#58;&nbsp;</TD><TD ALIGN="LEFT">aghik</TD><TD ALIGN="LEFT">%r1, %r2, 3</TD></TR></TABLE> }>];
+"0x80006d3e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80006d3e&#58;&nbsp;</TD><TD ALIGN="LEFT">ltgr</TD><TD ALIGN="LEFT">%r2, %r2</TD></TR></TABLE> }>];
+"0x80006d42" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80006d42&#58;&nbsp;</TD><TD ALIGN="LEFT">locgrnl</TD><TD ALIGN="LEFT">%r1, %r2</TD></TR></TABLE> }>];
+"0x80006d46" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80006d46&#58;&nbsp;</TD><TD ALIGN="LEFT">srag</TD><TD ALIGN="LEFT">%r1, %r1, 2</TD></TR></TABLE> }>];
+"0x80006d38" -> "0x80006d3e" [style=dashed, label=r2, tooltip="WAR: r2"];
+"0x80006d38" -> "0x80006d3e" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x80006d38" -> "0x80006d42" [style=dotted, label=r1, tooltip="WAW: r1"];
+"0x80006d3e" -> "0x80006d42" [style=solid, label="736, 744, 752, 760, r2", tooltip="RAW: 736, 744, 752, 760, r2"];
+"0x80006d3e" -> "0x80006d46" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x80006d42" -> "0x80006d46" [style=solid, label=r1, tooltip="RAW: r1; WAR: 736, 744, 752, 760; WAW: r1"];
+}

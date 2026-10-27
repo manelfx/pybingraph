@@ -1,0 +1,13 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x402188" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402188&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$v0, -0x10($v0)</TD></TR></TABLE> }>];
+"0x40218c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40218c&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$a0, $a1, 0x7000</TD></TR></TABLE> }>];
+"0x402190" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402190&#58;&nbsp;</TD><TD ALIGN="LEFT">sd</TD><TD ALIGN="LEFT">$v0, 0x10e8($s1)</TD></TR></TABLE> }>];
+"0x402194" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402194&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$v0, $zero, 0x147a</TD></TR></TABLE> }>];
+"0x402198" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402198&#58;&nbsp;</TD><TD ALIGN="LEFT">syscall</TD><TD></TD></TR></TABLE> }>];
+"0x402188" -> "0x402190" [style=solid, label=v0, tooltip="RAW: v0"];
+"0x402188" -> "0x402194" [style=dotted, label=v0, tooltip="WAW: v0"];
+"0x402190" -> "0x402194" [style=dashed, label=v0, tooltip="WAR: v0"];
+}

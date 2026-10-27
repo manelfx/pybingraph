@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x413c50" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413c50&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$ra, 0x108($sp)</TD></TR></TABLE> }>];
+"0x413c54" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413c54&#58;&nbsp;</TD><TD ALIGN="LEFT">addiu</TD><TD ALIGN="LEFT">$s1, $zero, -1</TD></TR></TABLE> }>];
+"0x413c58" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413c58&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$v0, $s1</TD></TR></TABLE> }>];
+"0x413c5c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413c5c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$gp, 0x100($sp)</TD></TR></TABLE> }>];
+"0x413c60" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413c60&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$s2, 0xf8($sp)</TD></TR></TABLE> }>];
+"0x413c64" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413c64&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$s1, 0xf0($sp)</TD></TR></TABLE> }>];
+"0x413c68" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413c68&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$s0, 0xe8($sp)</TD></TR></TABLE> }>];
+"0x413c6c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413c6c&#58;&nbsp;</TD><TD ALIGN="LEFT">jr</TD><TD ALIGN="LEFT">$ra</TD></TR></TABLE> }>];
+"0x413c70" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x413c70&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$sp, $sp, 0x110</TD></TR></TABLE> }>];
+"0x413c50" -> "0x413c6c" [style=solid, label=ra, tooltip="RAW: ra"];
+"0x413c50" -> "0x413c70" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x413c54" -> "0x413c58" [style=solid, label=s1, tooltip="RAW: s1"];
+"0x413c54" -> "0x413c64" [style=dotted, label=s1, tooltip="WAW: s1"];
+"0x413c58" -> "0x413c64" [style=dashed, label=s1, tooltip="WAR: s1"];
+"0x413c5c" -> "0x413c70" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x413c60" -> "0x413c70" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x413c64" -> "0x413c70" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x413c68" -> "0x413c70" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

@@ -1,0 +1,23 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x120002430" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120002430&#58;&nbsp;</TD><TD ALIGN="LEFT">move</TD><TD ALIGN="LEFT">$sp, $fp</TD></TR></TABLE> }>];
+"0x120002434" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120002434&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$ra, 0x28($sp)</TD></TR></TABLE> }>];
+"0x120002438" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120002438&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$fp, 0x20($sp)</TD></TR></TABLE> }>];
+"0x12000243c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000243c&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$gp, 0x18($sp)</TD></TR></TABLE> }>];
+"0x120002440" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120002440&#58;&nbsp;</TD><TD ALIGN="LEFT">ld</TD><TD ALIGN="LEFT">$s0, 0x10($sp)</TD></TR></TABLE> }>];
+"0x120002444" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120002444&#58;&nbsp;</TD><TD ALIGN="LEFT">daddiu</TD><TD ALIGN="LEFT">$sp, $sp, 0x30</TD></TR></TABLE> }>];
+"0x120002448" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x120002448&#58;&nbsp;</TD><TD ALIGN="LEFT">jr</TD><TD ALIGN="LEFT">$ra</TD></TR></TABLE> }>];
+"0x12000244c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x12000244c&#58;&nbsp;</TD><TD ALIGN="LEFT">nop</TD><TD></TD></TR></TABLE> }>];
+"0x120002430" -> "0x120002434" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x120002430" -> "0x120002438" [style=solid, label=sp, tooltip="RAW: sp; WAR: s8"];
+"0x120002430" -> "0x12000243c" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x120002430" -> "0x120002440" [style=solid, label=sp, tooltip="RAW: sp"];
+"0x120002430" -> "0x120002444" [style=solid, label=sp, tooltip="RAW: sp; WAW: sp"];
+"0x120002434" -> "0x120002444" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x120002434" -> "0x120002448" [style=solid, label=ra, tooltip="RAW: ra"];
+"0x120002438" -> "0x120002444" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x12000243c" -> "0x120002444" [style=dashed, label=sp, tooltip="WAR: sp"];
+"0x120002440" -> "0x120002444" [style=dashed, label=sp, tooltip="WAR: sp"];
+}

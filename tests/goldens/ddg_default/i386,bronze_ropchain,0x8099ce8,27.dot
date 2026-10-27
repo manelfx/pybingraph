@@ -1,0 +1,20 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8099ce8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8099ce8&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [edi + 0x244]</TD></TR></TABLE> }>];
+"0x8099cee" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8099cee&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">esi, dword ptr [ebp - 0x6c]</TD></TR></TABLE> }>];
+"0x8099cf1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8099cf1&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">dword ptr [esi], eax</TD></TR></TABLE> }>];
+"0x8099cf3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8099cf3&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x60], 8</TD></TR></TABLE> }>];
+"0x8099cf7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8099cf7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">eax, dword ptr [ebp - 0x60]</TD></TR></TABLE> }>];
+"0x8099cfa" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8099cfa&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">dword ptr [ebp - 0x68], eax</TD></TR></TABLE> }>];
+"0x8099cfd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8099cfd&#58;&nbsp;</TD><TD ALIGN="LEFT">ja</TD><TD ALIGN="LEFT">0x8099430</TD></TR></TABLE> }>];
+"0x8099ce8" -> "0x8099cf1" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x8099ce8" -> "0x8099cf7" [style=dotted, label=eax, tooltip="WAW: eax"];
+"0x8099cee" -> "0x8099cf1" [style=solid, label=esi, tooltip="RAW: esi"];
+"0x8099cf1" -> "0x8099cf7" [style=dashed, label=eax, tooltip="WAR: eax"];
+"0x8099cf3" -> "0x8099cf7" [style=solid, label="[ebp-0x60]", tooltip="RAW: mem[entry_ebp-0x60]:4"];
+"0x8099cf3" -> "0x8099cfa" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8099cf7" -> "0x8099cfa" [style=solid, label=eax, tooltip="RAW: eax"];
+"0x8099cfa" -> "0x8099cfd" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+}

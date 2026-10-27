@@ -1,0 +1,19 @@
+digraph G {
+rankdir=TB;
+node [shape=Mrecord, fontname=monospace, fontsize=8];
+edge [fontname=monospace, fontsize=8];
+"0x8003c8ae" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003c8ae&#58;&nbsp;</TD><TD ALIGN="LEFT">ag</TD><TD ALIGN="LEFT">%r11, 0(%r8)</TD></TR></TABLE> }>];
+"0x8003c8b4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003c8b4&#58;&nbsp;</TD><TD ALIGN="LEFT">lhi</TD><TD ALIGN="LEFT">%r2, 0</TD></TR></TABLE> }>];
+"0x8003c8b8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003c8b8&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r11, 0(%r8)</TD></TR></TABLE> }>];
+"0x8003c8be" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003c8be&#58;&nbsp;</TD><TD ALIGN="LEFT">lgfr</TD><TD ALIGN="LEFT">%r2, %r2</TD></TR></TABLE> }>];
+"0x8003c8c2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003c8c2&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r4, 0x110(%r15)</TD></TR></TABLE> }>];
+"0x8003c8c8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003c8c8&#58;&nbsp;</TD><TD ALIGN="LEFT">lmg</TD><TD ALIGN="LEFT">%r8, %r15, 0xe0(%r15)</TD></TR></TABLE> }>];
+"0x8003c8ce" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8003c8ce&#58;&nbsp;</TD><TD ALIGN="LEFT">br</TD><TD ALIGN="LEFT">%r4</TD></TR></TABLE> }>];
+"0x8003c8ae" -> "0x8003c8b8" [style=solid, label=r11, tooltip="RAW: r11; WAR: mem[entry_r8]:8"];
+"0x8003c8ae" -> "0x8003c8c8" [style=dashed, label=r8, tooltip="WAR: r8"];
+"0x8003c8ae" -> "0x8003c8c8" [style=dotted, label=r11, tooltip="WAW: r11"];
+"0x8003c8b4" -> "0x8003c8be" [style=solid, label="r2_32", tooltip="RAW: r2_32; WAW: r2"];
+"0x8003c8b8" -> "0x8003c8c8" [style=dashed, label="r11, r8", tooltip="WAR: r11, r8"];
+"0x8003c8c2" -> "0x8003c8c8" [style=dashed, label=r15, tooltip="WAR: r15"];
+"0x8003c8c2" -> "0x8003c8ce" [style=solid, label=r4, tooltip="RAW: r4"];
+}
