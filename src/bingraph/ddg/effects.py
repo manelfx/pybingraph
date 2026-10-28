@@ -6,20 +6,55 @@ unknown values: disambiguation must not depend on guessed concrete addresses.
 No CFG, path exploration or callee execution is involved.
 """
 
+from itertools import takewhile
 from typing import Any
 
 import angr
 from angr import claripy
+from archinfo import Arch
 import pyvex
 from angr.engines.vex.claripy.irop import vexop_to_simop
 from angr.engines.vex.claripy.datalayer import value as vex_value
+from pyvex.vex_ffi import guest_offsets
 
 from bingraph.helpers.capstone import InsnSemantics
 from bingraph.helpers.vex import _vex_get_key
 from .models import Effects, Resource
-from .memory import address_distance, address_label, offset_label
+from .memory import address_distance, address_label, coalesce_memory, offset_label
 
 MAX_VALUE_NODES = 64
+MAX_INSTRUCTION_ITERATIONS = 256
+VEX_REGISTER_NAMES = {
+    (arch, offset): name for (arch, name), offset in guest_offsets.items()
+}
+
+
+def _register_label(arch: Arch, offset: int, width: int) -> str:
+    """Name missing register views without changing their byte-range identity.
+
+    Keep Archinfo's established aliases. PyVEX can name otherwise undeclared
+    guest fields; declared parent registers identify interior slices, with bit
+    numbers determined by register endianness. Gaps remain explicit guest slots,
+    not guessed architectural names or offsets mistaken for register names.
+    """
+    name = arch.translate_register_name(offset, width)
+    if not name.isdecimal():
+        return name
+    vex_arch = (arch.vex_arch or "").removeprefix("VexArch").lower()
+    if name := VEX_REGISTER_NAMES.get((vex_arch, offset)):
+        return name
+    for reg in arch.register_list:
+        if (
+            reg.vex_offset is not None
+            and reg.vex_offset <= offset
+            and offset + width <= reg.vex_offset + reg.size
+        ):
+            byte = offset - reg.vex_offset
+            if arch.register_endness == "Iend_BE":
+                byte = reg.size - byte - width
+            low = byte * arch.byte_width
+            return f"{reg.name}[{low + width * arch.byte_width - 1}:{low}]"
+    return f"guest[{offset:#x}:{width}]"
 
 
 def instruction_effects(
@@ -33,6 +68,9 @@ def instruction_effects(
     dependencies. Value evaluation is bounded independently of resource reads.
     Capstone/archinfo alias ranges narrow full-width VEX GETs
     followed by truncations; implicit VEX resources absent from Capstone remain.
+    Concrete instruction-internal backedges replay this same evaluator within
+    a fixed budget. Symbolic or excessive repetition fails rather than reporting
+    one iteration as the complete instruction's effects.
     """
 
     start = instructions[0].address
@@ -140,12 +178,24 @@ def instruction_effects(
                 endness=project.arch.register_endness,
             )
     state.regs.ip = start
+    ignored_offsets = {project.arch.ip_offset}
+    # VEX's restart counter (including its accumulator subfield) is internal,
+    # not an architectural live-in. Completed instructions leave it zero.
+    counter = guest_offsets.get((project.arch.name.lower(), "counter"))
+    if counter is not None:
+        state.registers.store(
+            counter, 0, size=project.arch.bytes, endness=project.arch.register_endness
+        )
+        ignored_offsets.update(range(counter, counter + project.arch.bytes))
     temporaries: dict[int, tuple[Any, int, tuple[Resource, ...]]] = {}
     temporary_labels: dict[int, str] = {}
     address_registers: dict[str, Any] = {}
     current = effects[start]
     serial = 0
     tmp_base = 0
+    repeated = set()
+    itstate = project.arch.registers.get("itstate")
+    itstate_resets_only = itstate is not None
 
     def unknown(bits: int):
         nonlocal serial
@@ -176,7 +226,7 @@ def instruction_effects(
             "register",
             offset,
             width,
-            project.arch.translate_register_name(offset, width),
+            _register_label(project.arch, offset, width),
         )
 
     def memory(address: Any, width: int) -> Resource:
@@ -224,7 +274,7 @@ def instruction_effects(
             value = state.registers.load(
                 expr.offset, size=bits // 8, endness=project.arch.register_endness
             )
-            if expr.offset != project.arch.ip_offset:
+            if expr.offset not in ignored_offsets:
                 resource = register(expr.offset, bits // 8)
                 # VEX may read guest bytes it already wrote in this same
                 # instruction (including its own zeroing normalization).
@@ -317,11 +367,17 @@ def instruction_effects(
         definitions = {}
         temporaries.clear()
         temporary_labels.clear()
-        for statement in vex.statements:
+        index = loop_start = iterations = 0
+        while index < len(vex.statements):
+            statement = vex.statements[index]
+            index += 1
             if isinstance(statement, pyvex.stmt.IMark):
                 address = statement.addr + statement.delta
                 if address not in effects:
                     raise ValueError("VEX/assembly instruction boundaries disagree")
+                if address != current.insn.address:
+                    iterations = 0
+                loop_start = index - 1
                 current = effects[address]
                 address_registers.clear()
                 # A register GET from an older instruction is a snapshot, not
@@ -349,13 +405,23 @@ def instruction_effects(
             elif isinstance(statement, pyvex.stmt.Put):
                 value = expression(statement.data)
                 width = statement.data.result_size(vex.tyenv) // 8
+                if (
+                    itstate is not None
+                    and statement.offset < itstate[0] + itstate[1]
+                    and itstate[0] < statement.offset + width
+                ):
+                    itstate_resets_only &= (
+                        (statement.offset, width) == itstate
+                        and value.concrete
+                        and value.concrete_value == 0
+                    )
                 state.registers.store(
                     statement.offset,
                     value,
                     size=width,
                     endness=project.arch.register_endness,
                 )
-                if statement.offset != project.arch.ip_offset:
+                if statement.offset not in ignored_offsets:
                     resource = register(statement.offset, width)
                     current.writes.append(resource)
                     if isinstance(statement.data, pyvex.expr.RdTmp):
@@ -386,7 +452,43 @@ def instruction_effects(
                     Resource("temporary", tmp_base + statement.dst, 1, "lifted value")
                 )
             elif isinstance(statement, pyvex.stmt.Exit):
-                expression(statement.guard)
+                guard = expression(statement.guard)
+                if (
+                    statement.jumpkind == "Ijk_Boring"
+                    and statement.dst.value == current.insn.address
+                    and not InsnSemantics(current.insn).is_control_transfer()
+                ):
+                    if current.insn.address not in repeated:
+                        # An additional ordinary exit could skip iterations or
+                        # stores. Do not turn such conditional writes into a
+                        # complete range that kills earlier producers.
+                        body = takewhile(
+                            lambda s: not isinstance(s, pyvex.stmt.IMark),
+                            vex.statements[loop_start + 1 :],
+                        )
+                        if any(
+                            isinstance(s, pyvex.stmt.Exit)
+                            and s is not statement
+                            and s.jumpkind == "Ijk_Boring"
+                            for s in body
+                        ):
+                            raise ValueError(
+                                "Unsupported DDG multi-exit instruction-internal loop"
+                            )
+                    if not guard.concrete:
+                        raise ValueError(
+                            "Unsupported DDG symbolic instruction-internal loop"
+                        )
+                    repeated.add(current.insn.address)
+                    if guard.concrete_value:
+                        iterations += 1
+                        if iterations >= MAX_INSTRUCTION_ITERATIONS:
+                            raise ValueError(
+                                "DDG instruction-internal loop exceeded iteration budget"
+                            )
+                        # Same instruction and effects owner; no CFG traversal,
+                        # path splitting, or loss of the original memory inputs.
+                        index = loop_start
             elif isinstance(statement, pyvex.stmt.MBE):
                 current.reads.append(memory(None, 1))
                 current.writes.append(memory(None, 1))
@@ -397,9 +499,19 @@ def instruction_effects(
                     f"Unsupported DDG VEX statement: {type(statement).__name__}"
                 )
         expression(vex.next)
+        if (
+            vex.jumpkind == "Ijk_Boring"
+            and isinstance(vex.next, pyvex.expr.Const)
+            and vex.next.con.value == current.insn.address
+            and not InsnSemantics(current.insn).is_control_transfer()
+        ):
+            raise ValueError("Unsupported DDG tail instruction-internal loop")
         tmp_base += len(vex.tyenv.types)
 
     for effect in effects.values():
+        if effect.insn.address in repeated:
+            effect.reads = coalesce_memory(effect.reads)
+            effect.writes = coalesce_memory(effect.writes)
         # Capstone describes the actual architectural read width (al/ah/eax,
         # SIMD aliases, etc.). Only narrow matching ranges; never discard an
         # implicit register or VEX condition-state read absent from Capstone.
@@ -429,4 +541,23 @@ def instruction_effects(
             else:
                 narrowed.append(resource)
         effect.reads = list(dict.fromkeys(narrowed))
+    # VEX resets inactive Thumb IT state even on unrelated instructions. These
+    # resets are not output dependencies. Keep all effects if any consumed read
+    # or nonzero/unknown/partial write could represent real predication; never
+    # assume that a block starts outside an IT region. Check after deferred
+    # temporary reads have been attributed to their actual consumers.
+    if itstate_resets_only and itstate is not None:
+        if not any(
+            r.kind == "register"
+            and r.offset < itstate[0] + itstate[1]
+            and itstate[0] < r.offset + r.size
+            for effect in effects.values()
+            for r in effect.reads
+        ):
+            for effect in effects.values():
+                effect.writes = [
+                    r
+                    for r in effect.writes
+                    if not (r.kind == "register" and (r.offset, r.size) == itstate)
+                ]
     return list(effects.values())

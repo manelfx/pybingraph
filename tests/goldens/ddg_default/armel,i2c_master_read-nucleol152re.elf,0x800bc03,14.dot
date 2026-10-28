@@ -6,9 +6,6 @@ edge [fontname=monospace, fontsize=8];
 "0x800bc07" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800bc07&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">sl, sl, &#35;1</TD></TR></TABLE> }>];
 "0x800bc0b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800bc0b&#58;&nbsp;</TD><TD ALIGN="LEFT">asr.w</TD><TD ALIGN="LEFT">r6, r6, &#35;1</TD></TR></TABLE> }>];
 "0x800bc0f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800bc0f&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">&#35;0x800bc19</TD></TR></TABLE> }>];
-"0x800bc03" -> "0x800bc07" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x800bc03" -> "0x800bc0b" [style=dashed, label=r6, tooltip="WAR: r6"];
 "0x800bc03" -> "0x800bc0f" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
-"0x800bc07" -> "0x800bc0b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x800bc0b" -> "0x800bc0f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

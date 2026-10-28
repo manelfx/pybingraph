@@ -7,10 +7,7 @@ edge [fontname=monospace, fontsize=8];
 "0x9f95" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x9f95&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr.w</TD><TD ALIGN="LEFT">sl, [r6, &#35;4]</TD></TR></TABLE> }>];
 "0x9f99" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x9f99&#58;&nbsp;</TD><TD ALIGN="LEFT">tst</TD><TD ALIGN="LEFT">r1, r0</TD></TR></TABLE> }>];
 "0x9f9b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x9f9b&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">&#35;0x9fb5</TD></TR></TABLE> }>];
-"0x9f8d" -> "0x9f91" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x9f8d" -> "0x9f99" [style=solid, label=r0, tooltip="RAW: r0"];
-"0x9f91" -> "0x9f95" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x9f91" -> "0x9f99" [style=solid, label=r1, tooltip="RAW: r1"];
-"0x9f95" -> "0x9f99" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x9f99" -> "0x9f9b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x9f99" -> "0x9f9b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

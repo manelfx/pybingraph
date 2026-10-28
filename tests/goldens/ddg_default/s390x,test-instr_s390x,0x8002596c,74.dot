@@ -27,5 +27,5 @@ edge [fontname=monospace, fontsize=8];
 "0x8002598e" -> "0x80025992" [style=solid, label=r1, tooltip="RAW: r1"];
 "0x800259a4" -> "0x800259aa" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
 "0x800259aa" -> "0x800259ae" [style=solid, label=r2, tooltip="RAW: r2"];
-"0x800259ae" -> "0x800259b2" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x800259ae" -> "0x800259b2" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

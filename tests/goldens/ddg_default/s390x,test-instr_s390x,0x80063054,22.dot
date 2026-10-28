@@ -9,5 +9,5 @@ edge [fontname=monospace, fontsize=8];
 "0x80063066" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80063066&#58;&nbsp;</TD><TD ALIGN="LEFT">jhe</TD><TD ALIGN="LEFT">0x800630b2</TD></TR></TABLE> }>];
 "0x80063054" -> "0x80063062" [style=dashed, label="r12_32", tooltip="WAR: r12_32"];
 "0x80063058" -> "0x80063062" [style=solid, label="r1_32", tooltip="RAW: r1_32"];
-"0x80063062" -> "0x80063066" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x80063062" -> "0x80063066" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

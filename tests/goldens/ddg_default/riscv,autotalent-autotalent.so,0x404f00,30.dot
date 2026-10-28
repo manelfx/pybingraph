@@ -20,7 +20,7 @@ edge [fontname=monospace, fontsize=8];
 "0x404f04" -> "0x404f10" [style=solid, label=ft6, tooltip="RAW: ft6"];
 "0x404f04" -> "0x404f16" [style=dashed, label="[a4]", tooltip="WAR: mem[entry_a4]:4"];
 "0x404f0a" -> "0x404f16" [style=solid, label=a4, tooltip="RAW: a4"];
-"0x404f0c" -> "0x404f10" [style=solid, label=536, tooltip="RAW: 536; WAW: 536"];
+"0x404f0c" -> "0x404f10" [style=solid, label="guest[0x218:4]", tooltip="RAW: guest[0x218:4]; WAW: guest[0x218:4]"];
 "0x404f0c" -> "0x404f16" [style=solid, label=ft7, tooltip="RAW: ft7"];
 "0x404f10" -> "0x404f1a" [style=solid, label=fa0, tooltip="RAW: fa0"];
 "0x404f14" -> "0x404f1a" [style=solid, label=a2, tooltip="RAW: a2"];

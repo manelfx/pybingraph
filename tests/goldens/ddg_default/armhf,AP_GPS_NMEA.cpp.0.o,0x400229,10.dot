@@ -6,7 +6,7 @@ edge [fontname=monospace, fontsize=8];
 "0x40022d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40022d&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r2, &#35;0x30</TD></TR></TABLE> }>];
 "0x40022f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40022f&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r2, &#35;9</TD></TR></TABLE> }>];
 "0x400231" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400231&#58;&nbsp;</TD><TD ALIGN="LEFT">bhi</TD><TD ALIGN="LEFT">&#35;0x400265</TD></TR></TABLE> }>];
-"0x400229" -> "0x40022d" [style=solid, label=r2, tooltip="RAW: r2; WAW: itstate, r2"];
-"0x40022d" -> "0x40022f" [style=solid, label=r2, tooltip="RAW: r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
-"0x40022f" -> "0x400231" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x400229" -> "0x40022d" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
+"0x40022d" -> "0x40022f" [style=solid, label=r2, tooltip="RAW: r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x40022f" -> "0x400231" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

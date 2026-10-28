@@ -13,11 +13,11 @@ edge [fontname=monospace, fontsize=8];
 "0x8000c68a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000c68a&#58;&nbsp;</TD><TD ALIGN="LEFT">lt</TD><TD ALIGN="LEFT">%r1, 0xc0(%r13)</TD></TR></TABLE> }>];
 "0x8000c690" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8000c690&#58;&nbsp;</TD><TD ALIGN="LEFT">jh</TD><TD ALIGN="LEFT">0x8000c5e8</TD></TR></TABLE> }>];
 "0x8000c662" -> "0x8000c680" [style=dashed, label="r1_32", tooltip="WAR: r1_32"];
-"0x8000c680" -> "0x8000c682" [style=solid, label=590, tooltip="RAW: 590; WAW: 590"];
+"0x8000c680" -> "0x8000c682" [style=solid, label="r1[15:0]", tooltip="RAW: r1[15:0]; WAW: r1[15:0]"];
 "0x8000c680" -> "0x8000c686" [style=solid, label="r1_32", tooltip="RAW: r1_32"];
 "0x8000c680" -> "0x8000c68a" [style=dotted, label="r1_32", tooltip="WAW: r1_32"];
 "0x8000c682" -> "0x8000c686" [style=solid, label="r1_32", tooltip="RAW: r1_32"];
-"0x8000c682" -> "0x8000c68a" [style=dotted, label="736, 744, 752, 760, r1_32", tooltip="WAW: 736, 744, 752, 760, r1_32"];
+"0x8000c682" -> "0x8000c68a" [style=dotted, label="flags, r1_32", tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r1_32"];
 "0x8000c686" -> "0x8000c68a" [style=dashed, label="r1_32", tooltip="WAR: r1_32"];
-"0x8000c68a" -> "0x8000c690" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x8000c68a" -> "0x8000c690" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

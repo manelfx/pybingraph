@@ -14,6 +14,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8004419c" -> "0x800441a8" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
 "0x800441a2" -> "0x800441a8" [style=solid, label="r1_32", tooltip="RAW: r1_32; WAW: r1_32"];
 "0x800441a2" -> "0x800441aa" [style=solid, label=r1, tooltip="RAW: r1"];
-"0x800441a8" -> "0x800441aa" [style=solid, label=r1, tooltip="RAW: r1; WAW: 736, 744, 752, 760"];
-"0x800441aa" -> "0x800441ae" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x800441a8" -> "0x800441aa" [style=solid, label=r1, tooltip="RAW: r1; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x800441aa" -> "0x800441ae" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

@@ -9,6 +9,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8004321e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004321e&#58;&nbsp;</TD><TD ALIGN="LEFT">ldgr</TD><TD ALIGN="LEFT">%f8, %r2</TD></TR></TABLE> }>];
 "0x80043208" -> "0x80043214" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0x8004320e" -> "0x8004321a" [style=dotted, label=r2, tooltip="WAW: r2"];
-"0x80043214" -> "0x8004321a" [style=solid, label="736, 744, 752, 760, r1", tooltip="RAW: 736, 744, 752, 760, r1"];
+"0x80043214" -> "0x8004321a" [style=solid, label="flags, r1", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r1"];
 "0x8004321a" -> "0x8004321e" [style=solid, label=r2, tooltip="RAW: r2"];
 }

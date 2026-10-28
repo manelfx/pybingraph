@@ -6,7 +6,7 @@ edge [fontname=monospace, fontsize=8];
 "0x800291f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800291f&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">r3, r3, &#35;0xef</TD></TR></TABLE> }>];
 "0x8002923" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002923&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0x22</TD></TR></TABLE> }>];
 "0x8002925" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002925&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">&#35;0x800297f</TD></TR></TABLE> }>];
-"0x800291b" -> "0x800291f" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
-"0x800291f" -> "0x8002923" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate"];
-"0x8002923" -> "0x8002925" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x800291b" -> "0x800291f" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x800291f" -> "0x8002923" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x8002923" -> "0x8002925" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

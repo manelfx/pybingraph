@@ -6,8 +6,8 @@ edge [fontname=monospace, fontsize=8];
 "0x80042c9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80042c9&#58;&nbsp;</TD><TD ALIGN="LEFT">rsb</TD><TD ALIGN="LEFT">sl, r3, r8</TD></TR></TABLE> }>];
 "0x80042cd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80042cd&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr.w</TD><TD ALIGN="LEFT">r3, [sl, &#35;4]</TD></TR></TABLE> }>];
 "0x80042d1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80042d1&#58;&nbsp;</TD><TD ALIGN="LEFT">bic</TD><TD ALIGN="LEFT">r3, r3, &#35;3</TD></TR></TABLE> }>];
-"0x80042c5" -> "0x80042c9" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate"];
+"0x80042c5" -> "0x80042c9" [style=solid, label=r3, tooltip="RAW: r3"];
 "0x80042c5" -> "0x80042cd" [style=dotted, label=r3, tooltip="WAW: r3"];
-"0x80042c9" -> "0x80042cd" [style=solid, label=r10, tooltip="RAW: r10; WAR: r3; WAW: itstate"];
-"0x80042cd" -> "0x80042d1" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
+"0x80042c9" -> "0x80042cd" [style=solid, label=r10, tooltip="RAW: r10; WAR: r3"];
+"0x80042cd" -> "0x80042d1" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
 }

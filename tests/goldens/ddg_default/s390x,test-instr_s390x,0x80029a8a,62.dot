@@ -15,7 +15,7 @@ edge [fontname=monospace, fontsize=8];
 "0x80029aba" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80029aba&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r7, %r1</TD></TR></TABLE> }>];
 "0x80029abe" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80029abe&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r10, %r9</TD></TR></TABLE> }>];
 "0x80029ac2" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80029ac2&#58;&nbsp;</TD><TD ALIGN="LEFT">lg</TD><TD ALIGN="LEFT">%r9, 0xd8(%r11)</TD></TR></TABLE> }>];
-"0x80029a8a" -> "0x80029a92" [style=solid, label="736, 744, 752, 760, r12", tooltip="RAW: 736, 744, 752, 760, r12"];
+"0x80029a8a" -> "0x80029a92" [style=solid, label="flags, r12", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r12"];
 "0x80029a8a" -> "0x80029aaa" [style=dotted, label=r12, tooltip="WAW: r12"];
 "0x80029a8e" -> "0x80029a92" [style=dotted, label=r1, tooltip="WAW: r1"];
 "0x80029a92" -> "0x80029aaa" [style=dashed, label=r12, tooltip="WAR: r12"];

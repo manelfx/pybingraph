@@ -17,7 +17,7 @@ edge [fontname=monospace, fontsize=8];
 "0x8063de3" -> "0x8063dee" [style=dashed, label=edx, tooltip="WAR: edx"];
 "0x8063de6" -> "0x8063dea" [style=solid, label=xmm2, tooltip="RAW: xmm2"];
 "0x8063de6" -> "0x8063df5" [style=dashed, label=ecx, tooltip="WAR: ecx"];
-"0x8063dea" -> "0x8063df1" [style=solid, label="168, xmm0", tooltip="RAW: 168, xmm0"];
+"0x8063dea" -> "0x8063df1" [style=solid, label="xmm0, xmm0[127:64]", tooltip="RAW: xmm0, xmm0[127:64]"];
 "0x8063df1" -> "0x8063df8" [style=solid, label=eax, tooltip="RAW: eax"];
 "0x8063df8" -> "0x8063dfa" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

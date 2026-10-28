@@ -7,9 +7,8 @@ edge [fontname=monospace, fontsize=8];
 "0x2683" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2683&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r2, r3, r1</TD></TR></TABLE> }>];
 "0x2685" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2685&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r5, r2</TD></TR></TABLE> }>];
 "0x2687" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x2687&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">&#35;0x26ab</TD></TR></TABLE> }>];
-"0x267d" -> "0x267f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x267d" -> "0x2683" [style=solid, label=r3, tooltip="RAW: r3"];
-"0x267f" -> "0x2683" [style=solid, label=r1, tooltip="RAW: r1; WAW: itstate"];
-"0x2683" -> "0x2685" [style=solid, label=r2, tooltip="RAW: r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
-"0x2685" -> "0x2687" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x267f" -> "0x2683" [style=solid, label=r1, tooltip="RAW: r1"];
+"0x2683" -> "0x2685" [style=solid, label=r2, tooltip="RAW: r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x2685" -> "0x2687" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

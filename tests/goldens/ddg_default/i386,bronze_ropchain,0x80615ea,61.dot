@@ -29,7 +29,7 @@ edge [fontname=monospace, fontsize=8];
 "0x8061602" -> "0x8061608" [style=solid, label=xmm3, tooltip="RAW: xmm3; WAW: xmm3"];
 "0x8061608" -> "0x806160d" [style=solid, label=xmm3, tooltip="RAW: xmm3; WAW: xmm3"];
 "0x8061608" -> "0x8061615" [style=dashed, label=edi, tooltip="WAR: edi"];
-"0x806160d" -> "0x8061611" [style=solid, label="216, xmm3", tooltip="RAW: 216, xmm3"];
+"0x806160d" -> "0x8061611" [style=solid, label="xmm3, xmm3[127:64]", tooltip="RAW: xmm3, xmm3[127:64]"];
 "0x8061611" -> "0x806161b" [style=solid, label=edx, tooltip="RAW: edx; WAW: edx"];
 "0x806161b" -> "0x8061621" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

@@ -7,5 +7,5 @@ edge [fontname=monospace, fontsize=8];
 "0x8004738a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004738a&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r3, %r6</TD></TR></TABLE> }>];
 "0x8004738e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004738e&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r2, %r7</TD></TR></TABLE> }>];
 "0x80047392" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80047392&#58;&nbsp;</TD><TD ALIGN="LEFT">brasl</TD><TD ALIGN="LEFT">%r14, 0x80018048</TD></TR></TABLE> }>];
-"0x80047382" -> "0x80047386" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760; WAR: r4"];
+"0x80047382" -> "0x80047386" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAR: r4"];
 }

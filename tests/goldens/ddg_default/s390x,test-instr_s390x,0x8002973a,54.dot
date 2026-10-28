@@ -14,7 +14,7 @@ edge [fontname=monospace, fontsize=8];
 "0x80029768" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80029768&#58;&nbsp;</TD><TD ALIGN="LEFT">lghi</TD><TD ALIGN="LEFT">%r3, 0</TD></TR></TABLE> }>];
 "0x8002976c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002976c&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r1, %r8</TD></TR></TABLE> }>];
 "0x8002973a" -> "0x80029744" [style=solid, label="r1_32", tooltip="RAW: r1_32; WAW: r1"];
-"0x8002973a" -> "0x8002974e" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8002973a" -> "0x8002974e" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x8002973e" -> "0x80029748" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
 "0x80029744" -> "0x8002974e" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0x80029748" -> "0x80029752" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];

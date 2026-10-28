@@ -9,12 +9,8 @@ edge [fontname=monospace, fontsize=8];
 "0xee89" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xee89&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r5, [r3]</TD></TR></TABLE> }>];
 "0xee8b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xee8b&#58;&nbsp;</TD><TD ALIGN="LEFT">bhi</TD><TD ALIGN="LEFT">&#35;0xeedd</TD></TR></TABLE> }>];
 "0xee7d" -> "0xee7f" [style=dashed, label=r3, tooltip="WAR: r3"];
-"0xee7d" -> "0xee7f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0xee7d" -> "0xee89" [style=dashed, label=r5, tooltip="WAR: r5"];
-"0xee7f" -> "0xee83" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
-"0xee83" -> "0xee87" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xee7f" -> "0xee83" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
 "0xee83" -> "0xee89" [style=solid, label=r3, tooltip="RAW: r3"];
-"0xee87" -> "0xee89" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0xee87" -> "0xee8b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
-"0xee89" -> "0xee8b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

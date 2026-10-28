@@ -8,5 +8,5 @@ edge [fontname=monospace, fontsize=8];
 "0x800462a4" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800462a4&#58;&nbsp;</TD><TD ALIGN="LEFT">locgrne</TD><TD ALIGN="LEFT">%r3, %r1</TD></TR></TABLE> }>];
 "0x80046292" -> "0x8004629e" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0x80046298" -> "0x800462a4" [style=dotted, label=r3, tooltip="WAW: r3"];
-"0x8004629e" -> "0x800462a4" [style=solid, label="736, 744, 752, 760, r1", tooltip="RAW: 736, 744, 752, 760, r1"];
+"0x8004629e" -> "0x800462a4" [style=solid, label="flags, r1", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r1"];
 }

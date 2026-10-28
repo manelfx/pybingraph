@@ -7,9 +7,6 @@ edge [fontname=monospace, fontsize=8];
 "0xdb4f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xdb4f&#58;&nbsp;</TD><TD ALIGN="LEFT">mov.w</TD><TD ALIGN="LEFT">r8, &#35;0</TD></TR></TABLE> }>];
 "0xdb53" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xdb53&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r2, &#35;9</TD></TR></TABLE> }>];
 "0xdb55" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xdb55&#58;&nbsp;</TD><TD ALIGN="LEFT">bhi.w</TD><TD ALIGN="LEFT">&#35;0xd783</TD></TR></TABLE> }>];
-"0xdb49" -> "0xdb4d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0xdb49" -> "0xdb53" [style=solid, label=r2, tooltip="RAW: r2"];
-"0xdb4d" -> "0xdb4f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0xdb4f" -> "0xdb53" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0xdb53" -> "0xdb55" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0xdb53" -> "0xdb55" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

@@ -7,6 +7,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8001208e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8001208e&#58;&nbsp;</TD><TD ALIGN="LEFT">sll</TD><TD ALIGN="LEFT">%r5, 1</TD></TR></TABLE> }>];
 "0x80012092" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80012092&#58;&nbsp;</TD><TD ALIGN="LEFT">j</TD><TD ALIGN="LEFT">0x80012014</TD></TR></TABLE> }>];
 "0x80012084" -> "0x8001208a" [style=dashed, label="r4_32", tooltip="WAR: r4_32"];
-"0x80012084" -> "0x8001208a" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x80012084" -> "0x8001208a" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x80012084" -> "0x8001208e" [style=solid, label="r5_32", tooltip="RAW: r5_32; WAW: r5_32"];
 }

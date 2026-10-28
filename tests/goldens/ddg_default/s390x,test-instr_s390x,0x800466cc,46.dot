@@ -15,7 +15,7 @@ edge [fontname=monospace, fontsize=8];
 "0x800466cc" -> "0x800466d4" [style=dashed, label="[<BV64 r3 + r2 + 0x8>]", tooltip="WAR: mem[<BV64 entry_r3 + entry_r2 + 0x8>]:4"];
 "0x800466d0" -> "0x800466d4" [style=solid, label="r1_32", tooltip="RAW: r1_32"];
 "0x800466d0" -> "0x800466d8" [style=dotted, label=r1, tooltip="WAW: r1"];
-"0x800466d0" -> "0x800466e4" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x800466d0" -> "0x800466e4" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x800466d4" -> "0x800466d8" [style=dashed, label=r1, tooltip="WAR: r1"];
 "0x800466d8" -> "0x800466de" [style=solid, label=r1, tooltip="RAW: r1"];
 "0x800466d8" -> "0x800466e4" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];

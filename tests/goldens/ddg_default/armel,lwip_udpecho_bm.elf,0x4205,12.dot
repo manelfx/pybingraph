@@ -6,7 +6,7 @@ edge [fontname=monospace, fontsize=8];
 "0x4207" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4207&#58;&nbsp;</TD><TD ALIGN="LEFT">and</TD><TD ALIGN="LEFT">r3, r3, &#35;0xf0</TD></TR></TABLE> }>];
 "0x420b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x420b&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0xe0</TD></TR></TABLE> }>];
 "0x420d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x420d&#58;&nbsp;</TD><TD ALIGN="LEFT">beq.w</TD><TD ALIGN="LEFT">&#35;0x453d</TD></TR></TABLE> }>];
-"0x4205" -> "0x4207" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
-"0x4207" -> "0x420b" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate"];
-"0x420b" -> "0x420d" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x4205" -> "0x4207" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x4207" -> "0x420b" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x420b" -> "0x420d" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

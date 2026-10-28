@@ -17,14 +17,14 @@ edge [fontname=monospace, fontsize=8];
 "0x800107e0" -> "0x80010800" [style=solid, label=r9, tooltip="RAW: r9"];
 "0x800107e6" -> "0x800107ec" [style=solid, label=r4, tooltip="RAW: r4"];
 "0x800107ec" -> "0x800107f2" [style=solid, label=r1, tooltip="RAW: r1"];
-"0x800107ec" -> "0x800107f6" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x800107ec" -> "0x800107f6" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x800107ec" -> "0x800107fc" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0x800107f2" -> "0x800107f6" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
 "0x800107f2" -> "0x800107fc" [style=dashed, label=r1, tooltip="WAR: r1"];
-"0x800107f6" -> "0x800107fc" [style=solid, label=r3, tooltip="RAW: r3; WAW: 736, 744, 752, 760"];
+"0x800107f6" -> "0x800107fc" [style=solid, label=r3, tooltip="RAW: r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x800107fc" -> "0x80010800" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
-"0x800107fc" -> "0x80010808" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x800107fc" -> "0x80010808" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x80010800" -> "0x80010804" [style=solid, label=r1, tooltip="RAW: r1"];
 "0x80010800" -> "0x80010808" [style=solid, label=r1, tooltip="RAW: r1"];
-"0x80010808" -> "0x8001080e" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x80010808" -> "0x8001080e" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

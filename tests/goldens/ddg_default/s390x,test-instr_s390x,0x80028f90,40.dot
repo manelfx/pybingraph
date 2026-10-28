@@ -18,5 +18,5 @@ edge [fontname=monospace, fontsize=8];
 "0x80028f9e" -> "0x80028fb4" [style=solid, label=r1, tooltip="RAW: r1"];
 "0x80028fa2" -> "0x80028fa8" [style=solid, label=r3, tooltip="RAW: r3"];
 "0x80028fa8" -> "0x80028fae" [style=dashed, label=r2, tooltip="WAR: r2"];
-"0x80028fae" -> "0x80028fb4" [style=solid, label=r2, tooltip="RAW: r2; WAW: 599"];
+"0x80028fae" -> "0x80028fb4" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2[7:0]"];
 }

@@ -13,7 +13,7 @@ edge [fontname=monospace, fontsize=8];
 "0x8006513c" -> "0x80065146" [style=dashed, label="r2_32", tooltip="WAR: r2_32"];
 "0x8006513c" -> "0x80065154" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0x80065142" -> "0x8006514a" [style=solid, label=r5, tooltip="RAW: r5; WAW: r5"];
-"0x80065146" -> "0x80065154" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x80065146" -> "0x80065154" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x8006514a" -> "0x80065154" [style=solid, label=r5, tooltip="RAW: r5"];
 "0x8006514a" -> "0x8006515a" [style=solid, label=r5, tooltip="RAW: r5"];
 "0x80065154" -> "0x8006515a" [style=solid, label=r1, tooltip="RAW: r1; WAR: mem[<BV64 entry_r15 + (SignExt(32, entry_r0[31:0]) << 0x3) + 0x130>]:8"];

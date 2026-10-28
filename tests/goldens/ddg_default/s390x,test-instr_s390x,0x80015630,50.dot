@@ -18,5 +18,5 @@ edge [fontname=monospace, fontsize=8];
 "0x80015642" -> "0x80015652" [style=dotted, label=r1, tooltip="WAW: r1"];
 "0x80015648" -> "0x80015652" [style=dashed, label=r1, tooltip="WAR: r1"];
 "0x80015652" -> "0x80015658" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1_32"];
-"0x80015658" -> "0x8001565e" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x80015658" -> "0x8001565e" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

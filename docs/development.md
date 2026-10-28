@@ -38,6 +38,11 @@ change when moving modules or changing their responsibilities.
   namespaces. `ddg/memory.py` handles conservative byte-range
   aliases; `ddg/builder.py` computes RAW/WAR/WAW ordering. Neither discovers
   blocks or follows callees.
+  Instruction-internal VEX self-loops replay only concrete guards within a
+  fixed iteration budget, using the same evaluator. Completed memory accesses
+  merge only across proven contiguous ranges; symbolic/multi-exit loops fail
+  rather than silently exposing partial effects. VEX restart counters are
+  internal state, not architectural dependency resources.
 - `ddg/render.py` adapts immutable cached analysis records to one-instruction
   CFG nodes and the existing `Vis`/`NodeAsm`/`DotOutput` pipeline. DDG edge styles
   describe dependency kinds, not CFG branch outcomes. Real CFG blocks receive
@@ -50,6 +55,12 @@ byte ranges, including widened architectural writes. Memory roots are symbolic
 and versioned; different pointer registers never imply disjointness. Unsupported stateful IR
 must fail explicitly. Keep external block inputs implicit (no synthetic input
 nodes), and never connect independent instructions just to simplify layout.
+DDG register captions retain Archinfo aliases, then use PyVEX field names or
+endianness-aware slices of declared parent registers. Unmapped slots show their
+guest offset and byte width explicitly; naming never changes resource bounds.
+Inactive Thumb IT-state resets are omitted only when the entire requested block
+has no consumed IT-state reads and all writes to that field are full-width zero
+resets. Incoming, active, symbolic or partial IT-state effects remain intact.
 
 Memory policy selects edges, not alias facts: `may` retains unknown relations,
 whereas default `must` omits them. Do not use that omission to infer pointer

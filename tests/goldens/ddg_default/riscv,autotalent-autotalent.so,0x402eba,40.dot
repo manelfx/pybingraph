@@ -12,12 +12,12 @@ edge [fontname=monospace, fontsize=8];
 "0x402ed6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402ed6&#58;&nbsp;</TD><TD ALIGN="LEFT">fsd</TD><TD ALIGN="LEFT">fs11, 0x1e8(s0)</TD></TR></TABLE> }>];
 "0x402eda" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402eda&#58;&nbsp;</TD><TD ALIGN="LEFT">fcvt.l.d</TD><TD ALIGN="LEFT">ra, fa2, rtz</TD></TR></TABLE> }>];
 "0x402ede" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402ede&#58;&nbsp;</TD><TD ALIGN="LEFT">blt</TD><TD ALIGN="LEFT">ra, s3, 6</TD></TR></TABLE> }>];
-"0x402eba" -> "0x402ec2" [style=solid, label=536, tooltip="RAW: 536; WAW: 536"];
+"0x402eba" -> "0x402ec2" [style=solid, label="guest[0x218:4]", tooltip="RAW: guest[0x218:4]; WAW: guest[0x218:4]"];
 "0x402eba" -> "0x402ec6" [style=solid, label=fa7, tooltip="RAW: fa7"];
 "0x402ebe" -> "0x402ed2" [style=solid, label=ft9, tooltip="RAW: ft9"];
-"0x402ec2" -> "0x402ed2" [style=solid, label=536, tooltip="RAW: 536; WAW: 536"];
+"0x402ec2" -> "0x402ed2" [style=solid, label="guest[0x218:4]", tooltip="RAW: guest[0x218:4]; WAW: guest[0x218:4]"];
 "0x402ec2" -> "0x402ed6" [style=solid, label=fs11, tooltip="RAW: fs11"];
 "0x402ec6" -> "0x402ed2" [style=solid, label=fa0, tooltip="RAW: fa0"];
-"0x402ed2" -> "0x402eda" [style=solid, label="536, fa2", tooltip="RAW: 536, fa2; WAW: 536"];
+"0x402ed2" -> "0x402eda" [style=solid, label="fa2, guest[0x218:4]", tooltip="RAW: fa2, guest[0x218:4]; WAW: guest[0x218:4]"];
 "0x402eda" -> "0x402ede" [style=solid, label=ra, tooltip="RAW: ra"];
 }

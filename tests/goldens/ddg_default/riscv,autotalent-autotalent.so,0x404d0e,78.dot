@@ -38,13 +38,13 @@ edge [fontname=monospace, fontsize=8];
 "0x404d26" -> "0x404d44" [style=solid, label=fa5, tooltip="RAW: fa5"];
 "0x404d2a" -> "0x404d36" [style=solid, label=ra, tooltip="RAW: ra"];
 "0x404d2a" -> "0x404d58" [style=solid, label=ra, tooltip="RAW: ra"];
-"0x404d2e" -> "0x404d32" [style=solid, label=536, tooltip="RAW: 536; WAW: 536"];
+"0x404d2e" -> "0x404d32" [style=solid, label="guest[0x218:4]", tooltip="RAW: guest[0x218:4]; WAW: guest[0x218:4]"];
 "0x404d2e" -> "0x404d40" [style=solid, label=fa3, tooltip="RAW: fa3"];
-"0x404d32" -> "0x404d40" [style=solid, label=536, tooltip="RAW: 536; WAW: 536"];
+"0x404d32" -> "0x404d40" [style=solid, label="guest[0x218:4]", tooltip="RAW: guest[0x218:4]; WAW: guest[0x218:4]"];
 "0x404d32" -> "0x404d44" [style=solid, label=ft0, tooltip="RAW: ft0"];
 "0x404d36" -> "0x404d3c" [style=solid, label=a0, tooltip="RAW: a0"];
 "0x404d3a" -> "0x404d58" [style=solid, label=a3, tooltip="RAW: a3"];
-"0x404d40" -> "0x404d44" [style=solid, label=536, tooltip="RAW: 536; WAW: 536"];
+"0x404d40" -> "0x404d44" [style=solid, label="guest[0x218:4]", tooltip="RAW: guest[0x218:4]; WAW: guest[0x218:4]"];
 "0x404d40" -> "0x404d50" [style=solid, label=ft1, tooltip="RAW: ft1"];
 "0x404d44" -> "0x404d54" [style=solid, label=ft2, tooltip="RAW: ft2"];
 }

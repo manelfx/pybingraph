@@ -46,6 +46,154 @@ def test_flags_cross_instruction_temporaries():
     assert (0, 1, "RAW") in kinds(analyze("39d80f94c1"))  # cmp eax,ebx; sete cl
 
 
+@pytest.mark.parametrize(
+    "architecture,offset,width,expected",
+    [
+        ("amd64", 16, 4, "eax"),
+        ("amd64", 17, 1, "ah"),
+        ("x86", 168, 8, "xmm0[127:64]"),
+        ("s390x", 583, 1, "r0[7:0]"),
+        ("s390x", 590, 1, "r1[15:8]"),
+        ("s390x", 736, 8, "cc_op"),
+        ("s390x", 744, 8, "cc_dep1"),
+        ("riscv64", 284, 4, "ft0[63:32]"),
+        ("riscv64", 536, 4, "guest[0x218:4]"),
+        # A range crossing the end of xmm7 must not be called a slice of xmm7.
+        ("x86", 284, 8, "guest[0x11c:8]"),
+    ],
+)
+def test_numeric_register_labels_use_metadata_and_endian_slices(
+    architecture, offset, width, expected
+):
+    from archinfo import arch_from_id
+    from bingraph.ddg.effects import _register_label
+
+    assert _register_label(arch_from_id(architecture), offset, width) == expected
+
+
+def test_register_naming_does_not_change_effects_or_dependency_topology(monkeypatch):
+    from bingraph.ddg import effects
+    from bingraph.helpers.disassembly import decode_raw_capstone_insns
+
+    # movdqa xmm0,xmm1; pmovmskb eax,xmm0 reads the unnamed upper 64-bit slice.
+    code = bytes.fromhex("660f6fc1660fd7c0")
+    project = angr.load_shellcode(code, arch="x86", load_address=0x1000)
+    insns = decode_raw_capstone_insns(project, 0x1000, len(code))
+    named = effects.instruction_effects(project, insns, len(code))
+    graph = get_ddg(project, 0x1000, len(code))
+    monkeypatch.setattr(
+        effects,
+        "_register_label",
+        lambda arch, offset, width: arch.translate_register_name(offset, width),
+    )
+    original = effects.instruction_effects(project, insns, len(code))
+    # A different cache key gets a fresh graph without clearing shared caches.
+    before = get_ddg(project, 0x1000, len(code), "may")
+    assert kinds(graph) == kinds(before)
+    assert any("xmm0[127:64]" in edge.resources for edge in graph.dependencies)
+
+    def identity(resource):
+        return resource.kind, resource.offset, resource.size, resource.address
+
+    for left, right in zip(named, original, strict=True):
+        for attribute in ("reads", "writes"):
+            assert list(map(identity, getattr(left, attribute))) == list(
+                map(identity, getattr(right, attribute))
+            )
+
+
+@pytest.mark.parametrize(
+    "opcode,width,reads",
+    [("d2", 8, 1), ("d2", 256, 1), ("d7", 80, 0), ("d7", 81, 0), ("d6", 2, 2)],
+)
+def test_instruction_loops_cover_complete_memory_ranges(opcode, width, reads):
+    from bingraph.ddg.effects import instruction_effects
+    from bingraph.helpers.disassembly import decode_raw_capstone_insns
+    from pyvex.vex_ffi import guest_offsets
+
+    # MVC copies, XC self-zeros, and OC reads/modifies memory. VEX implements
+    # them with different strides and even two subfields of a restart counter.
+    source = "f0f8" if opcode == "d7" else "1028"
+    code = bytes.fromhex(f"{opcode}{width - 1:02x}f0f8{source}")
+    project = angr.load_shellcode(code, arch="s390x", load_address=0x1000)
+    insns = decode_raw_capstone_insns(project, 0x1000, len(code))
+    effect = instruction_effects(project, insns, len(code))[0]
+    assert [r.size for r in effect.reads if r.kind == "memory"] == [width] * reads
+    assert [r.size for r in effect.writes if r.kind == "memory"] == [width]
+    counter = guest_offsets["s390x", "counter"]
+    assert not any(
+        r.kind == "register" and counter <= r.offset < counter + 8
+        for r in effect.reads + effect.writes
+    )
+
+
+@pytest.mark.parametrize(
+    "code,expected",
+    [
+        # Store to the final source byte, MVC eight bytes, then read final dest byte.
+        ("4220102fd207f0f810284330f0ff", {(0, 1, "RAW"), (1, 2, "RAW")}),
+        # A fully overwritten store must not remain a producer of the last byte.
+        ("e320f0f80024d207f0f810284330f0ff", {(0, 1, "WAW"), (1, 2, "RAW")}),
+        # XC clears 80 bytes, not just the first 8-byte VEX store.
+        ("d74ff0a8f0a84320f0f7", {(0, 1, "RAW")}),
+    ],
+)
+def test_instruction_loops_recover_last_byte_dependencies(code, expected):
+    data = bytes.fromhex(code)
+    project = angr.load_shellcode(data, arch="s390x", load_address=0x1000)
+    assert kinds(get_ddg(project, 0x1000, len(data))) == expected
+
+
+@pytest.mark.parametrize("failure", ["budget", "symbolic", "multiple exits"])
+def test_instruction_loops_fail_instead_of_returning_partial_effects(
+    monkeypatch, failure
+):
+    import pyvex
+    from types import SimpleNamespace
+    from bingraph.ddg import effects
+
+    code = bytes.fromhex("d207f0f81028")
+    project = angr.load_shellcode(code, arch="s390x", load_address=0x1000)
+    if failure == "budget":
+        monkeypatch.setattr(effects, "MAX_INSTRUCTION_ITERATIONS", 1)
+    else:
+        vex = project.factory.block(
+            0x1000,
+            size=len(code),
+            opt_level=0,
+            cross_insn_opt=False,
+            strict_block_end=True,
+        ).vex
+        loop = next(s for s in vex.statements if isinstance(s, pyvex.stmt.Exit))
+        if failure == "symbolic":
+            loop.guard = pyvex.expr.Binop(
+                "Iop_CmpNE64",
+                [
+                    pyvex.expr.Get(project.arch.registers["r2"][0], "Ity_I64"),
+                    pyvex.expr.Const(pyvex.const.U64(0)),
+                ],
+            )
+        else:
+            vex.statements.insert(
+                1,
+                pyvex.stmt.Exit(
+                    pyvex.expr.Const(pyvex.const.U1(0)),
+                    pyvex.const.U64(0x1006),
+                    "Ijk_Boring",
+                    project.arch.ip_offset,
+                ),
+            )
+        monkeypatch.setattr(
+            project.factory, "block", lambda *a, **k: SimpleNamespace(vex=vex)
+        )
+    with pytest.raises(ValueError, match="instruction-internal loop"):
+        get_ddg(project, 0x1000, len(code))
+
+
+def test_architectural_self_branch_is_not_replayed():
+    assert len(analyze("90ebfe").instructions) == 2  # nop; jmp to itself
+
+
 @pytest.mark.parametrize("adc,producer", [("0000a0e0", 0), ("0000b0e0", 1)])
 def test_arm_conditions_use_the_actual_flag_writer(adc, producer):
     # cmp r3,r1,lsl #31; adc/adcs r0,r0,r0; subhs r3,r3,r1,lsl #31.
@@ -148,6 +296,69 @@ def test_constant_guarded_thumb_loads_keep_their_memory_width(code, width):
     graph = get_ddg(project, 0x1001, 6)
     reads = instruction_effects(project, graph.instructions, 6)[-1].reads
     assert [r.size for r in reads if r.kind == "memory"] == [width]
+
+
+@pytest.mark.parametrize(
+    "prefix,code,keep_itstate",
+    [
+        ("00bf" * 9, "012002210332", False),  # Proven outside any IT region.
+        ("", "012002210332", True),  # Incoming IT state is unknown.
+        ("00bf" * 9, "08bf014600220132", True),  # IT EQ; conditional MOV.
+        ("00bf" * 9, "0120022108bf", True),  # IT starts at the end of the block.
+    ],
+)
+def test_only_proven_reset_only_itstate_is_omitted(prefix, code, keep_itstate):
+    from bingraph.ddg.effects import instruction_effects
+
+    data = bytes.fromhex(code)
+    project = angr.load_shellcode(
+        bytes.fromhex(prefix) + data, arch="armel", load_address=0x1000
+    )
+    address = (0x1000 + len(bytes.fromhex(prefix))) | 1
+    graph = get_ddg(project, address, len(data))
+    effects = instruction_effects(project, graph.instructions, len(data))
+    assert (
+        any(r.label == "itstate" for e in effects for r in e.reads + e.writes)
+        == keep_itstate
+    )
+    if not keep_itstate:
+        # MOVS still overwrites real flags; removing bookkeeping must not
+        # discard output dependencies on architectural condition codes.
+        assert any(
+            d.kind == "WAW" and "cc_op" in d.resources for d in graph.dependencies
+        )
+    elif prefix == "" or code.startswith("08bf"):
+        assert any(
+            d.kind == "RAW" and "itstate" in d.resources for d in graph.dependencies
+        )
+
+
+@pytest.mark.parametrize("partial", [False, True])
+def test_symbolic_or_partial_itstate_writes_prevent_reset_filter(monkeypatch, partial):
+    from types import SimpleNamespace
+    import pyvex
+    from bingraph.ddg.effects import instruction_effects
+
+    project = angr.load_shellcode(
+        bytes.fromhex("00bf" * 9 + "01200221"), arch="armel", load_address=0x1000
+    )
+    address, size = 0x1013, 4
+    block = project.factory.block(
+        address, size=size, opt_level=0, cross_insn_opt=False, strict_block_end=True
+    )
+    offset, _ = project.arch.registers["itstate"]
+    value = (
+        pyvex.expr.Const(pyvex.const.U8(0))
+        if partial
+        else pyvex.expr.Get(project.arch.registers["r0"][0], "Ity_I32")
+    )
+    block.vex.statements.append(pyvex.stmt.Put(value, offset + int(partial)))
+    monkeypatch.setattr(
+        project.factory, "block", lambda *a, **k: SimpleNamespace(vex=block.vex)
+    )
+    graph = get_ddg(project, address, size)
+    effects = instruction_effects(project, graph.instructions, size)
+    assert all(any(r.label == "itstate" for r in e.writes) for e in effects)
 
 
 def test_dependencies_span_lifter_instruction_limits():

@@ -28,6 +28,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8006ac4e" -> "0x8006ac5a" [style=solid, label=r14, tooltip="RAW: r14"];
 "0x8006ac4e" -> "0x8006ac5e" [style=solid, label=r14, tooltip="RAW: r14"];
 "0x8006ac4e" -> "0x8006ac62" [style=solid, label=r14, tooltip="RAW: r14"];
-"0x8006ac4e" -> "0x8006ac70" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
-"0x8006ac70" -> "0x8006ac76" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x8006ac4e" -> "0x8006ac70" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8006ac70" -> "0x8006ac76" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

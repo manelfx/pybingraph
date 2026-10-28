@@ -9,12 +9,12 @@ edge [fontname=monospace, fontsize=8];
 "0xd0d5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd0d5&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r0, r3</TD></TR></TABLE> }>];
 "0xd0d7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd0d7&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">ip, r0</TD></TR></TABLE> }>];
 "0xd0d9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xd0d9&#58;&nbsp;</TD><TD ALIGN="LEFT">bls</TD><TD ALIGN="LEFT">&#35;0xd0e5</TD></TR></TABLE> }>];
-"0xd0cb" -> "0xd0cd" [style=solid, label=r3, tooltip="RAW: r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate, r3"];
-"0xd0cd" -> "0xd0cf" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
+"0xd0cb" -> "0xd0cd" [style=solid, label=r3, tooltip="RAW: r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r3"];
+"0xd0cd" -> "0xd0cf" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
 "0xd0cd" -> "0xd0d3" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
-"0xd0cf" -> "0xd0d3" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
-"0xd0d3" -> "0xd0d5" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate"];
+"0xd0cf" -> "0xd0d3" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0xd0d3" -> "0xd0d5" [style=solid, label=r3, tooltip="RAW: r3"];
 "0xd0d3" -> "0xd0d7" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
-"0xd0d5" -> "0xd0d7" [style=solid, label=r0, tooltip="RAW: r0; WAW: itstate"];
-"0xd0d7" -> "0xd0d9" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0xd0d5" -> "0xd0d7" [style=solid, label=r0, tooltip="RAW: r0"];
+"0xd0d7" -> "0xd0d9" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

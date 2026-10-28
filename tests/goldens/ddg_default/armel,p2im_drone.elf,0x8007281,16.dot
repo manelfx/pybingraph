@@ -9,12 +9,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8007289" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8007289&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r4</TD></TR></TABLE> }>];
 "0x800728b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800728b&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r5</TD></TR></TABLE> }>];
 "0x800728d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x800728d&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x800016d</TD></TR></TABLE> }>];
-"0x8007281" -> "0x8007283" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x8007283" -> "0x8007285" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x8007283" -> "0x8007289" [style=dashed, label=r0, tooltip="WAR: r0"];
-"0x8007285" -> "0x8007287" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x8007285" -> "0x800728b" [style=dashed, label=r1, tooltip="WAR: r1"];
-"0x8007287" -> "0x8007289" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x8007289" -> "0x800728b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x800728b" -> "0x800728d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

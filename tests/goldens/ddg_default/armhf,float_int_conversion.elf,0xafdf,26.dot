@@ -9,13 +9,9 @@ edge [fontname=monospace, fontsize=8];
 "0xafef" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafef&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r0, [r3]</TD></TR></TABLE> }>];
 "0xaff1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xaff1&#58;&nbsp;</TD><TD ALIGN="LEFT">pop.w</TD><TD ALIGN="LEFT">&#123;r3, r4, r5, lr&#125;</TD></TR></TABLE> }>];
 "0xaff5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xaff5&#58;&nbsp;</TD><TD ALIGN="LEFT">b.w</TD><TD ALIGN="LEFT">&#35;0xb821</TD></TR></TABLE> }>];
-"0xafdf" -> "0xafe3" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
-"0xafe3" -> "0xafe7" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xafdf" -> "0xafe3" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
 "0xafe3" -> "0xafef" [style=solid, label=r3, tooltip="RAW: r3"];
 "0xafe3" -> "0xaff1" [style=dotted, label=r3, tooltip="WAW: r3"];
-"0xafe7" -> "0xafeb" [style=solid, label=r1, tooltip="RAW: r1; WAW: itstate, r1"];
-"0xafeb" -> "0xafef" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0xafe7" -> "0xafeb" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0xafef" -> "0xaff1" [style=dashed, label=r3, tooltip="WAR: r3"];
-"0xafef" -> "0xaff1" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0xaff1" -> "0xaff5" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

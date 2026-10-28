@@ -10,7 +10,7 @@ edge [fontname=monospace, fontsize=8];
 "0x8001ee7c" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8001ee7c&#58;&nbsp;</TD><TD ALIGN="LEFT">sllg</TD><TD ALIGN="LEFT">%r1, %r1, 4</TD></TR></TABLE> }>];
 "0x8001ee82" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8001ee82&#58;&nbsp;</TD><TD ALIGN="LEFT">lgr</TD><TD ALIGN="LEFT">%r2, %r8</TD></TR></TABLE> }>];
 "0x8001ee64" -> "0x8001ee6a" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
-"0x8001ee64" -> "0x8001ee6e" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8001ee64" -> "0x8001ee6e" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x8001ee64" -> "0x8001ee74" [style=dashed, label=r10, tooltip="WAR: r10"];
 "0x8001ee64" -> "0x8001ee82" [style=dotted, label=r2, tooltip="WAW: r2"];
 "0x8001ee6a" -> "0x8001ee82" [style=solid, label=r8, tooltip="RAW: r8; WAR: r2"];

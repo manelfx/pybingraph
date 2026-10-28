@@ -7,10 +7,8 @@ edge [fontname=monospace, fontsize=8];
 "0x80032f9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80032f9&#58;&nbsp;</TD><TD ALIGN="LEFT">subs</TD><TD ALIGN="LEFT">r7, r7, r2</TD></TR></TABLE> }>];
 "0x80032fb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80032fb&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0</TD></TR></TABLE> }>];
 "0x80032fd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80032fd&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">&#35;0x80033a7</TD></TR></TABLE> }>];
-"0x80032f5" -> "0x80032f7" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x80032f5" -> "0x80032f9" [style=solid, label=r2, tooltip="RAW: r2"];
-"0x80032f7" -> "0x80032f9" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x80032f7" -> "0x80032fb" [style=solid, label=r3, tooltip="RAW: r3"];
-"0x80032f9" -> "0x80032fb" [style=dotted, label="flags, itstate", tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
-"0x80032fb" -> "0x80032fd" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x80032f9" -> "0x80032fb" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x80032fb" -> "0x80032fd" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

@@ -6,9 +6,6 @@ edge [fontname=monospace, fontsize=8];
 "0xafc5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafc5&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r5</TD></TR></TABLE> }>];
 "0xafc7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafc7&#58;&nbsp;</TD><TD ALIGN="LEFT">pop.w</TD><TD ALIGN="LEFT">&#123;r3, r4, r5, lr&#125;</TD></TR></TABLE> }>];
 "0xafcb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xafcb&#58;&nbsp;</TD><TD ALIGN="LEFT">b.w</TD><TD ALIGN="LEFT">&#35;0xae29</TD></TR></TABLE> }>];
-"0xafc3" -> "0xafc5" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0xafc3" -> "0xafc7" [style=dashed, label=r4, tooltip="WAR: r4"];
 "0xafc5" -> "0xafc7" [style=dashed, label=r5, tooltip="WAR: r5"];
-"0xafc5" -> "0xafc7" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0xafc7" -> "0xafcb" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

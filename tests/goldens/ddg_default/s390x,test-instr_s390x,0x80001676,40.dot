@@ -14,8 +14,8 @@ edge [fontname=monospace, fontsize=8];
 "0x8000167c" -> "0x80001682" [style=solid, label=r0, tooltip="RAW: r0"];
 "0x80001682" -> "0x80001686" [style=solid, label=r5, tooltip="RAW: r5; WAW: r5_32"];
 "0x80001686" -> "0x8000168a" [style=solid, label="r5_32", tooltip="RAW: r5_32"];
-"0x80001686" -> "0x8000168e" [style=dotted, label="620, 621, 622, 623", tooltip="WAW: 620, 621, 622, 623"];
-"0x8000168a" -> "0x8000168e" [style=solid, label="[r11+0xd0]", tooltip="RAW: mem[entry_r11+0xd0]:4; WAR: 620, 621, 622, 623"];
+"0x80001686" -> "0x8000168e" [style=dotted, label="r5[15:8], r5[23:16], r5[31:24], r5[7:0]", tooltip="WAW: r5[15:8], r5[23:16], r5[31:24], r5[7:0]"];
+"0x8000168a" -> "0x8000168e" [style=solid, label="[r11+0xd0]", tooltip="RAW: mem[entry_r11+0xd0]:4; WAR: r5[15:8], r5[23:16], r5[31:24], r5[7:0]"];
 "0x8000168e" -> "0x80001698" [style=solid, label="r5_32", tooltip="RAW: r5_32"];
 "0x80001694" -> "0x80001698" [style=solid, label="r7_32", tooltip="RAW: r7_32"];
 }

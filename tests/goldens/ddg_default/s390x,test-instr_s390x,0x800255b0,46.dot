@@ -14,14 +14,14 @@ edge [fontname=monospace, fontsize=8];
 "0x800255b0" -> "0x800255b6" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0x800255b6" -> "0x800255ba" [style=solid, label=r1, tooltip="RAW: r1"];
 "0x800255b6" -> "0x800255c0" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
-"0x800255b6" -> "0x800255c6" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x800255b6" -> "0x800255c6" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x800255ba" -> "0x800255c0" [style=dashed, label=r1, tooltip="WAR: r1"];
 "0x800255ba" -> "0x800255c6" [style=solid, label=r10, tooltip="RAW: r10; WAW: r10"];
 "0x800255c0" -> "0x800255c6" [style=solid, label=r1, tooltip="RAW: r1"];
 "0x800255c0" -> "0x800255ca" [style=dotted, label=r1, tooltip="WAW: r1"];
 "0x800255c6" -> "0x800255ca" [style=dashed, label=r1, tooltip="WAR: r1"];
-"0x800255c6" -> "0x800255d0" [style=solid, label=r10, tooltip="RAW: r10; WAW: 736, 744, 752, 760"];
+"0x800255c6" -> "0x800255d0" [style=solid, label=r10, tooltip="RAW: r10; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x800255ca" -> "0x800255d0" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
-"0x800255d0" -> "0x800255d4" [style=solid, label=r1, tooltip="RAW: r1; WAW: 736, 744, 752, 760"];
-"0x800255d4" -> "0x800255da" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x800255d0" -> "0x800255d4" [style=solid, label=r1, tooltip="RAW: r1; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x800255d4" -> "0x800255da" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

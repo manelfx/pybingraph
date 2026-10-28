@@ -9,13 +9,11 @@ edge [fontname=monospace, fontsize=8];
 "0x4016d1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4016d1&#58;&nbsp;</TD><TD ALIGN="LEFT">lsr.w</TD><TD ALIGN="LEFT">r2, r2, &#35;6</TD></TR></TABLE> }>];
 "0x4016d5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4016d5&#58;&nbsp;</TD><TD ALIGN="LEFT">mls</TD><TD ALIGN="LEFT">r2, lr, r2, r0</TD></TR></TABLE> }>];
 "0x4016d9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4016d9&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">&#35;0x4016b9</TD></TR></TABLE> }>];
-"0x4016c5" -> "0x4016c7" [style=dotted, label="flags, itstate", tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+"0x4016c5" -> "0x4016c7" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x4016c5" -> "0x4016c9" [style=solid, label=r0, tooltip="RAW: r0; WAR: r2"];
 "0x4016c5" -> "0x4016d5" [style=solid, label=r0, tooltip="RAW: r0"];
-"0x4016c7" -> "0x4016c9" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x4016c7" -> "0x4016d9" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
-"0x4016c9" -> "0x4016cd" [style=solid, label=r2, tooltip="RAW: r2; WAW: itstate, r2"];
-"0x4016cd" -> "0x4016d1" [style=solid, label=r2, tooltip="RAW: r2; WAW: itstate, r2"];
-"0x4016d1" -> "0x4016d5" [style=solid, label=r2, tooltip="RAW: r2; WAW: itstate, r2"];
-"0x4016d5" -> "0x4016d9" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4016c9" -> "0x4016cd" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
+"0x4016cd" -> "0x4016d1" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
+"0x4016d1" -> "0x4016d5" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
 }

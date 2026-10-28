@@ -6,18 +6,24 @@
 
 `pybingraph` is a binary-inspection service and library built on
 [angr](https://angr.io/). It reads function symbols from a binary and renders
-per-function control-flow graphs (CFGs) as SVG or DOT.
+per-function control-flow graphs (CFGs) and basic-block data-dependency graphs
+(DDGs) as SVG or DOT.
 
 Supported binary formats include ELF executables, shared libraries and
 relocatable objects, and Windows PE executables and DLLs. The corpus covers
 x86/x86-64, ARM/Thumb/AArch64, MIPS, PowerPC, RISC-V and s390x. Instruction
-decoding and indirect-transfer proofs depend on the architecture and binary;
-not every format/architecture combination has the same analysis coverage.
+decoding, control-flow proofs and dependency analysis depend on the architecture
+and binary; not every format/architecture combination has the same analysis coverage.
 
 The default `custom` strategy constructs a function-bounded CFG directly from
 Capstone decoding and VEX control-flow proofs, without a `CFGFast` seed graph.
 It resolves proven indirect transfers, recovers ELF exception paths, and keeps
 unresolved targets and additionally discovered code explicit.
+
+DDGs show dependencies between individual instructions, including register,
+condition-code and memory resources. They analyze a supplied block address and
+byte size independently of CFG discovery. Open a DDG directly or click a basic
+block in a CFG; memory policy and dependency-kind filters control the edges shown.
 
 ## CFG Examples
 
@@ -35,7 +41,6 @@ inspect the full-size SVG.
 
 TODOs for this library are:
 - Render call graph (CG) of all functions in a binary.
-- Render data dependency graph (DDG) for instructions in a basic block.
 - Graph coloring from execution counts, after adding support for profile information.
 
 ## Requirements
@@ -121,7 +126,7 @@ uv sync --extra dev
 
 ### Playground binaries
 
-The optional playground corpus is used by unit tests, golden CFG tests and the
+The optional playground corpus is used by unit tests, golden CFG/DDG tests and the
 examples below. Fetch it with:
 
 ```bash
@@ -153,11 +158,12 @@ Start the local web server:
 uv run bingraph --root ./angr-binaries/tests server
 ```
 
-Then open a symbol table or CFG in a browser:
+Then open a symbol table, CFG or DDG in a browser:
 
 ```text
 http://127.0.0.1:8000/symtab?filepath=samples/ais3_crackme
 http://127.0.0.1:8000/cfg?filepath=samples/ais3_crackme&function=0x40043c
+http://127.0.0.1:8000/ddg?filepath=x86_64/switch&address=0x400544&size=34
 ```
 
 Useful server options include `--port`, `--debug`, `--no-comments`, and
@@ -194,8 +200,9 @@ JSON.
 | `GET /ddg?filepath=<path>&address=<addr>&size=<bytes>` | SVG block-local DDG |
 | `GET /api/ddg?filepath=<path>&address=<addr>&size=<bytes>&format=dot` | `{"graph": "..."}` DDG response |
 
-`function` accepts either decimal or `0x`-prefixed hexadecimal addresses. CFG
-JSON responses support `format=svg|dot|raw|xdot`; `raw` is unprocessed DOT,
+`function` and `address` accept either decimal or `0x`-prefixed hexadecimal
+addresses; DDG `size` is a byte count. Both graph JSON routes support
+`format=svg|dot|raw|xdot`; `raw` is unprocessed DOT,
 `dot` runs Graphviz's DOT output backend, and `xdot` includes drawing metadata.
 Binary formats such as PNG/PDF are not supported by the string-returning API.
 
@@ -208,16 +215,19 @@ the global setting for that request. Symbol-table links retain this override.
 
 ### Instruction Dependencies
 
-Click a real basic block in a CFG to open its DDG in the current tab. DDGs analyze
-only the supplied start address and byte size, without discovering a CFG or executing
-callees. Each node is one instruction; independent instructions remain visible.
+Click a real basic block in a CFG to open its DDG in the current tab, or request
+one directly without a function symbol. DDGs analyze only the supplied start
+address and byte size, without discovering a CFG or executing callees. For Thumb,
+retain the address's low-bit mode tag (an odd address). Each node is one
+instruction; independent instructions remain visible. Edges follow instruction
+order, so the graph is acyclic.
 Edges are labeled with resources: solid **RAW** (read after write), dashed **WAR**
 (write after read), and dotted **WAW** (write after write). If a RAW edge is
 visible, parallel WAR/WAW edges are folded into its tooltip: they impose the
 same instruction ordering. Without RAW selected, those edges remain visible.
 All dependency kinds are retained in analysis. Register aliases and implicit
-VEX effects are included; `flags` groups VEX's lazy condition-code fields, whose
-individual names remain in the tooltip. This is conservative flag-state
+instruction effects are included; `flags` groups VEX's lazy condition-code
+fields, whose individual names remain in the tooltip. This is conservative flag-state
 tracking, not individual-bit dependency analysis.
 Calls show their local instruction effects, not inferred callee behavior or
 argument consumption.
@@ -229,7 +239,7 @@ The global default is controlled by `--ddg-dependencies` or
 Filtering changes only displayed edges, retaining all instruction nodes and
 the complete cached dependency analysis.
 
-Memory-edge policies are:
+The `memory` query parameter selects a memory-edge policy:
 
 - `always`: retain conservative constraints, even for proven disjoint ranges.
 - `may`: omit proven disjoint ranges, but retain possible aliases.
@@ -296,9 +306,11 @@ instruction counts.
 The [Makefile](https://github.com/manelfx/pybingraph/blob/main/Makefile) wraps the standard development commands:
 
 ```bash
-make                 # fast unit tests
-make format          # rewrite source and tests with Ruff formatting
-make check           # formatting, linting, type checking, and unit tests
+make                    # fast unit tests
+make format             # rewrite source and tests with Ruff formatting
+make check              # formatting, linting, type checking, and unit tests
+make goldens-checkpoint  # selected CFG functions and DDG blocks
+make goldens             # full CFG, DDG, and function-symbol regression suites
 ```
 
 The commands behind `make check` are also available independently:
@@ -313,6 +325,8 @@ make coverage
 
 `make coverage` runs both unit tests and curated golden checkpoints, prints a
 terminal summary, and writes a browsable report to `htmlcov/index.html`.
+See the [testing guide](docs/testing.md) for separate CFG/DDG targets and
+configuration selection.
 
 ## License
 
@@ -331,7 +345,6 @@ If startup reports:
 angr.state_plugins.unicorn_engine | failed loading "unicornlib.dylib"
 ```
 
-Unicorn is an optional angr acceleration dependency. The bounded `CFGFast` and
-custom CFG workflows used by Bingraph still work without it. Install a
-compatible Unicorn build only if you specifically need Unicorn-backed symbolic
-execution.
+Unicorn is an optional angr acceleration dependency. Bingraph's CFG and DDG
+analysis workflows do not require it. Install a compatible Unicorn build only
+if you specifically need Unicorn-backed symbolic execution.

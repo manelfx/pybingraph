@@ -8,11 +8,9 @@ edge [fontname=monospace, fontsize=8];
 "0x4018c5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4018c5&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr.w</TD><TD ALIGN="LEFT">r3, [r5, r2, lsl &#35;2]</TD></TR></TABLE> }>];
 "0x4018c9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4018c9&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r3, &#35;0</TD></TR></TABLE> }>];
 "0x4018cb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4018cb&#58;&nbsp;</TD><TD ALIGN="LEFT">beq</TD><TD ALIGN="LEFT">&#35;0x401883</TD></TR></TABLE> }>];
-"0x4018bf" -> "0x4018c1" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x4018bf" -> "0x4018c3" [style=solid, label=r5, tooltip="RAW: r5; WAW: r5"];
-"0x4018c1" -> "0x4018c3" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x4018c1" -> "0x4018c5" [style=solid, label=r2, tooltip="RAW: r2"];
-"0x4018c3" -> "0x4018c5" [style=solid, label=r5, tooltip="RAW: r5; WAW: itstate"];
-"0x4018c5" -> "0x4018c9" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate"];
-"0x4018c9" -> "0x4018cb" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x4018c3" -> "0x4018c5" [style=solid, label=r5, tooltip="RAW: r5"];
+"0x4018c5" -> "0x4018c9" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x4018c9" -> "0x4018cb" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

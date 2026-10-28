@@ -27,7 +27,7 @@ edge [fontname=monospace, fontsize=8];
 "0x80043e82" -> "0x80043e88" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
 "0x80043e88" -> "0x80043e8c" [style=solid, label=r2, tooltip="RAW: r2"];
 "0x80043e88" -> "0x80043e94" [style=dotted, label=r2, tooltip="WAW: r2"];
-"0x80043e88" -> "0x80043eaa" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x80043e88" -> "0x80043eaa" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x80043e8c" -> "0x80043e90" [style=solid, label=r5, tooltip="RAW: r5; WAW: r5"];
 "0x80043e8c" -> "0x80043e94" [style=dashed, label=r2, tooltip="WAR: r2"];
 "0x80043e90" -> "0x80043e94" [style=solid, label=r4, tooltip="RAW: r4"];

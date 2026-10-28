@@ -7,7 +7,7 @@ edge [fontname=monospace, fontsize=8];
 "0x8091db3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8091db3&#58;&nbsp;</TD><TD ALIGN="LEFT">lea</TD><TD ALIGN="LEFT">eax, [eax + 0x10]</TD></TR></TABLE> }>];
 "0x8091db6" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8091db6&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">edx, edx</TD></TR></TABLE> }>];
 "0x8091db8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8091db8&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x8091de0</TD></TR></TABLE> }>];
-"0x8091dab" -> "0x8091daf" [style=solid, label="168, xmm0", tooltip="RAW: 168, xmm0"];
+"0x8091dab" -> "0x8091daf" [style=solid, label="xmm0, xmm0[127:64]", tooltip="RAW: xmm0, xmm0[127:64]"];
 "0x8091dab" -> "0x8091db3" [style=dashed, label=eax, tooltip="WAR: eax"];
 "0x8091daf" -> "0x8091db6" [style=solid, label=edx, tooltip="RAW: edx"];
 "0x8091db6" -> "0x8091db8" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];

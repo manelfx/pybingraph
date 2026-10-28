@@ -7,10 +7,6 @@ edge [fontname=monospace, fontsize=8];
 "0x8005e33" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005e33&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r4</TD></TR></TABLE> }>];
 "0x8005e35" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005e35&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r5</TD></TR></TABLE> }>];
 "0x8005e37" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005e37&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x80009a1</TD></TR></TABLE> }>];
-"0x8005e2f" -> "0x8005e31" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x8005e2f" -> "0x8005e33" [style=dashed, label=r0, tooltip="WAR: r0"];
-"0x8005e31" -> "0x8005e33" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x8005e31" -> "0x8005e35" [style=dashed, label=r1, tooltip="WAR: r1"];
-"0x8005e33" -> "0x8005e35" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x8005e35" -> "0x8005e37" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

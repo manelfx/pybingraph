@@ -9,13 +9,10 @@ edge [fontname=monospace, fontsize=8];
 "0x400673" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400673&#58;&nbsp;</TD><TD ALIGN="LEFT">uxtb</TD><TD ALIGN="LEFT">r3, r3</TD></TR></TABLE> }>];
 "0x400675" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400675&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r2, r3</TD></TR></TABLE> }>];
 "0x400677" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400677&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">&#35;0x40064b</TD></TR></TABLE> }>];
-"0x400663" -> "0x400667" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x400663" -> "0x40066f" [style=solid, label=r1, tooltip="RAW: r1"];
-"0x400667" -> "0x40066b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x400667" -> "0x40066f" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
-"0x40066b" -> "0x40066f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x40066b" -> "0x400675" [style=solid, label=r2, tooltip="RAW: r2"];
-"0x40066f" -> "0x400673" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
-"0x400673" -> "0x400675" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate"];
-"0x400675" -> "0x400677" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0x40066f" -> "0x400673" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
+"0x400673" -> "0x400675" [style=solid, label=r3, tooltip="RAW: r3"];
+"0x400675" -> "0x400677" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

@@ -6,10 +6,8 @@ edge [fontname=monospace, fontsize=8];
 "0x4002a7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002a7&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp</TD><TD ALIGN="LEFT">r0, &#35;2</TD></TR></TABLE> }>];
 "0x4002a9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002a9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov.w</TD><TD ALIGN="LEFT">r0, &#35;0</TD></TR></TABLE> }>];
 "0x4002ad" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4002ad&#58;&nbsp;</TD><TD ALIGN="LEFT">bgt</TD><TD ALIGN="LEFT">&#35;0x4002b5</TD></TR></TABLE> }>];
-"0x4002a5" -> "0x4002a7" [style=solid, label=r0, tooltip="RAW: r0; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
+"0x4002a5" -> "0x4002a7" [style=solid, label=r0, tooltip="RAW: r0; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x4002a5" -> "0x4002a9" [style=dotted, label=r0, tooltip="WAW: r0"];
 "0x4002a7" -> "0x4002a9" [style=dashed, label=r0, tooltip="WAR: r0"];
-"0x4002a7" -> "0x4002a9" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x4002a7" -> "0x4002ad" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
-"0x4002a9" -> "0x4002ad" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

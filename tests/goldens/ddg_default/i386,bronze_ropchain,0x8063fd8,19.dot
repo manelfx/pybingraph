@@ -7,7 +7,7 @@ edge [fontname=monospace, fontsize=8];
 "0x8063fe0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8063fe0&#58;&nbsp;</TD><TD ALIGN="LEFT">movaps</TD><TD ALIGN="LEFT">xmm3, xmm2</TD></TR></TABLE> }>];
 "0x8063fe3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8063fe3&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">eax, eax</TD></TR></TABLE> }>];
 "0x8063fe5" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8063fe5&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x80640e6</TD></TR></TABLE> }>];
-"0x8063fd8" -> "0x8063fdc" [style=solid, label="168, xmm0", tooltip="RAW: 168, xmm0"];
+"0x8063fd8" -> "0x8063fdc" [style=solid, label="xmm0, xmm0[127:64]", tooltip="RAW: xmm0, xmm0[127:64]"];
 "0x8063fdc" -> "0x8063fe3" [style=solid, label=eax, tooltip="RAW: eax"];
 "0x8063fe3" -> "0x8063fe5" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

@@ -8,9 +8,7 @@ edge [fontname=monospace, fontsize=8];
 "0x8002abf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002abf&#58;&nbsp;</TD><TD ALIGN="LEFT">movs</TD><TD ALIGN="LEFT">r1, &#35;0x1c</TD></TR></TABLE> }>];
 "0x8002ac1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002ac1&#58;&nbsp;</TD><TD ALIGN="LEFT">movs</TD><TD ALIGN="LEFT">r0, &#35;0xd0</TD></TR></TABLE> }>];
 "0x8002ac3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8002ac3&#58;&nbsp;</TD><TD ALIGN="LEFT">b.w</TD><TD ALIGN="LEFT">&#35;0x8003fed</TD></TR></TABLE> }>];
-"0x8002ab7" -> "0x8002abb" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x8002abb" -> "0x8002abd" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
-"0x8002abd" -> "0x8002abf" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
-"0x8002abf" -> "0x8002ac1" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate"];
-"0x8002ac1" -> "0x8002ac3" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x8002abb" -> "0x8002abd" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8002abd" -> "0x8002abf" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
+"0x8002abf" -> "0x8002ac1" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

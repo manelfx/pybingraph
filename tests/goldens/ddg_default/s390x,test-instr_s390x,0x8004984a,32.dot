@@ -9,7 +9,7 @@ edge [fontname=monospace, fontsize=8];
 "0x80049860" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80049860&#58;&nbsp;</TD><TD ALIGN="LEFT">aghi</TD><TD ALIGN="LEFT">%r3, 1</TD></TR></TABLE> }>];
 "0x80049864" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80049864&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r3, 0xc8(%r1, %r11)</TD></TR></TABLE> }>];
 "0x8004984a" -> "0x80049850" [style=solid, label="r1_32", tooltip="RAW: r1_32; WAW: r1"];
-"0x8004984a" -> "0x80049860" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8004984a" -> "0x80049860" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x80049850" -> "0x80049854" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0x80049854" -> "0x8004985a" [style=solid, label=r1, tooltip="RAW: r1"];
 "0x80049854" -> "0x80049864" [style=solid, label=r1, tooltip="RAW: r1"];

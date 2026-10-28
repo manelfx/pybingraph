@@ -11,9 +11,9 @@ edge [fontname=monospace, fontsize=8];
 "0x412b9a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412b9a&#58;&nbsp;</TD><TD ALIGN="LEFT">j</TD><TD ALIGN="LEFT">0x412ba8</TD></TR></TABLE> }>];
 "0x412b7e" -> "0x412b88" [style=solid, label=r13, tooltip="RAW: r13; WAW: r13"];
 "0x412b7e" -> "0x412b8c" [style=dashed, label=r1, tooltip="WAR: r1"];
-"0x412b82" -> "0x412b88" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x412b82" -> "0x412b88" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x412b82" -> "0x412b8c" [style=dashed, label=r1, tooltip="WAR: r1"];
 "0x412b82" -> "0x412b92" [style=solid, label=r6, tooltip="RAW: r6; WAW: r6"];
-"0x412b88" -> "0x412b92" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x412b88" -> "0x412b92" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x412b8c" -> "0x412b96" [style=solid, label=r1, tooltip="RAW: r1"];
 }

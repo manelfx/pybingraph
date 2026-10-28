@@ -14,5 +14,5 @@ edge [fontname=monospace, fontsize=8];
 "0x8006237c" -> "0x80062380" [style=dashed, label=r8, tooltip="WAR: r8"];
 "0x80062380" -> "0x80062384" [style=dashed, label=r2, tooltip="WAR: r2"];
 "0x80062384" -> "0x8006238a" [style=solid, label=r2, tooltip="RAW: r2"];
-"0x8006238a" -> "0x8006238e" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x8006238a" -> "0x8006238e" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

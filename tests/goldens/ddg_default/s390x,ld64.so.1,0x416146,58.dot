@@ -20,10 +20,10 @@ edge [fontname=monospace, fontsize=8];
 "0x416156" -> "0x41615a" [style=solid, label=r1, tooltip="RAW: r1"];
 "0x416156" -> "0x416178" [style=dotted, label="r1_32", tooltip="WAW: r1_32"];
 "0x41615a" -> "0x416178" [style=dashed, label="r1_32", tooltip="WAR: r1_32"];
-"0x416160" -> "0x41616a" [style=solid, label=r10, tooltip="RAW: r10; WAW: 736, 744, 752, 760"];
+"0x416160" -> "0x41616a" [style=solid, label=r10, tooltip="RAW: r10; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x416160" -> "0x416174" [style=solid, label=r10, tooltip="RAW: r10; WAW: r10"];
 "0x416164" -> "0x416178" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
 "0x416164" -> "0x41617a" [style=solid, label=r2, tooltip="RAW: r2"];
 "0x41616a" -> "0x416174" [style=dashed, label=r10, tooltip="WAR: r10"];
-"0x41616a" -> "0x416174" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x41616a" -> "0x416174" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

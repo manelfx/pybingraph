@@ -6,7 +6,7 @@ edge [fontname=monospace, fontsize=8];
 "0xa5cf" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xa5cf&#58;&nbsp;</TD><TD ALIGN="LEFT">orrs</TD><TD ALIGN="LEFT">r3, r0</TD></TR></TABLE> }>];
 "0xa5d1" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xa5d1&#58;&nbsp;</TD><TD ALIGN="LEFT">lsls</TD><TD ALIGN="LEFT">r3, r3, &#35;0x1e</TD></TR></TABLE> }>];
 "0xa5d3" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0xa5d3&#58;&nbsp;</TD><TD ALIGN="LEFT">bne</TD><TD ALIGN="LEFT">&#35;0xa643</TD></TR></TABLE> }>];
-"0xa5cd" -> "0xa5cf" [style=solid, label="flags, r3", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate, r3"];
-"0xa5cf" -> "0xa5d1" [style=solid, label="flags, r3", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, itstate, r3"];
-"0xa5d1" -> "0xa5d3" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: itstate"];
+"0xa5cd" -> "0xa5cf" [style=solid, label="flags, r3", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r3"];
+"0xa5cf" -> "0xa5d1" [style=solid, label="flags, r3", tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r3; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r3"];
+"0xa5d1" -> "0xa5d3" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

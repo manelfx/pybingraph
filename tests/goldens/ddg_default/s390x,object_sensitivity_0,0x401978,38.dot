@@ -11,5 +11,5 @@ edge [fontname=monospace, fontsize=8];
 "0x40199a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40199a&#58;&nbsp;</TD><TD ALIGN="LEFT">je</TD><TD ALIGN="LEFT">0x4019aa</TD></TR></TABLE> }>];
 "0x401978" -> "0x40197e" [style=solid, label=r3, tooltip="RAW: r3"];
 "0x401978" -> "0x40198e" [style=dashed, label="[r2+0x8]", tooltip="WAR: mem[entry_r2+0x8]:8"];
-"0x401994" -> "0x40199a" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x401994" -> "0x40199a" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

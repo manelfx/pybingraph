@@ -6,7 +6,7 @@ edge [fontname=monospace, fontsize=8];
 "0x806a084" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806a084&#58;&nbsp;</TD><TD ALIGN="LEFT">pmovmskb</TD><TD ALIGN="LEFT">esi, xmm0</TD></TR></TABLE> }>];
 "0x806a088" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806a088&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">esi, 0xe000</TD></TR></TABLE> }>];
 "0x806a08e" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x806a08e&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x806a0a0</TD></TR></TABLE> }>];
-"0x806a080" -> "0x806a084" [style=solid, label="168, xmm0", tooltip="RAW: 168, xmm0"];
+"0x806a080" -> "0x806a084" [style=solid, label="xmm0, xmm0[127:64]", tooltip="RAW: xmm0, xmm0[127:64]"];
 "0x806a084" -> "0x806a088" [style=solid, label=esi, tooltip="RAW: esi"];
 "0x806a088" -> "0x806a08e" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

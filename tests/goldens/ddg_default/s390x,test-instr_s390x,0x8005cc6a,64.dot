@@ -27,5 +27,5 @@ edge [fontname=monospace, fontsize=8];
 "0x8005cc90" -> "0x8005cc94" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0x8005cc94" -> "0x8005cc9a" [style=solid, label=r1, tooltip="RAW: r1"];
 "0x8005cc9a" -> "0x8005cca0" [style=solid, label=r10, tooltip="RAW: r10"];
-"0x8005cca0" -> "0x8005cca6" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x8005cca0" -> "0x8005cca6" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

@@ -6,7 +6,7 @@ edge [fontname=monospace, fontsize=8];
 "0x400a3a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400a3a&#58;&nbsp;</TD><TD ALIGN="LEFT">risbg</TD><TD ALIGN="LEFT">%r1, %r1, 0x3d, 0xbf, 0</TD></TR></TABLE> }>];
 "0x400a40" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400a40&#58;&nbsp;</TD><TD ALIGN="LEFT">aghi</TD><TD ALIGN="LEFT">%r1, -1</TD></TR></TABLE> }>];
 "0x400a44" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400a44&#58;&nbsp;</TD><TD ALIGN="LEFT">cgijhe</TD><TD ALIGN="LEFT">%r1, 0, 0x400b16</TD></TR></TABLE> }>];
-"0x400a36" -> "0x400a3a" [style=solid, label=r1, tooltip="RAW: r1; WAW: 736, 744, 752, 760, r1"];
-"0x400a3a" -> "0x400a40" [style=solid, label=r1, tooltip="RAW: r1; WAW: 736, 744, 752, 760, r1"];
+"0x400a36" -> "0x400a3a" [style=solid, label=r1, tooltip="RAW: r1; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r1"];
+"0x400a3a" -> "0x400a40" [style=solid, label=r1, tooltip="RAW: r1; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r1"];
 "0x400a40" -> "0x400a44" [style=solid, label=r1, tooltip="RAW: r1"];
 }

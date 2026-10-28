@@ -26,6 +26,6 @@ edge [fontname=monospace, fontsize=8];
 "0x80005ce8" -> "0x80005cec" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
 "0x80005ce8" -> "0x80005cf4" [style=solid, label="r2_32", tooltip="RAW: r2_32; WAW: r2_32"];
 "0x80005ce8" -> "0x80005cfa" [style=dashed, label="[r15+0xcc]", tooltip="WAR: mem[entry_r15+0xcc]:4"];
-"0x80005cec" -> "0x80005cf4" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760; WAR: r2_32; WAW: 736, 744, 752, 760"];
+"0x80005cec" -> "0x80005cf4" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAR: r2_32; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x80005cf4" -> "0x80005cfa" [style=solid, label="r2_32", tooltip="RAW: r2_32"];
 }

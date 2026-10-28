@@ -7,10 +7,7 @@ edge [fontname=monospace, fontsize=8];
 "0x402709" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402709&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr</TD><TD ALIGN="LEFT">r0, [pc, &#35;0x68]</TD></TR></TABLE> }>];
 "0x40270b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40270b&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r0, pc</TD></TR></TABLE> }>];
 "0x40270d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40270d&#58;&nbsp;</TD><TD ALIGN="LEFT">blx</TD><TD ALIGN="LEFT">&#35;0x400dd4</TD></TR></TABLE> }>];
-"0x402705" -> "0x402707" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x402705" -> "0x402709" [style=dashed, label=r0, tooltip="WAR: r0"];
 "0x402707" -> "0x402709" [style=dashed, label=r0, tooltip="WAR: r0"];
-"0x402707" -> "0x402709" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x402709" -> "0x40270b" [style=solid, label=r0, tooltip="RAW: r0; WAW: itstate, r0"];
-"0x40270b" -> "0x40270d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x402709" -> "0x40270b" [style=solid, label=r0, tooltip="RAW: r0; WAW: r0"];
 }

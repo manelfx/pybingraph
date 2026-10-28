@@ -8,8 +8,8 @@ edge [fontname=monospace, fontsize=8];
 "0x8004e4a8" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004e4a8&#58;&nbsp;</TD><TD ALIGN="LEFT">slbgr</TD><TD ALIGN="LEFT">%r2, %r2</TD></TR></TABLE> }>];
 "0x8004e4ac" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004e4ac&#58;&nbsp;</TD><TD ALIGN="LEFT">lcgr</TD><TD ALIGN="LEFT">%r2, %r2</TD></TR></TABLE> }>];
 "0x8004e4b0" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8004e4b0&#58;&nbsp;</TD><TD ALIGN="LEFT">sgrk</TD><TD ALIGN="LEFT">%r2, %r11, %r2</TD></TR></TABLE> }>];
-"0x8004e49a" -> "0x8004e4a8" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760; WAW: 736, 744, 752, 760"];
+"0x8004e49a" -> "0x8004e4a8" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x8004e49e" -> "0x8004e4a8" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
-"0x8004e4a8" -> "0x8004e4ac" [style=solid, label=r2, tooltip="RAW: r2; WAW: 736, 744, 752, 760, r2"];
-"0x8004e4ac" -> "0x8004e4b0" [style=solid, label=r2, tooltip="RAW: r2; WAW: 736, 744, 752, 760, r2"];
+"0x8004e4a8" -> "0x8004e4ac" [style=solid, label=r2, tooltip="RAW: r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r2"];
+"0x8004e4ac" -> "0x8004e4b0" [style=solid, label=r2, tooltip="RAW: r2; WAW: cc_dep1, cc_dep2, cc_ndep, cc_op, r2"];
 }

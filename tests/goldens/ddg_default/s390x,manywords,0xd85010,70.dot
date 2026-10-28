@@ -26,5 +26,4 @@ edge [fontname=monospace, fontsize=8];
 "0xd85026" -> "0xd8502c" [style=dotted, label="r1_32", tooltip="WAW: r1_32"];
 "0xd85026" -> "0xd8503c" [style=solid, label=r1, tooltip="RAW: r1"];
 "0xd8502c" -> "0xd8503c" [style=solid, label=r1, tooltip="RAW: r1"];
-"0xd8503c" -> "0xd85042" [style=solid, label=704, tooltip="RAW: 704; WAW: 704"];
 }

@@ -8,11 +8,8 @@ edge [fontname=monospace, fontsize=8];
 "0x4129" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4129&#58;&nbsp;</TD><TD ALIGN="LEFT">ldrh</TD><TD ALIGN="LEFT">r3, [r6]</TD></TR></TABLE> }>];
 "0x412b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x412b&#58;&nbsp;</TD><TD ALIGN="LEFT">cbz</TD><TD ALIGN="LEFT">r3, &#35;0x4143</TD></TR></TABLE> }>];
 "0x4121" -> "0x4125" [style=dashed, label=r6, tooltip="WAR: r6"];
-"0x4121" -> "0x4125" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x4121" -> "0x4127" [style=dashed, label=r7, tooltip="WAR: r7"];
 "0x4121" -> "0x4129" [style=dashed, label=r3, tooltip="WAR: r3"];
-"0x4125" -> "0x4127" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x4125" -> "0x4129" [style=solid, label=r6, tooltip="RAW: r6"];
-"0x4127" -> "0x4129" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x4129" -> "0x412b" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate"];
+"0x4129" -> "0x412b" [style=solid, label=r3, tooltip="RAW: r3"];
 }

@@ -10,14 +10,11 @@ edge [fontname=monospace, fontsize=8];
 "0x9f3b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x9f3b&#58;&nbsp;</TD><TD ALIGN="LEFT">ldr.w</TD><TD ALIGN="LEFT">r6, [r7, &#35;0x148]</TD></TR></TABLE> }>];
 "0x9f3f" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x9f3f&#58;&nbsp;</TD><TD ALIGN="LEFT">cbz</TD><TD ALIGN="LEFT">r6, &#35;0x9f71</TD></TR></TABLE> }>];
 "0x9f29" -> "0x9f2d" [style=dashed, label=r3, tooltip="WAR: r3"];
-"0x9f29" -> "0x9f2d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x9f29" -> "0x9f35" [style=solid, label=sp, tooltip="RAW: sp; WAW: sp"];
 "0x9f29" -> "0x9f39" [style=dashed, label=r7, tooltip="WAR: r7"];
 "0x9f29" -> "0x9f3b" [style=dashed, label=r6, tooltip="WAR: r6"];
-"0x9f2d" -> "0x9f31" [style=solid, label=r3, tooltip="RAW: r3; WAW: itstate, r3"];
-"0x9f31" -> "0x9f35" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x9f2d" -> "0x9f31" [style=solid, label=r3, tooltip="RAW: r3; WAW: r3"];
 "0x9f31" -> "0x9f39" [style=solid, label=r3, tooltip="RAW: r3"];
-"0x9f35" -> "0x9f39" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x9f39" -> "0x9f3b" [style=solid, label=r7, tooltip="RAW: r7; WAW: itstate"];
-"0x9f3b" -> "0x9f3f" [style=solid, label=r6, tooltip="RAW: r6; WAW: itstate"];
+"0x9f39" -> "0x9f3b" [style=solid, label=r7, tooltip="RAW: r7"];
+"0x9f3b" -> "0x9f3f" [style=solid, label=r6, tooltip="RAW: r6"];
 }

@@ -9,15 +9,9 @@ edge [fontname=monospace, fontsize=8];
 "0x400243" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400243&#58;&nbsp;</TD><TD ALIGN="LEFT">cmp.w</TD><TD ALIGN="LEFT">ip, &#35;9</TD></TR></TABLE> }>];
 "0x400247" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x400247&#58;&nbsp;</TD><TD ALIGN="LEFT">add.w</TD><TD ALIGN="LEFT">r0, r0, r2, lsl &#35;1</TD></TR></TABLE> }>];
 "0x40024b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x40024b&#58;&nbsp;</TD><TD ALIGN="LEFT">bhi</TD><TD ALIGN="LEFT">&#35;0x400265</TD></TR></TABLE> }>];
-"0x400233" -> "0x400237" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x400233" -> "0x40023b" [style=solid, label=r12, tooltip="RAW: r12; WAW: r12"];
-"0x400237" -> "0x40023b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x400237" -> "0x40023f" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
-"0x40023b" -> "0x40023f" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x40023b" -> "0x400243" [style=solid, label=r12, tooltip="RAW: r12"];
-"0x40023f" -> "0x400243" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x40023f" -> "0x400247" [style=solid, label=r2, tooltip="RAW: r2"];
-"0x400243" -> "0x400247" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x400243" -> "0x40024b" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
-"0x400247" -> "0x40024b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

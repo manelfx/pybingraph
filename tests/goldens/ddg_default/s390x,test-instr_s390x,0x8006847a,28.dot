@@ -10,8 +10,8 @@ edge [fontname=monospace, fontsize=8];
 "0x80068492" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80068492&#58;&nbsp;</TD><TD ALIGN="LEFT">brctg</TD><TD ALIGN="LEFT">%r2, 0x8006847a</TD></TR></TABLE> }>];
 "0x8006847a" -> "0x8006847e" [style=solid, label=r4, tooltip="RAW: r4"];
 "0x8006847a" -> "0x8006848a" [style=dashed, label=r3, tooltip="WAR: r3"];
-"0x8006847a" -> "0x8006848a" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8006847a" -> "0x8006848a" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x8006847e" -> "0x8006848e" [style=dashed, label=r1, tooltip="WAR: r1"];
 "0x80068484" -> "0x8006848e" [style=dashed, label=r1, tooltip="WAR: r1"];
-"0x8006848a" -> "0x8006848e" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8006848a" -> "0x8006848e" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

@@ -7,10 +7,7 @@ edge [fontname=monospace, fontsize=8];
 "0x4022fd" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4022fd&#58;&nbsp;</TD><TD ALIGN="LEFT">add</TD><TD ALIGN="LEFT">r0, pc</TD></TR></TABLE> }>];
 "0x4022ff" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4022ff&#58;&nbsp;</TD><TD ALIGN="LEFT">adds</TD><TD ALIGN="LEFT">r0, &#35;0x20</TD></TR></TABLE> }>];
 "0x402301" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x402301&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x4021ed</TD></TR></TABLE> }>];
-"0x4022f9" -> "0x4022fb" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x4022f9" -> "0x4022fd" [style=solid, label=r0, tooltip="RAW: r0; WAW: r0"];
-"0x4022fb" -> "0x4022fd" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x4022fb" -> "0x4022ff" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
-"0x4022fd" -> "0x4022ff" [style=solid, label=r0, tooltip="RAW: r0; WAW: itstate, r0"];
-"0x4022ff" -> "0x402301" [style=dotted, label=itstate, tooltip="WAW: itstate"];
+"0x4022fd" -> "0x4022ff" [style=solid, label=r0, tooltip="RAW: r0; WAW: r0"];
 }

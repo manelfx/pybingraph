@@ -6,8 +6,5 @@ edge [fontname=monospace, fontsize=8];
 "0x4025b7" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4025b7&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r0</TD></TR></TABLE> }>];
 "0x4025b9" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4025b9&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r4</TD></TR></TABLE> }>];
 "0x4025bb" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x4025bb&#58;&nbsp;</TD><TD ALIGN="LEFT">blx</TD><TD ALIGN="LEFT">&#35;0x400c6c</TD></TR></TABLE> }>];
-"0x4025b5" -> "0x4025b7" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 "0x4025b7" -> "0x4025b9" [style=dashed, label=r0, tooltip="WAR: r0"];
-"0x4025b7" -> "0x4025b9" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x4025b9" -> "0x4025bb" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

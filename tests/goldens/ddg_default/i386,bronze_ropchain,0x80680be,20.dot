@@ -8,7 +8,7 @@ edge [fontname=monospace, fontsize=8];
 "0x80680ca" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80680ca&#58;&nbsp;</TD><TD ALIGN="LEFT">test</TD><TD ALIGN="LEFT">eax, eax</TD></TR></TABLE> }>];
 "0x80680cc" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80680cc&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x80681a0</TD></TR></TABLE> }>];
 "0x80680be" -> "0x80680c2" [style=solid, label=xmm0, tooltip="RAW: xmm0; WAW: xmm0"];
-"0x80680c2" -> "0x80680c6" [style=solid, label="168, xmm0", tooltip="RAW: 168, xmm0"];
+"0x80680c2" -> "0x80680c6" [style=solid, label="xmm0, xmm0[127:64]", tooltip="RAW: xmm0, xmm0[127:64]"];
 "0x80680c6" -> "0x80680ca" [style=solid, label=eax, tooltip="RAW: eax"];
 "0x80680ca" -> "0x80680cc" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

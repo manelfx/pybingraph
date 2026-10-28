@@ -18,11 +18,11 @@ edge [fontname=monospace, fontsize=8];
 "0x8001bd44" -> "0x8001bd70" [style=dashed, label="r1_32", tooltip="WAR: r1_32"];
 "0x8001bd48" -> "0x8001bd4e" [style=solid, label=r2, tooltip="RAW: r2; WAW: r2"];
 "0x8001bd4e" -> "0x8001bd54" [style=solid, label=r2, tooltip="RAW: r2"];
-"0x8001bd4e" -> "0x8001bd5e" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8001bd4e" -> "0x8001bd5e" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x8001bd4e" -> "0x8001bd64" [style=solid, label=r2, tooltip="RAW: r2"];
 "0x8001bd4e" -> "0x8001bd6a" [style=solid, label=r2, tooltip="RAW: r2"];
 "0x8001bd54" -> "0x8001bd5a" [style=dashed, label=r5, tooltip="WAR: r5"];
 "0x8001bd5a" -> "0x8001bd5e" [style=solid, label=r5, tooltip="RAW: r5; WAW: r5"];
 "0x8001bd5e" -> "0x8001bd64" [style=solid, label=r5, tooltip="RAW: r5"];
-"0x8001bd5e" -> "0x8001bd70" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x8001bd5e" -> "0x8001bd70" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

@@ -9,11 +9,11 @@ edge [fontname=monospace, fontsize=8];
 "0x80042f8a" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80042f8a&#58;&nbsp;</TD><TD ALIGN="LEFT">ltg</TD><TD ALIGN="LEFT">%r1, 0(%r1)</TD></TR></TABLE> }>];
 "0x80042f90" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80042f90&#58;&nbsp;</TD><TD ALIGN="LEFT">stg</TD><TD ALIGN="LEFT">%r1, 0xb8(%r11)</TD></TR></TABLE> }>];
 "0x80042f96" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x80042f96&#58;&nbsp;</TD><TD ALIGN="LEFT">jne</TD><TD ALIGN="LEFT">0x80042d10</TD></TR></TABLE> }>];
-"0x80042f76" -> "0x80042f7a" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x80042f76" -> "0x80042f7a" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x80042f76" -> "0x80042f80" [style=solid, label="r8_32", tooltip="RAW: r8_32; WAR: mem[entry_r11+0xd0]:4"];
 "0x80042f7a" -> "0x80042f84" [style=solid, label="[r11+0xc0]", tooltip="RAW: mem[entry_r11+0xc0]:8"];
-"0x80042f7a" -> "0x80042f8a" [style=dotted, label="736, 744, 752, 760", tooltip="WAW: 736, 744, 752, 760"];
+"0x80042f7a" -> "0x80042f8a" [style=dotted, label=flags, tooltip="WAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 "0x80042f84" -> "0x80042f8a" [style=solid, label=r1, tooltip="RAW: r1; WAW: r1"];
 "0x80042f8a" -> "0x80042f90" [style=solid, label=r1, tooltip="RAW: r1"];
-"0x80042f8a" -> "0x80042f96" [style=solid, label="736, 744, 752, 760", tooltip="RAW: 736, 744, 752, 760"];
+"0x80042f8a" -> "0x80042f96" [style=solid, label=flags, tooltip="RAW: cc_dep1, cc_dep2, cc_ndep, cc_op"];
 }

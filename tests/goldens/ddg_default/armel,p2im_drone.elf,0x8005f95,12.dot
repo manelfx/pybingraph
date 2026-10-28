@@ -7,8 +7,4 @@ edge [fontname=monospace, fontsize=8];
 "0x8005f99" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005f99&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r0, r6</TD></TR></TABLE> }>];
 "0x8005f9b" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005f9b&#58;&nbsp;</TD><TD ALIGN="LEFT">mov</TD><TD ALIGN="LEFT">r1, r7</TD></TR></TABLE> }>];
 "0x8005f9d" [label=<{ <TABLE BORDER="0" CELLPADDING="1" ALIGN="LEFT"><TR><TD ALIGN="LEFT">0x8005f9d&#58;&nbsp;</TD><TD ALIGN="LEFT">bl</TD><TD ALIGN="LEFT">&#35;0x8000725</TD></TR></TABLE> }>];
-"0x8005f95" -> "0x8005f97" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x8005f97" -> "0x8005f99" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x8005f99" -> "0x8005f9b" [style=dotted, label=itstate, tooltip="WAW: itstate"];
-"0x8005f9b" -> "0x8005f9d" [style=dotted, label=itstate, tooltip="WAW: itstate"];
 }

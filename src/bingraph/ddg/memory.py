@@ -4,6 +4,8 @@ Only concrete translations of identical roots can prove separation. Different
 pointer registers never imply distinct memory objects; no SAT queries are used.
 """
 
+from dataclasses import replace
+
 from angr import claripy
 
 from .models import MemoryPolicy, Resource
@@ -83,6 +85,34 @@ def covers(writer: Resource, reader: Resource) -> bool:
     else:
         delta = distance(writer, reader)
     return delta is not None and 0 <= delta and delta + reader.size <= writer.size
+
+
+def coalesce_memory(resources: list[Resource]) -> list[Resource]:
+    """Combine increasing, overlapping/adjacent accesses of one instruction.
+
+    Use only after completing a proven instruction-internal loop. A contiguous
+    write must cover its entire range for later producer-killing proofs; merely
+    retaining individual byte stores would leave overwritten producers alive.
+    Unknown address relations never merge, regardless of the display policy.
+    """
+    ranges, other = [], []
+    for resource in resources:
+        if resource.kind != "memory" or resource.address is None:
+            other.append(resource)
+            continue
+        for index, prior in enumerate(ranges):
+            delta = distance(prior, resource)
+            if delta is not None and 0 <= delta <= prior.size:
+                width = max(prior.size, delta + resource.size)
+                ranges[index] = replace(
+                    prior,
+                    size=width,
+                    label=f"mem[{address_label(prior.address)}]:{width}",
+                )
+                break
+        else:
+            ranges.append(resource)
+    return list(dict.fromkeys(other)) + ranges
 
 
 def base_offset(value):
