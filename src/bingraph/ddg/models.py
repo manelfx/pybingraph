@@ -18,6 +18,7 @@ class Resource:
     ``address=None`` denotes opaque memory (e.g. a fence), never no memory.
     Labels describe the original access even when its range is split internally.
     ``display_label`` is an optional operand-like caption, never alias evidence.
+    ``maximum_footprint`` marks a possible extent, not an executed byte count.
     """
 
     kind: Literal["register", "memory", "temporary"]
@@ -26,6 +27,7 @@ class Resource:
     label: str
     address: claripy.ast.BV | None = field(default=None, compare=False)
     display_label: str | None = field(default=None, compare=False)
+    maximum_footprint: bool = False
 
 
 @dataclass

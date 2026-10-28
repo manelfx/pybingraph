@@ -194,6 +194,123 @@ def test_architectural_self_branch_is_not_replayed():
     assert len(analyze("90ebfe").instructions) == 2  # nop; jmp to itself
 
 
+@pytest.mark.parametrize(
+    "arch,direction,opcode,width,displacement,accesses",
+    [
+        ("amd64", "fc", "f3a6", 10, "", 2),
+        ("amd64", "fd", "f3a6", 10, "-0x9", 2),
+        ("amd64", "", "f3a6", 19, "-0x9", 2),
+        ("amd64", "fc", "66f3a7", 20, "", 2),
+        ("amd64", "fc", "f3a7", 40, "", 2),
+        ("amd64", "fc", "f348a7", 80, "", 2),
+        ("amd64", "fc", "f2ae", 10, "", 1),
+        ("x86", "fc", "f2ae", 10, "", 1),
+    ],
+)
+def test_repeated_comparisons_use_maximum_read_footprints(
+    arch, direction, opcode, width, displacement, accesses
+):
+    from bingraph.ddg.effects import instruction_effects
+
+    # MOV ECX,10; REP CMPS/SCAS; NOP. The following instruction must survive
+    # VEX's split at REP without interpreting a data-dependent comparison loop.
+    data = bytes.fromhex(direction + "b90a000000" + opcode + "90")
+    project = angr.load_shellcode(data, arch=arch, load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data))
+    effects = instruction_effects(project, graph.instructions, len(data))
+    reads = [r for r in effects[-2].reads if r.kind == "memory"]
+    assert len(reads) == accesses
+    assert all(r.size == width and r.maximum_footprint for r in reads)
+    if arch == "amd64":
+        assert any(f"entry_rdi{displacement}]" in r.label for r in reads)
+    assert graph.instructions[-1].mnemonic == "nop"
+    assert not any(r.kind == "memory" for e in effects for r in e.writes)
+
+
+@pytest.mark.parametrize("policy", ["always", "may", "must"])
+def test_repeat_footprints_reuse_memory_policies_and_compact_labels(policy):
+    # CLD; MOV ECX,10; write [rdi+9], [rdi+10], [rsi]; REPNE SCASB.
+    graph = analyze("fcb90a000000c6470901c6470a01c60601f2ae", policy)
+    edges = kinds(graph)
+    assert (2, 5, "RAW") in edges  # Inside the maximum, not only the first byte.
+    assert ((3, 5, "RAW") in edges) == (policy == "always")
+    assert ((4, 5, "RAW") in edges) == (policy != "must")
+    # Maximum is a tooltip qualifier, not an oversized visible edge caption.
+    from bingraph.ddg.render import DependencyEdges
+
+    resource = next(
+        d.resources[0]
+        for d in graph.dependencies
+        if d.source == 2 and d.target == 5 and d.kind == "RAW"
+    )
+    assert "maximum footprint" in resource
+    assert DependencyEdges._resource_label(resource) == "[rdi]"
+    # Preserve the qualifier for a later store's WAR edge too, even though
+    # its own destination is an ordinary exact-width memory resource.
+    later_store = analyze("fcb90a0000004889fbf2aec6430901", policy)
+    assert any(
+        d.source == 3
+        and d.target == 4
+        and d.kind == "WAR"
+        and "maximum footprint" in d.resources[0]
+        for d in later_store.dependencies
+    )
+
+
+def test_repeat_outputs_are_unknown_but_zero_count_preserves_state():
+    from bingraph.ddg.effects import instruction_effects
+
+    for prefix, repeats in [("fcb90a000000", True), ("31c9", False)]:
+        # Repeat; SETA AL; load [rdi+rcx]. An early stop must not leave an
+        # exact one-iteration pointer/count, nor claim ten iterations completed.
+        data = bytes.fromhex(prefix + "f3a60f97c0488b140f")
+        project = angr.load_shellcode(data, arch="amd64", load_address=0x1000)
+        graph = get_ddg(project, 0x1000, len(data))
+        effects = instruction_effects(project, graph.instructions, len(data))
+        repeat = next(e for e in effects if e.insn.mnemonic == "repe cmpsb")
+        last_read = next(r for r in effects[-1].reads if r.kind == "memory")
+        if repeats:
+            assert all(
+                name.startswith("ddg_unknown_") for name in last_read.address.variables
+            )
+        else:
+            assert not repeat.writes
+            assert [r.label for r in repeat.reads] == ["rcx"]
+            assert last_read.label == "mem[entry_rdi]:8"
+            assert (0, 2, "RAW") in kinds(graph)  # XOR, not empty REP, produces flags.
+            assert (1, 2, "RAW") not in kinds(graph)
+
+
+def test_repeat_address_override_and_unsupported_symbolic_count():
+    from bingraph.ddg.effects import instruction_effects
+
+    # RCX has nonzero high bits, but address-size override uses ECX=2. A
+    # possible 32-bit address wrap cannot be represented as one 64-bit interval.
+    data = bytes.fromhex("fc48b9020000000100000067f3a6")
+    project = angr.load_shellcode(data, arch="amd64", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data))
+    effects = instruction_effects(project, graph.instructions, len(data))
+    reads = [r for r in effects[-1].reads if r.kind == "memory"]
+    # Both opaque footprints coalesce as "unknown memory", not equal pointers.
+    assert len(reads) == 1
+    assert all(r.address is None and r.size == 2 for r in reads)
+    with pytest.raises(ValueError, match="symbolic repeat count"):
+        analyze("f3a6")
+    assert analyze("f20fc2c100").instructions[0].mnemonic == "cmpeqsd"
+
+
+def test_large_repeat_count_does_not_require_iteration():
+    from bingraph.ddg.effects import instruction_effects
+
+    # CLD; MOV RCX,-1; REPNE SCASB is a common string-length idiom.
+    data = bytes.fromhex("fc48b9fffffffffffffffff2ae")
+    project = angr.load_shellcode(data, arch="amd64", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data))
+    effects = instruction_effects(project, graph.instructions, len(data))
+    read = next(r for r in effects[-1].reads if r.kind == "memory")
+    assert read.maximum_footprint and read.size == (1 << 64) - 1
+
+
 @pytest.mark.parametrize("adc,producer", [("0000a0e0", 0), ("0000b0e0", 1)])
 def test_arm_conditions_use_the_actual_flag_writer(adc, producer):
     # cmp r3,r1,lsl #31; adc/adcs r0,r0,r0; subhs r3,r3,r1,lsl #31.

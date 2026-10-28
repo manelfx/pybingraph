@@ -73,6 +73,7 @@ class DependencyEdges(EdgeAnnotator):
     def _resource_label(resource: str) -> str:
         """Show memory like assembly operands, not internal symbolic names."""
         resource = resource.removesuffix(" (may alias)")
+        resource = resource.removesuffix(" (maximum footprint)")
         if resource in {"cc_op", "cc_dep1", "cc_dep2", "cc_ndep"}:
             return "flags"
         if resource == "mem?":

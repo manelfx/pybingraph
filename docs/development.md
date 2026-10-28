@@ -28,6 +28,8 @@ change when moving modules or changing their responsibilities.
   across calls or unknown paths.
 - `core/annotators/` separates node styling, assembly comments and edge styling.
   These presentation operations do not change discovered control flow.
+  CFG-to-DDG links include plain-text address and size tooltips; instruction
+  counts reuse rendered assembly rows rather than triggering another decode.
 - `ddg/effects.py` extracts instruction-local VEX effects and delegates scalar
   arithmetic to angr/Claripy. Unoptimized IR preserves architectural flag
   producers; pure temporary reads are collected at their consumers, while
@@ -43,6 +45,10 @@ change when moving modules or changing their responsibilities.
   merge only across proven contiguous ranges; symbolic/multi-exit loops fail
   rather than silently exposing partial effects. VEX restart counters are
   internal state, not architectural dependency resources.
+  Repeated x86 CMPS/SCAS with concrete counts instead summarize maximum read
+  footprints from one VEX iteration, without exploring early exits. Unknown
+  direction covers both directions; final registers become unknown. Zero counts
+  leave memory, pointers and flags untouched. Symbolic counts remain unsupported.
 - `ddg/render.py` adapts immutable cached analysis records to one-instruction
   CFG nodes and the existing `Vis`/`NodeAsm`/`DotOutput` pipeline. DDG edge styles
   describe dependency kinds, not CFG branch outcomes. Real CFG blocks receive
@@ -65,6 +71,8 @@ resets. Incoming, active, symbolic or partial IT-state effects remain intact.
 Memory policy selects edges, not alias facts: `may` retains unknown relations,
 whereas default `must` omits them. Do not use that omission to infer pointer
 independence, remove possible producers, or claim safe instruction reordering.
+For repeated comparisons, `must` proves overlap of modeled maximum footprints,
+not that an early-terminating instruction actually accesses every modeled byte.
 
 Module moves must preserve resolver priority, proof budgets, cache lifetime and
 unknown-target handling. Keep internal imports directed at their implementation

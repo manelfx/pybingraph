@@ -1,17 +1,21 @@
-"""Read instruction effects from VEX, not architecture-specific opcode patterns.
+"""Read instruction effects from VEX with bounded local value evaluation.
 
 Only straight-line local address values are evaluated, through angr's existing
 Claripy IROp implementations and register storage. Memory loads yield fresh
 unknown values: disambiguation must not depend on guessed concrete addresses.
 No CFG, path exploration or callee execution is involved.
+Read-only repeated x86 string comparisons use maximum-footprint summaries,
+not guessed iteration counts or final register values.
 """
 
+from dataclasses import replace
 from itertools import takewhile
 from typing import Any
 
 import angr
 from angr import claripy
 from archinfo import Arch
+from capstone import x86_const as x86
 import pyvex
 from angr.engines.vex.claripy.irop import vexop_to_simop
 from angr.engines.vex.claripy.datalayer import value as vex_value
@@ -26,6 +30,16 @@ MAX_VALUE_NODES = 64
 MAX_INSTRUCTION_ITERATIONS = 256
 VEX_REGISTER_NAMES = {
     (arch, offset): name for (arch, name), offset in guest_offsets.items()
+}
+REPEATED_READ_IDS = {
+    x86.X86_INS_CMPSB,
+    x86.X86_INS_CMPSW,
+    x86.X86_INS_CMPSD,
+    x86.X86_INS_CMPSQ,
+    x86.X86_INS_SCASB,
+    x86.X86_INS_SCASW,
+    x86.X86_INS_SCASD,
+    x86.X86_INS_SCASQ,
 }
 
 
@@ -69,17 +83,28 @@ def instruction_effects(
     Capstone/archinfo alias ranges narrow full-width VEX GETs
     followed by truncations; implicit VEX resources absent from Capstone remain.
     Concrete instruction-internal backedges replay this same evaluator within
-    a fixed budget. Symbolic or excessive repetition fails rather than reporting
-    one iteration as the complete instruction's effects.
+    a fixed budget. Known-count CMPS/SCAS instead summarize maximum reads and
+    forget final registers. Other symbolic or excessive repetition fails rather
+    than reporting one iteration as the complete instruction's effects.
     """
 
     start = instructions[0].address
     effects = {i.address: Effects(i) for i in instructions}
+    # Identify real REP string reads, not SSE comparisons or other ISAs whose
+    # instruction IDs happen to match. VEX still supplies all register effects.
+    repeated_reads = {
+        i.address
+        for i in instructions
+        if project.arch.name in {"X86", "AMD64"}
+        and i.id in REPEATED_READ_IDS
+        and i.prefix[0] in {0xF2, 0xF3}
+    }
     blocks = []
     cursor = start
     # VEX caps individual lifts (normally at 99 instructions), independently
-    # of the requested bytes. Continue only at a proven linear boundary; the
-    # register state below spans chunks, but each IRSB has its own temporaries.
+    # of the requested bytes. Continue only at a linear instruction boundary,
+    # including summarized repeated comparisons. Register state spans chunks,
+    # but each IRSB has its own temporaries.
     while cursor < start + size:
         vex = project.factory.block(
             cursor,
@@ -104,7 +129,11 @@ def instruction_effects(
             if (
                 end not in effects
                 or vex.jumpkind != "Ijk_Boring"
-                or vex.exit_statements
+                or (
+                    vex.exit_statements
+                    and last is not None
+                    and last.insn.address not in repeated_reads
+                )
                 or not isinstance(vex.next, pyvex.expr.Const)
                 or vex.next.con.value != end
                 or last is None
@@ -246,6 +275,41 @@ def instruction_effects(
                     break
         return Resource("memory", 0, width, f"mem[{text}]:{width}", address, display)
 
+    def summarize_repeated_reads(count: int) -> None:
+        """Widen one VEX iteration to a possible footprint, not executed bytes.
+
+        With unknown DF, cover both legal directions. Address-size overrides
+        can wrap inside the wider pointer space: keep those addresses opaque.
+        These instructions have no memory writes, so maximum extents never
+        become producer-killing stores. All final register values stay unknown.
+        """
+        direction = state.regs.d
+        reads = []
+        for resource in current.reads:
+            if resource.kind == "memory":
+                span = (count - 1) * resource.size
+                address = resource.address
+                width = span + resource.size
+                if not direction.concrete:
+                    address = address - span if address is not None else None
+                    width += span
+                elif direction.concrete_value != 1:
+                    address = address - span if address is not None else None
+                if current.insn.addr_size != project.arch.bytes and count > 1:
+                    address = None
+                resource = memory(address, min(width, 1 << project.arch.bits))
+                resource = replace(resource, maximum_footprint=True)
+            reads.append(resource)
+        current.reads = reads
+        for resource in current.writes:
+            if resource.kind == "register":
+                state.registers.store(
+                    resource.offset,
+                    unknown(resource.size * 8),
+                    size=resource.size,
+                    endness=project.arch.register_endness,
+                )
+
     def expression(expr: Any):
         """Evaluate supported scalar expressions using angr, retaining accesses.
 
@@ -368,6 +432,7 @@ def instruction_effects(
         temporaries.clear()
         temporary_labels.clear()
         index = loop_start = iterations = 0
+        repeat_count = None
         while index < len(vex.statements):
             statement = vex.statements[index]
             index += 1
@@ -383,6 +448,26 @@ def instruction_effects(
                 # A register GET from an older instruction is a snapshot, not
                 # the same input as another GET after intervening writes.
                 definitions.clear()
+                if address in repeated_reads:
+                    if address + current.insn.size != vex.addr + vex.size:
+                        raise ValueError(
+                            "Unsupported DDG repeated-instruction boundary"
+                        )
+                    name = {2: "cx", 4: "ecx", 8: "rcx"}[current.insn.addr_size]
+                    offset, width = project.arch.registers[name]
+                    count = state.registers.load(
+                        offset, size=width, endness=project.arch.register_endness
+                    )
+                    if not count.concrete:
+                        raise ValueError(
+                            f"Unsupported DDG symbolic repeat count at {address:#x}"
+                        )
+                    repeat_count = count.concrete_value
+                    if not repeat_count:
+                        # Zero repetitions do not touch pointers, memory or flags.
+                        current.reads.append(register(offset, width))
+                        state.regs.ip = address + current.insn.size
+                        index = len(vex.statements)
             elif isinstance(statement, pyvex.stmt.WrTmp):
                 first = len(current.reads)
                 value = expression(statement.data)
@@ -453,6 +538,8 @@ def instruction_effects(
                 )
             elif isinstance(statement, pyvex.stmt.Exit):
                 guard = expression(statement.guard)
+                if current.insn.address in repeated_reads:
+                    continue  # One iteration supplies effects; the summary supplies extent.
                 if (
                     statement.jumpkind == "Ijk_Boring"
                     and statement.dst.value == current.insn.address
@@ -499,6 +586,8 @@ def instruction_effects(
                     f"Unsupported DDG VEX statement: {type(statement).__name__}"
                 )
         expression(vex.next)
+        if repeat_count:
+            summarize_repeated_reads(repeat_count)
         if (
             vex.jumpkind == "Ijk_Boring"
             and isinstance(vex.next, pyvex.expr.Const)

@@ -60,10 +60,18 @@ def get_ddg(
             edges[(source, target, kind)][label] = display_label or label
 
     def memory_label(left, right):
-        return right.label + (
-            " (may alias)"
-            if distance(left, right) is None or not overlap(left, right, "may")
-            else ""
+        return (
+            right.label
+            + (
+                " (maximum footprint)"
+                if left.maximum_footprint or right.maximum_footprint
+                else ""
+            )
+            + (
+                " (may alias)"
+                if distance(left, right) is None or not overlap(left, right, "may")
+                else ""
+            )
         )
 
     for index, effect in enumerate(effects):

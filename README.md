@@ -216,7 +216,8 @@ the global setting for that request. Symbol-table links retain this override.
 ### Instruction Dependencies
 
 Click a real basic block in a CFG to open its DDG in the current tab, or request
-one directly without a function symbol. DDGs analyze only the supplied start
+one directly without a function symbol. Hover over a linked block to see its
+address, instruction count and byte size. DDGs analyze only the supplied start
 address and byte size, without discovering a CFG or executing callees. For Thumb,
 retain the address's low-bit mode tag (an odd address). Each node is one
 instruction; independent instructions remain visible. Edges follow instruction
@@ -257,6 +258,13 @@ The original symbolic address remains in the tooltip and in alias analysis.
 Configure the default with `--ddg-memory always|may|must` or `BINGRAPH_DDG_MEMORY`.
 DDGs currently have one analysis pipeline, not a
 separate mode knob.
+
+Repeated x86 `CMPS`/`SCAS` instructions with a known count use maximum possible
+read footprints, identified in tooltips. Early termination can access fewer
+bytes; even `memory=must` proves overlap of modeled footprints, not that every
+byte is actually accessed. Unknown direction covers both forward and backward
+traversal. Final pointer, count and flag values remain unknown; symbolic repeat
+counts are currently unsupported.
 
 Regions must fully decode and lift as one block, including any delay slots.
 Limits are 4,096 bytes and 256 instructions. Unsupported stateful VEX operations

@@ -27,7 +27,12 @@ class ColorSimprocedures(NodeAnnotator):
 
 
 class LinkDDG(NodeAnnotator):
-    """Link real BBs to exact byte-region DDGs in the current browser tab."""
+    """Link real BBs to DDGs and show plain-text address/size hover statistics.
+
+    Reuse rendered assembly rows so instruction counts include delay slots and
+    VEX fallback rows without relifting. Explicit tooltips prevent Graphviz
+    from displaying the node's HTML table markup as link hover text.
+    """
 
     def __init__(self, filepath: str):
         self.filepath = filepath
@@ -43,3 +48,12 @@ class LinkDDG(NodeAnnotator):
             }
         )
         node.pydot.set("URL", "/ddg?" + query)
+        instructions = node.content.get("asm", {}).get("data")
+        if instructions is None:
+            instructions = node.obj.instruction_addrs
+        count = len(instructions) if instructions is not None else "unknown"
+        node.pydot.set(
+            "tooltip",
+            f"Block {node.obj.addr:#x} ({count} instruction{'s' if count != 1 else ''}, "
+            f"{node.obj.size} byte{'s' if node.obj.size != 1 else ''})",
+        )

@@ -4,6 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from urllib.parse import parse_qs, urlsplit
 from unittest.mock import Mock
+from xml.etree import ElementTree
 
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -58,20 +59,71 @@ def test_ddg_default_override_and_real_api(monkeypatch):
     assert (
         "/ddg?filepath=x86_64%2Fswitch&address=0x400544&size=34" in cfg.json()["graph"]
     )
+    cfg_svg = client.get(
+        "/cfg", params={"filepath": "x86_64/switch", "function": "0x400544"}
+    )
+    assert cfg_svg.status_code == 200, cfg_svg.text
+    link = next(
+        node
+        for node in ElementTree.fromstring(cfg_svg.text).iter(
+            "{http://www.w3.org/2000/svg}a"
+        )
+        if node.get("{http://www.w3.org/1999/xlink}href")
+        == "/ddg?filepath=x86_64%2Fswitch&address=0x400544&size=34"
+    )
+    assert link.get("{http://www.w3.org/1999/xlink}title") == (
+        "Block 0x400544 (10 instructions, 34 bytes)"
+    )
+
+
+def test_ddg_repeated_comparison_in_real_cvs_block(monkeypatch):
+    monkeypatch.setattr(
+        settings_module,
+        "_settings",
+        Settings.model_construct(
+            root=Path("angr-binaries/tests"), server=None, client=None
+        ),
+    )
+    client = TestClient(app_module.create_app())
+    params = {"filepath": "x86_64/cvs", "address": "0x4092c0", "size": 72}
+    response = client.get("/api/ddg", params={**params, "format": "raw"})
+    assert response.status_code == 200, response.text
+    assert "repe cmpsb" in response.json()["graph"]
+    assert "0x409302" in response.json()["graph"]
+    svg = client.get("/ddg", params=params)
+    assert svg.status_code == 200, svg.text
+    assert svg.headers["content-type"].startswith("image/svg+xml")
 
 
 def test_links_encode_paths_and_skip_simps():
     node = Node(
-        SimpleNamespace(addr=0x10, size=8, block_id=0x10, is_simprocedure=False)
+        SimpleNamespace(
+            addr=0x10,
+            size=8,
+            block_id=0x10,
+            is_simprocedure=False,
+            instruction_addrs=(0x10, 0x14),
+        )
     )
     LinkDDG("a b/file&name").annotate_node(node)
     query = parse_qs(urlsplit(node.pydot.get("URL")).query)
     assert query == {"filepath": ["a b/file&name"], "address": ["0x10"], "size": ["8"]}
     assert node.pydot.get("target") is None
+    assert node.pydot.get("tooltip") == "Block 0x10 (2 instructions, 8 bytes)"
+    # Rendered rows take precedence over a lifter's marker count, which can
+    # combine a branch and delay slot or differ from VEX fallback assembly.
+    node.content["asm"] = {"data": [{}, {}, {}]}
+    LinkDDG("binary").annotate_node(node)
+    assert node.pydot.get("tooltip") == "Block 0x10 (3 instructions, 8 bytes)"
+    node.content["asm"]["data"] = [{}]
+    node.obj.size = 1
+    LinkDDG("binary").annotate_node(node)
+    assert node.pydot.get("tooltip") == "Block 0x10 (1 instruction, 1 byte)"
     node.obj.is_simprocedure = True
     synthetic = Node(node.obj)
     LinkDDG("binary").annotate_node(synthetic)
     assert synthetic.pydot.get("URL") is None
+    assert synthetic.pydot.get("tooltip") is None
 
 
 def test_ddg_cli_memory_setting(tmp_path):
