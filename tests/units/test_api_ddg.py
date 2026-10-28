@@ -7,12 +7,15 @@ from unittest.mock import Mock
 from xml.etree import ElementTree
 
 from fastapi.testclient import TestClient
+from angr.knowledge_plugins.cfg import CFGNode
+import networkx as nx
 from pydantic import ValidationError
 import pytest
 
 from bingraph.api import app as app_module
 from bingraph.core.annotators.nodes import LinkDDG
-from bingraph.core.vis import Node
+from bingraph.core.outputs import DotOutput
+from bingraph.core.vis import Graph, Node
 from bingraph.helpers import settings as settings_module
 from bingraph.helpers.settings import ClientSettings, Settings, GlobalSettings
 
@@ -124,6 +127,31 @@ def test_links_encode_paths_and_skip_simps():
     LinkDDG("binary").annotate_node(synthetic)
     assert synthetic.pydot.get("URL") is None
     assert synthetic.pydot.get("tooltip") is None
+
+
+@pytest.mark.parametrize("separator", ["&", "&amp;"])
+def test_svg_urls_escape_once_without_changing_raw_links(tmp_path, separator):
+    # Ubuntu's Graphviz 2.42.2 does not escape SVG URL ampersands. Check the
+    # DOT passed to Graphviz as well as the SVG, since modern dot fixes it too.
+    node = Node(CFGNode(0x10, 1, Mock(), block_id=0x10))
+    url = f"/ddg?filepath=a%26b{separator}address=0x10{separator}size=1"
+    node.pydot.set("URL", url)
+    node.pydot.set("tooltip", "Block 0x10 (1 instruction, 1 byte)")
+    graph = Graph(SimpleNamespace(graph=nx.DiGraph()), nodes={node})
+    output = DotOutput(str(tmp_path / "block"), format="svg", dfs_rank=False)
+    for _ in range(2):
+        dot = output.generate(graph)
+        assert "&amp;address=0x10&amp;size=1" in dot
+        svg = ElementTree.fromstring((tmp_path / "block.svg").read_text())
+        link = next(svg.iter("{http://www.w3.org/2000/svg}a"))
+        assert link.get("{http://www.w3.org/1999/xlink}href") == (
+            "/ddg?filepath=a%26b&address=0x10&size=1"
+        )
+    assert node.pydot.get("URL") == url
+    raw = DotOutput(str(tmp_path / "block"), format="raw", dfs_rank=False).generate(
+        graph
+    )
+    assert url in raw
 
 
 def test_ddg_cli_memory_setting(tmp_path):

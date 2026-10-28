@@ -1,6 +1,7 @@
 # Portions adapted from bingraphvis (BSD-2-Clause); see NOTICE.
 
 from dataclasses import dataclass
+import re
 from typing import Any
 from pydot import Dot, Node as PydotNode, Subgraph
 from .vis import Edge, Graph, Node, Output
@@ -35,6 +36,10 @@ default_edge_attributes = {
     "fontname": "monospace",
     "fontsize": "8",
 }
+
+_BARE_XML_AMPERSAND = re.compile(
+    r"&(?!amp;|lt;|gt;|quot;|apos;|#[0-9]+;|#x[0-9a-fA-F]+;)"
+)
 
 TEXT_CFG_FORMATS = ("svg", "dot", "raw", "xdot")
 
@@ -210,7 +215,17 @@ class DotOutput(Output):
         edges = sorted(graph.edges, key=lambda e: (e.src.obj.addr, e.dst.obj.addr))
         for node in nodes:
             self.set_node_label(node)
-            digraph.add_node(node.pydot)
+            dot_node = node.pydot
+            if self.format == "svg" and (url := dot_node.get("URL")):
+                # Graphviz before 2.42.4 emits unescaped SVG URLs (#1687).
+                # New versions preserve entities. Clone only the SVG node so
+                # another render retains the original URL and never double-escapes.
+                svg_node = PydotNode(node.seq)
+                for name, value in dot_node.get_attributes().items():
+                    svg_node.set(name, value)
+                svg_node.set("URL", _BARE_XML_AMPERSAND.sub("&amp;", url))
+                dot_node = svg_node
+            digraph.add_node(dot_node)
 
         self._pin_entry_to_source_rank(digraph, edges, nodes)
         if self.dfs_rank:
