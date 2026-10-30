@@ -12,7 +12,7 @@ DependencyKind = Literal["RAW", "WAR", "WAW"]
 
 @dataclass(frozen=True)
 class Resource:
-    """A byte range in the register file or a possibly symbolic memory range.
+    """A register/temporary range, opaque reservation state or memory range.
 
     Register offsets come from archinfo, so aliases share the same storage.
     ``address=None`` denotes opaque memory (e.g. a fence), never no memory.
@@ -21,9 +21,11 @@ class Resource:
     ``maximum_footprint`` marks a possible extent, not an executed byte count.
     ``conditional`` means a memory access may not execute; such a write cannot
     prove that an earlier producer has been overwritten.
+    The reservation resource orders LL/SC attempts and explicit cancellation,
+    independently of memory alias policy; it does not predict success.
     """
 
-    kind: Literal["register", "memory", "temporary"]
+    kind: Literal["register", "memory", "temporary", "reservation"]
     offset: int
     size: int
     label: str

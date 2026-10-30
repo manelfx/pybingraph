@@ -816,6 +816,219 @@ def test_conditional_stores_use_the_existing_alias_policy(policy, store, unknown
     assert ((1, 2, "RAW") in kinds(graph)) == expected
 
 
+@pytest.mark.parametrize(
+    "arch,code,width,inputs,outputs",
+    [
+        ("amd64", "f00fb01f", 1, {"rdi", "al", "bl"}, {"al"}),
+        ("amd64", "66f00fb11f", 2, {"rdi", "ax", "bx"}, {"ax"}),
+        ("amd64", "f00fb11f", 4, {"rdi", "eax", "ebx"}, {"rax"}),
+        ("amd64", "f0480fb11f", 8, {"rdi", "rax", "rbx"}, {"rax"}),
+        (
+            "amd64",
+            "f00fc70f",
+            8,
+            {"rdi", "eax", "edx", "ebx", "ecx"},
+            {"rax", "rdx"},
+        ),
+        (
+            "amd64",
+            "f0480fc70f",
+            16,
+            {"rdi", "rax", "rdx", "rbx", "rcx"},
+            {"rax", "rdx"},
+        ),
+        ("s390x", "ba123000", 4, {"r3", "r1_32", "r2_32"}, {"r1_32"}),
+        ("s390x", "eb1230000030", 8, {"r3", "r1", "r2"}, {"r1"}),
+        (
+            "s390x",
+            "bb024000",
+            8,
+            {"r4", "r0[31:0]", "r1_32", "r2_32", "r3_32"},
+            {"r0[31:0]", "r1_32"},
+        ),
+        (
+            "s390x",
+            "eb024000003e",
+            16,
+            {"r4", "r0", "r1", "r2", "r3"},
+            {"r0", "r1"},
+        ),
+    ],
+)
+def test_cas_uses_vex_widths_operands_and_outputs(arch, code, width, inputs, outputs):
+    from bingraph.ddg.effects import instruction_effects
+
+    # Native CMPXCHG/CS families cover single/double CAS in both byte orders.
+    # VEX, not mnemonic-specific handling, maps old-value words to registers.
+    data = bytes.fromhex(code)
+    project = angr.load_shellcode(data, arch=arch, load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data))
+    effect = instruction_effects(project, graph.instructions, len(data))[0]
+    reads = [r for r in effect.reads if r.kind == "memory"]
+    writes = [r for r in effect.writes if r.kind == "memory"]
+    assert len(reads) == len(writes) == 1
+    assert reads[0].size == writes[0].size == width
+    assert reads[0].address.identical(writes[0].address)
+    assert not reads[0].conditional and writes[0].conditional
+    assert inputs <= {r.label for r in effect.reads if r.kind == "register"}
+    assert outputs <= {r.label for r in effect.writes if r.kind == "register"}
+
+
+@pytest.mark.parametrize("policy", ["always", "may", "must"])
+def test_cas_preserves_possible_memory_producers_and_register_dependencies(policy):
+    # Set address/expected/replacement registers; store; CAS; load; SETE;
+    # consume old EAX; definite store; load. The CAS cannot kill the first
+    # store, but the later definite overwrite must kill both possible writers.
+    graph = analyze("4889f789d089cb892ff00fb11f8b0f0f94c24189c0892f8b07", policy)
+    assert {
+        (0, 4, "RAW"),
+        (1, 4, "RAW"),
+        (2, 4, "RAW"),
+        (3, 4, "RAW"),
+        (3, 4, "WAW"),
+        (3, 5, "RAW"),
+        (4, 5, "RAW"),
+        (4, 6, "RAW"),
+        (4, 7, "RAW"),
+        (8, 9, "RAW"),
+    } <= kinds(graph)
+    assert not {(3, 9, "RAW"), (4, 9, "RAW")} & kinds(graph)
+    assert all(d.source < d.target for d in graph.dependencies)
+    assert any(
+        "(conditional)" in resource
+        for d in graph.dependencies
+        if (d.source, d.target, d.kind) == (4, 5, "RAW")
+        for resource in d.resources
+    )
+
+
+def test_cas_does_not_infer_old_memory_from_expected_or_stored_constants():
+    from bingraph.ddg.effects import instruction_effects
+
+    # EAX=1; EBX=2; [RDI]=1; CMPXCHG [RDI],EBX; load [RDI+RAX].
+    # Like ordinary loads, CAS returns unknown memory even after a known store.
+    data = bytes.fromhex("b801000000bb0200000048c70701000000f0480fb11f8b1407")
+    project = angr.load_shellcode(data, arch="amd64", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data))
+    effect = instruction_effects(project, graph.instructions, len(data))[-1]
+    address = next(r.address for r in effect.reads if r.kind == "memory")
+    assert any(v.startswith("ddg_unknown_") for v in address.variables)
+
+
+@pytest.mark.parametrize("code", ["f00fc107", "8707", "f0ff07"])
+def test_atomic_cas_retry_loops_still_fail_instead_of_reporting_one_iteration(code):
+    # XADD, XCHG and INC lower to CAS with symbolic retry exits. CAS support
+    # must not make the first attempted iteration appear to be complete.
+    with pytest.raises(ValueError, match="symbolic instruction-internal loop"):
+        analyze(code)
+
+
+@pytest.mark.parametrize(
+    "arch,load,store,width",
+    [
+        ("armel", "9f1fd2e1", "967fc1e1", 1),
+        ("armel", "9f1ff2e1", "967fe1e1", 2),
+        ("armel", "9f1f92e1", "967f81e1", 4),
+        ("armel", "9f0fb3e1", "964fa1e1", 8),
+        ("aarch64", "697c5f88", "677c0b88", 4),
+        ("aarch64", "697c5fc8", "677c0bc8", 8),
+        ("mips64", "c0640000", "e2210000", 4),
+        ("mipsel", "2c3cc9c0", "2c3ccbe0", 4),
+        ("ppc32", "7d40e028", "7cc0e12d", 4),
+        ("ppc64le", "a948607c", "add9007d", 8),
+    ],
+)
+def test_llsc_uses_vex_transfer_widths_not_success_flag_width(arch, load, store, width):
+    from bingraph.ddg.effects import instruction_effects
+
+    # Exercise native LL/SC in both byte orders, including paired ARM words.
+    # SC may begin a block: its reservation can have been set before entry.
+    for code, linked in [(load, True), (store, False)]:
+        data = bytes.fromhex(code)
+        project = angr.load_shellcode(data, arch=arch, load_address=0x1000)
+        graph = get_ddg(project, 0x1000, len(data))
+        effect = instruction_effects(project, graph.instructions, len(data))[0]
+        reads = [r for r in effect.reads if r.kind == "memory"]
+        writes = [r for r in effect.writes if r.kind == "memory"]
+        assert len(reads) == int(linked) and len(writes) == int(not linked)
+        access = (reads if linked else writes)[0]
+        assert access.size == width and access.conditional == (not linked)
+        assert any(r.kind == "register" for r in effect.reads)
+        assert any(r.kind == "register" for r in effect.writes)
+        assert any(r.kind == "reservation" for r in effect.reads) == (not linked)
+        assert any(r.kind == "reservation" for r in effect.writes)
+
+
+@pytest.mark.parametrize("policy", ["always", "may", "must"])
+def test_store_conditional_preserves_possible_producers_and_success_dependencies(
+    policy,
+):
+    from bingraph.ddg.effects import instruction_effects
+
+    # Store; LL (its data is unused); SC with independent data; load; consume
+    # SC status; definite store; load. SC does not kill the original producer.
+    data = bytes.fromhex("004081e59f0f91e1932f81e1005091e5000052e3004081e5006091e5")
+    project = angr.load_shellcode(data, arch="armel", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data), policy)
+    assert {
+        (0, 1, "RAW"),
+        (1, 2, "RAW"),
+        (0, 3, "RAW"),
+        (2, 3, "RAW"),
+        (2, 4, "RAW"),
+        (5, 6, "RAW"),
+    } <= kinds(graph)
+    assert not {(0, 6, "RAW"), (2, 6, "RAW")} & kinds(graph)
+    effect = instruction_effects(project, graph.instructions, len(data))[2]
+    assert {"r1", "r3", "reservation"} <= {r.label for r in effect.reads}
+    assert any(
+        "(conditional)" in resource
+        for d in graph.dependencies
+        if (d.source, d.target, d.kind) == (2, 3, "RAW")
+        for resource in d.resources
+    )
+    assert all(d.source < d.target for d in graph.dependencies)
+
+
+@pytest.mark.parametrize("cancel", [False, True])
+@pytest.mark.parametrize("policy", ["always", "may", "must"])
+def test_reservation_order_is_independent_of_alias_policy_and_tracks_cancellation(
+    cancel, policy
+):
+    from bingraph.ddg.effects import instruction_effects
+
+    # LL R1,[R2]; optional CLREX; SC R7,R6,[R3]. Neither SC's address nor
+    # its data uses the LL result, and the memory policy may exclude overlap.
+    data = bytes.fromhex("9f1f92e1" + ("1ff07ff5" if cancel else "") + "967f83e1")
+    project = angr.load_shellcode(data, arch="armel", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data), policy)
+    edges = {
+        (d.source, d.target, d.kind)
+        for d in graph.dependencies
+        if "reservation" in d.resources
+    }
+    assert (int(cancel), 1 + int(cancel), "RAW") in edges
+    if cancel:
+        assert (0, 1, "WAW") in edges and (0, 2, "RAW") not in edges
+        effect = instruction_effects(project, graph.instructions, len(data))[1]
+        assert not effect.reads  # CLREX cancels state; it is not a memory fence.
+        assert {r.kind for r in effect.writes} == {"reservation"}
+
+
+@pytest.mark.parametrize("operation", ["9f7f91e1", "967f81e1"])
+def test_linked_memory_and_conditional_success_stay_unknown(operation):
+    from bingraph.ddg.effects import instruction_effects
+
+    # Matching LL; LL R7,[R1] or SC R7,R6,[R1]; load [R1+R7]. Even a local
+    # reservation cannot establish SC success in the presence of interference.
+    data = bytes.fromhex("9f0f91e1" + operation + "070091e7")
+    project = angr.load_shellcode(data, arch="armel", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data))
+    effect = instruction_effects(project, graph.instructions, len(data))[-1]
+    address = next(r.address for r in effect.reads if r.kind == "memory")
+    assert any(v.startswith("ddg_unknown_") for v in address.variables)
+
+
 def test_conditional_accesses_do_not_prove_overwrites_or_merge_into_definite_ranges():
     from dataclasses import replace
     from angr import claripy

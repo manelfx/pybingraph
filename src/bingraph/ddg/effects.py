@@ -6,6 +6,10 @@ unknown values: disambiguation must not depend on guessed concrete addresses.
 No CFG, path exploration or callee execution is involved.
 Read-only repeated x86 string comparisons use maximum-footprint summaries,
 not guessed iteration counts or final register values.
+Atomic compare-and-swap uses VEX's single/double-element description: memory
+is always read, replacement is conditional, and returned memory stays unknown.
+Load-linked/store-conditional also keep memory and success results unknown;
+an opaque reservation resource preserves their implicit ordering dependency.
 """
 
 from dataclasses import replace
@@ -243,6 +247,7 @@ def instruction_effects(
     serial = 0
     tmp_base = 0
     repeated = set()
+    reservation = Resource("reservation", 0, 1, "reservation")
     itstate = project.arch.registers.get("itstate")
     itstate_resets_only = itstate is not None
 
@@ -260,6 +265,11 @@ def instruction_effects(
         return typed_value(
             claripy.BVS(f"ddg_unknown_{serial}", bits, explicit_name=True), ty
         )
+
+    def write_temporary(tmp: int, value: Any, reads: tuple[Resource, ...] = ()) -> None:
+        """Publish an SSA value, its instruction owner and deferred input reads."""
+        temporaries[tmp] = (value, current.insn.address, reads)
+        current.writes.append(Resource("temporary", tmp_base + tmp, 1, "lifted value"))
 
     def small_values(*values) -> bool:
         """Bound expanded expression size, not just depth or unique DAG nodes.
@@ -522,15 +532,8 @@ def instruction_effects(
                     reads = ()
                 else:
                     del current.reads[first:]
-                temporaries[statement.tmp] = (
-                    value,
-                    current.insn.address,
-                    reads,
-                )
+                write_temporary(statement.tmp, value, reads)
                 definitions[statement.tmp] = statement.data
-                current.writes.append(
-                    Resource("temporary", tmp_base + statement.tmp, 1, "lifted value")
-                )
             elif isinstance(statement, pyvex.stmt.Put):
                 value = expression(statement.data).raw_to_bv()
                 width = statement.data.result_size(vex.tyenv) // 8
@@ -596,10 +599,50 @@ def instruction_effects(
                         )
                 else:
                     value = expression(statement.alt)
-                temporaries[statement.dst] = (value, current.insn.address, ())
-                current.writes.append(
-                    Resource("temporary", tmp_base + statement.dst, 1, "lifted value")
-                )
+                write_temporary(statement.dst, value)
+            elif isinstance(statement, pyvex.stmt.LLSC):
+                address = expression(statement.addr)
+                ty = vex.tyenv.lookup(statement.result)
+                bits = pyvex.get_type_size(ty)
+                if statement.storedata is None:
+                    current.reads.append(memory(address, bits // 8))
+                else:
+                    # SC returns an I1 success flag, not the stored word.
+                    # Never assume success, even after a matching local LL:
+                    # intervening execution can invalidate the reservation.
+                    expression(statement.storedata)
+                    width = statement.storedata.result_size(vex.tyenv) // 8
+                    current.reads.append(reservation)
+                    current.writes.append(
+                        replace(memory(address, width), conditional=True)
+                    )
+                # Order reservation-changing attempts even when their memory
+                # addresses are disjoint or SC data does not use the LL value.
+                current.writes.append(reservation)
+                write_temporary(statement.result, unknown(bits, ty))
+            elif isinstance(statement, pyvex.stmt.CAS):
+                # VEX supplies adjacent element widths and old-value outputs,
+                # independent of ISA and endianness. Consume both comparison
+                # and replacement operands even though memory is not evaluated.
+                address = expression(statement.addr)
+                elements = [(statement.oldLo, statement.expdLo, statement.dataLo)]
+                if statement.dataHi is not None:
+                    elements.append(
+                        (statement.oldHi, statement.expdHi, statement.dataHi)
+                    )
+                width = 0
+                for tmp, expected, data in elements:
+                    expression(expected)
+                    expression(data)
+                    bits = expected.result_size(vex.tyenv)
+                    width += bits // 8
+                    write_temporary(tmp, unknown(bits))
+                resource = memory(address, width)
+                current.reads.append(resource)
+                # Comparison success is unknown. A possible write must not
+                # erase earlier producers; retry exits remain symbolic and
+                # are rejected by the existing instruction-loop handling.
+                current.writes.append(replace(resource, conditional=True))
             elif isinstance(statement, pyvex.stmt.Exit):
                 guard = expression(statement.guard)
                 if current.insn.address in repeated_reads:
@@ -641,8 +684,11 @@ def instruction_effects(
                         # path splitting, or loss of the original memory inputs.
                         index = loop_start
             elif isinstance(statement, pyvex.stmt.MBE):
-                current.reads.append(memory(None, 1))
-                current.writes.append(memory(None, 1))
+                if statement.event == "Imbe_CancelReservation":
+                    current.writes.append(reservation)
+                else:
+                    current.reads.append(memory(None, 1))
+                    current.writes.append(memory(None, 1))
             elif isinstance(statement, (pyvex.stmt.NoOp, pyvex.stmt.AbiHint)):
                 continue
             else:
