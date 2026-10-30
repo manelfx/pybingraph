@@ -1,4 +1,5 @@
 from __future__ import annotations
+from html import escape
 from http import HTTPStatus
 from pathlib import Path
 from typing import Callable, Generic, TypeVar
@@ -105,7 +106,7 @@ def create_app() -> FastAPI:
                     # note this implies a non-/api endpoint, since client mode doesn't allow to query those.
                     return HTMLResponse(
                         status_code=status_code,
-                        content=f"<html><body><h1>Error {status_code}</h1><p>{str(exc)}</p></body></html>",
+                        content=f"<html><body><h1>Error {status_code}</h1><p>{escape(str(exc))}</p></body></html>",
                     )
 
             return custom_route_handler

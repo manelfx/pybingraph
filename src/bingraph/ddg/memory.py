@@ -77,8 +77,8 @@ def overlap(left: Resource, right: Resource, policy: MemoryPolicy) -> bool:
 
 
 def covers(writer: Resource, reader: Resource) -> bool:
-    """Require must-alias full coverage before killing a possible producer."""
-    if writer.kind != reader.kind:
+    """Require an unconditional, must-alias overwrite to kill a producer."""
+    if writer.conditional or writer.kind != reader.kind:
         return False
     if writer.kind != "memory":
         delta = reader.offset - writer.offset
@@ -97,7 +97,11 @@ def coalesce_memory(resources: list[Resource]) -> list[Resource]:
     """
     ranges, other = [], []
     for resource in resources:
-        if resource.kind != "memory" or resource.address is None:
+        if (
+            resource.kind != "memory"
+            or resource.address is None
+            or resource.conditional
+        ):
             other.append(resource)
             continue
         for index, prior in enumerate(ranges):

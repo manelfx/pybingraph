@@ -15,6 +15,7 @@ from typing import Any
 import angr
 from angr import claripy
 from archinfo import Arch
+from capstone import CS_ARCH_ARM, CS_ARCH_X86, arm_const as arm
 from capstone import x86_const as x86
 import pyvex
 from angr.engines.vex.claripy.irop import vexop_to_simop
@@ -40,6 +41,10 @@ REPEATED_READ_IDS = {
     x86.X86_INS_SCASW,
     x86.X86_INS_SCASD,
     x86.X86_INS_SCASQ,
+}
+UNDEFINED_TRAP_IDS = {
+    CS_ARCH_X86: x86.X86_INS_UD2,
+    CS_ARCH_ARM: arm.ARM_INS_UDF,
 }
 
 
@@ -90,6 +95,9 @@ def instruction_effects(
 
     start = instructions[0].address
     effects = {i.address: Effects(i) for i in instructions}
+    terminal_trap = instructions[-1]
+    if terminal_trap.id != UNDEFINED_TRAP_IDS.get(project.arch.cs_arch):
+        terminal_trap = None
     # Identify real REP string reads, not SSE comparisons or other ISAs whose
     # instruction IDs happen to match. VEX still supplies all register effects.
     repeated_reads = {
@@ -114,13 +122,25 @@ def instruction_effects(
             strict_block_end=True,
         ).vex
         end = cursor + vex.size
-        if (
+        # VEX calls intentional traps NoDecode; ARM may omit their bytes.
+        # Require the exact final opcode, stop position and fault PC, rather
+        # than accepting an unknown instruction somewhere before that trap.
+        trapped = (
+            terminal_trap is not None
+            and vex.jumpkind == "Ijk_NoDecode"
+            and end in {terminal_trap.address, start + size}
+            and isinstance(vex.next, pyvex.expr.Const)
+            and vex.next.con.value == terminal_trap.address
+        )
+        if not trapped and (
             not vex.size
             or end > start + size
             or vex.jumpkind in {"Ijk_NoDecode", "Ijk_EmFail"}
         ):
             raise ValueError("DDG region must be one fully liftable basic block")
         blocks.append(vex)
+        if trapped:
+            break
         if end < start + size:
             markers = [s for s in vex.statements if isinstance(s, pyvex.stmt.IMark)]
             last = (
@@ -226,10 +246,20 @@ def instruction_effects(
     itstate = project.arch.registers.get("itstate")
     itstate_resets_only = itstate is not None
 
-    def unknown(bits: int):
+    def typed_value(value: Any, ty: str | None):
+        """Bitcast supported FP reads like angr's VEX data layer, not numerically.
+
+        Register storage is raw bits, but FP operations and ITE branches need
+        consistent types. Wider unsupported FP values keep their raw encoding.
+        """
+        return value.raw_to_fp() if ty in {"Ity_F32", "Ity_F64"} else value
+
+    def unknown(bits: int, ty: str | None = None):
         nonlocal serial
         serial += 1
-        return claripy.BVS(f"ddg_unknown_{serial}", bits, explicit_name=True)
+        return typed_value(
+            claripy.BVS(f"ddg_unknown_{serial}", bits, explicit_name=True), ty
+        )
 
     def small_values(*values) -> bool:
         """Bound expanded expression size, not just depth or unique DAG nodes.
@@ -316,7 +346,8 @@ def instruction_effects(
         Unsupported arithmetic becomes an unconstrained value, but all operand
         accesses are still recorded. Unsupported stateful statements are errors.
         """
-        bits = expr.result_size(vex.tyenv)
+        ty = expr.result_type(vex.tyenv)
+        bits = pyvex.get_type_size(ty)
         if isinstance(expr, pyvex.expr.Const):
             return vex_value(expr.con.type, expr.con.value)
         if isinstance(expr, pyvex.expr.RdTmp):
@@ -362,18 +393,18 @@ def instruction_effects(
                     # Preserve the value at its first read even if a later
                     # writeback updates the register within this instruction.
                     address_registers.setdefault(resource.label, value)
-            return value
+            return typed_value(value, ty)
         if isinstance(expr, pyvex.expr.Load):
             address = expression(expr.addr)
             current.reads.append(memory(address, bits // 8))
-            return unknown(bits)
+            return unknown(bits, ty)
         if isinstance(expr, pyvex.expr.ITE):
             guard = expression(expr.cond)
             if guard.concrete:
                 return expression(expr.iftrue if guard.concrete_value else expr.iffalse)
             yes, no = expression(expr.iftrue), expression(expr.iffalse)
             if not small_values(guard, yes, no):
-                return unknown(bits)
+                return unknown(bits, ty)
             return claripy.If(guard != 0, yes, no)
         if isinstance(expr, pyvex.expr.Binop):
             # Ask angr whether equal *register views* cancel, using a fresh
@@ -403,6 +434,7 @@ def instruction_effects(
                     TypeError,
                     ValueError,
                     KeyError,
+                    IndexError,
                 ):
                     pass
         args = [expression(arg) for arg in getattr(expr, "args", ())]
@@ -412,19 +444,31 @@ def instruction_effects(
             # Preserve all reads above even when optional symbolic values grow
             # too large. Opaque values weaken alias proofs, never dependencies.
             if not small_values(*args):
-                return unknown(bits)
+                return unknown(bits, ty)
             try:
-                return vexop_to_simop(expr.op).calculate(*args)
+                simop = vexop_to_simop(expr.op)
+                # A leading I32 on a multi-operand FP operation is VEX's
+                # rounding mode. angr guesses a default when it is symbolic;
+                # that assumption must not become an address/alias proof.
+                if (
+                    simop._float
+                    and len(args) > 1
+                    and expr.args[0].result_type(vex.tyenv) == "Ity_I32"
+                    and not args[0].concrete
+                ):
+                    return unknown(bits, ty)
+                return simop.calculate(*args)
             except (
                 angr.errors.SimError,
                 claripy.ClaripyError,
                 TypeError,
                 ValueError,
                 KeyError,
+                IndexError,  # Some backend FP operations have incomplete implementations.
             ):
-                return unknown(bits)
+                return unknown(bits, ty)
         if isinstance(expr, pyvex.expr.CCall):
-            return unknown(bits)
+            return unknown(bits, ty)
         raise ValueError(f"Unsupported DDG VEX expression: {type(expr).__name__}")
 
     for vex in blocks:
@@ -488,7 +532,7 @@ def instruction_effects(
                     Resource("temporary", tmp_base + statement.tmp, 1, "lifted value")
                 )
             elif isinstance(statement, pyvex.stmt.Put):
-                value = expression(statement.data)
+                value = expression(statement.data).raw_to_bv()
                 width = statement.data.result_size(vex.tyenv) // 8
                 if (
                     itstate is not None
@@ -511,25 +555,45 @@ def instruction_effects(
                     current.writes.append(resource)
                     if isinstance(statement.data, pyvex.expr.RdTmp):
                         temporary_labels[statement.data.tmp] = resource.label
-            elif isinstance(statement, pyvex.stmt.Store):
+            elif isinstance(statement, (pyvex.stmt.Store, pyvex.stmt.StoreG)):
+                conditional = False
+                if isinstance(statement, pyvex.stmt.StoreG):
+                    # Unknown guards retain a possible write, not a proven
+                    # overwrite. False guards consume neither address nor data.
+                    guard = expression(statement.guard)
+                    conditional = not guard.concrete
+                    if guard.concrete and not guard.concrete_value:
+                        continue
                 address = expression(statement.addr)
                 expression(statement.data)
+                resource = memory(address, statement.data.result_size(vex.tyenv) // 8)
                 current.writes.append(
-                    memory(address, statement.data.result_size(vex.tyenv) // 8)
+                    replace(resource, conditional=True) if conditional else resource
                 )
             elif isinstance(statement, pyvex.stmt.LoadG):
                 guard = expression(statement.guard)
-                if not guard.concrete:
-                    raise ValueError("Unsupported DDG conditional LoadG")
-                if guard.concrete_value:
+                if not guard.concrete or guard.concrete_value:
                     read_type, _ = statement.cvt_types
                     value = expression(
                         pyvex.expr.Load(statement.end, read_type, statement.addr)
                     )
+                    if not guard.concrete:
+                        # The Load appends its memory resource after address
+                        # reads. Keep it even when the destination is unused.
+                        current.reads[-1] = replace(current.reads[-1], conditional=True)
                     if not statement.cvt.startswith("ILGop_Ident"):
                         value = vexop_to_simop(
                             statement.cvt.replace("ILGop_", "Iop_")
                         ).calculate(value)
+                    if not guard.concrete:
+                        # Both outcomes contribute dependencies. Bound value
+                        # growth just as for ordinary VEX ITE expressions.
+                        alt = expression(statement.alt)
+                        value = (
+                            claripy.If(guard != 0, value, alt)
+                            if small_values(guard, value, alt)
+                            else unknown(statement.alt.result_size(vex.tyenv))
+                        )
                 else:
                     value = expression(statement.alt)
                 temporaries[statement.dst] = (value, current.insn.address, ())

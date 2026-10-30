@@ -46,6 +46,129 @@ def test_flags_cross_instruction_temporaries():
     assert (0, 1, "RAW") in kinds(analyze("39d80f94c1"))  # cmp eax,ebx; sete cl
 
 
+@pytest.mark.parametrize("budget", [0, 64])
+@pytest.mark.parametrize(
+    "code,source", [("d3ff7f1153f57f11", "ft11"), ("d3fd8d09d3fd8d09", "fs11")]
+)
+def test_riscv_float_ites_and_typed_unknowns_keep_operand_dependencies(
+    monkeypatch, budget, code, source
+):
+    from bingraph.ddg import effects
+
+    # FMUL.S FT11,FT11,FS7; FMUL.S FA0,FT11,FS7, or two FSUB.S FS11,FS11,FS8.
+    # VEX's NaN-boxing checks select between register bits and an FP32 NaN.
+    monkeypatch.setattr(effects, "MAX_VALUE_NODES", budget)
+    data = bytes.fromhex(code)
+    project = angr.load_shellcode(data, arch="riscv64", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data))
+    assert any(
+        d.source == 0
+        and d.target == 1
+        and d.kind == "RAW"
+        and any(r.startswith(source) for r in d.resources)
+        for d in graph.dependencies
+    )
+
+
+@pytest.mark.parametrize(
+    "width,bits,arithmetic",
+    [
+        (32, 0x3FC00000, True),
+        (64, 0x3FF8000000000000, True),
+        (32, 0x80000000, False),  # Signed zero and NaN payloads must survive moves.
+        (64, 0x8000000000000000, False),
+        (32, 0x7FC12345, False),
+        (64, 0x7FF8123456789ABC, False),
+        (32, 0x3FC00000, None),  # Unknown rounding must not invent an exact result.
+        (64, 0x3FF8000000000000, None),
+    ],
+)
+def test_float_register_bitcasts_and_ites_preserve_exact_values(
+    monkeypatch, width, bits, arithmetic
+):
+    from types import SimpleNamespace
+    import pyvex
+    from bingraph.ddg.effects import instruction_effects
+
+    # Keep the original GPR storage as IEEE bits for 1.5, interpret a VEX FP
+    # register read, merge it with 1.5, then add 0.5. The result is the bits of
+    # 2.0, not the integer 2, even when used as an address after reinterpreting.
+    data = (
+        bytes.fromhex("48b8") + bits.to_bytes(8, "little") + bytes.fromhex("4889c7891f")
+    )
+    project = angr.load_shellcode(data, arch="amd64", load_address=0x1000)
+    vex = project.factory.block(
+        0x1000, size=len(data), opt_level=0, cross_insn_opt=False, strict_block_end=True
+    ).vex
+    result = pyvex.expr.Get(project.arch.registers["rax"][0], f"Ity_F{width}")
+    if arithmetic is not False:
+        constant = getattr(pyvex.const, f"F{width}")
+        guard = pyvex.expr.Binop(
+            "Iop_CmpNE64",
+            [
+                pyvex.expr.Get(project.arch.registers["r8"][0], "Ity_I64"),
+                pyvex.expr.Const(pyvex.const.U64(0)),
+            ],
+        )
+        merged = pyvex.expr.ITE(guard, result, pyvex.expr.Const(constant(1.5)))
+        result = pyvex.expr.Triop(
+            f"Iop_AddF{width}",
+            [
+                pyvex.expr.Const(pyvex.const.U32(0))
+                if arithmetic is True
+                else pyvex.expr.Get(project.arch.registers["r9"][0], "Ity_I32"),
+                merged,
+                pyvex.expr.Const(constant(0.5)),
+            ],
+        )
+    result = pyvex.expr.Unop(f"Iop_ReinterpF{width}asI{width}", [result])
+    if width == 32:
+        result = pyvex.expr.Unop("Iop_32Uto64", [result])
+    target = next(
+        s
+        for s in vex.statements
+        if isinstance(s, pyvex.stmt.Put)
+        and s.offset == project.arch.registers["rdi"][0]
+    )
+    target.data = result
+    monkeypatch.setattr(
+        project.factory, "block", lambda *a, **k: SimpleNamespace(vex=vex)
+    )
+    graph = get_ddg(project, 0x1000, len(data))
+    effect = instruction_effects(project, graph.instructions, len(data))[-1]
+    address = next(r.address for r in effect.writes if r.kind == "memory")
+    if arithmetic is None:
+        assert not address.concrete
+    else:
+        expected = (
+            (0x40000000 if width == 32 else 0x4000000000000000) if arithmetic else bits
+        )
+        assert address.concrete_value == expected
+    assert {(0, 1, "RAW"), (1, 2, "RAW")} <= kinds(graph)
+
+
+@pytest.mark.parametrize("code", ["ed0000300012a774035a", "b3430000"])
+def test_unavailable_s390_float128_values_keep_architectural_reads(code):
+    from bingraph.ddg.effects import instruction_effects
+
+    # TCXB F0,0x30; JNE, or LCXBR F0,F0. angr's F128HItoF64 evaluator raises
+    # IndexError: retain the F0/F2 operands rather than pretending to compute it.
+    data = bytes.fromhex(code)
+    project = angr.load_shellcode(data, arch="s390x", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data))
+    effect = instruction_effects(project, graph.instructions, len(data))[0]
+    for name in ("f0", "f2"):
+        offset, size = project.arch.registers[name]
+        assert any(
+            r.kind == "register"
+            and r.offset <= offset
+            and offset + size <= r.offset + r.size
+            for r in effect.reads
+        )
+    if len(graph.instructions) == 2:
+        assert (0, 1, "RAW") in kinds(graph)
+
+
 @pytest.mark.parametrize(
     "architecture,offset,width,expected",
     [
@@ -394,25 +517,316 @@ def test_unsupported_semantics_and_multiple_blocks_fail_explicitly():
         analyze("eb0090")  # jmp followed by bytes from a different block
     with pytest.raises(ValueError, match="one fully liftable"):
         analyze("740090")  # conditional branch also falls through to the next byte
-    project = angr.load_shellcode(
-        bytes.fromhex("00009115"), arch="armel", load_address=0x1000
-    )  # ldrne r0,[r1]: genuinely conditional memory remains unsupported.
-    with pytest.raises(ValueError, match="Unsupported DDG conditional LoadG"):
-        get_ddg(project, 0x1000, 4)
 
 
-@pytest.mark.parametrize("code,width", [("0878", 1), ("0888", 2)])
-def test_constant_guarded_thumb_loads_keep_their_memory_width(code, width):
+@pytest.mark.parametrize(
+    "arch,code,address",
+    [
+        ("amd64", "0f0b", 0x1000),
+        ("x86", "0f0b", 0x1000),
+        ("armel", "f201f0e7", 0x1000),
+        ("armel", "00de", 0x1001),
+        ("armhf", "f0f700a0", 0x1001),
+        ("ARMCortexM", "00de", 0x1001),
+    ],
+)
+def test_explicit_terminal_traps_remain_visible_without_fake_dependencies(
+    arch, code, address
+):
     from bingraph.ddg.effects import instruction_effects
 
-    # IT EQ; NOP exhausts an explicit IT state before LDRB/LDRH r0,[r1].
+    data = bytes.fromhex(code)
+    project = angr.load_shellcode(data, arch=arch, load_address=address & ~1)
+    graph = get_ddg(project, address, len(data))
+    assert len(graph.instructions) == 1 and not graph.dependencies
+    effect = instruction_effects(project, graph.instructions, len(data))[0]
+    assert not effect.reads and not effect.writes
+    assert "ud" in render_ddg(project, address, len(data), format="raw")
+
+
+@pytest.mark.parametrize(
+    "arch,prefix,trap,address",
+    [
+        ("amd64", "89f889c3", "0f0b", 0x1000),  # MOV EAX,EDI; MOV EBX,EAX.
+        ("armel", "0100a0e10020a0e1", "f201f0e7", 0x1000),  # MOV R0,R1; MOV R2,R0.
+        ("armel", "08460246", "00de", 0x1001),  # Thumb MOV R0,R1; MOV R2,R0.
+    ],
+)
+def test_terminal_traps_preserve_the_preceding_instruction_effects(
+    arch, prefix, trap, address
+):
+    from bingraph.ddg.effects import instruction_effects
+
+    data = bytes.fromhex(prefix + trap)
+    project = angr.load_shellcode(data, arch=arch, load_address=address & ~1)
+    graph = get_ddg(project, address, len(data))
+    before = get_ddg(project, address, len(bytes.fromhex(prefix)))
+    assert (0, 1, "RAW") in kinds(graph)
+    assert [d for d in graph.dependencies if d.target < 2] == list(before.dependencies)
+    actual = instruction_effects(project, graph.instructions, len(data))
+    expected = instruction_effects(
+        project, before.instructions, len(bytes.fromhex(prefix))
+    )
+    # VEX may renumber temporaries when the IRSB grows. Architectural effects
+    # and the actual prefix dependencies above must remain unchanged.
+    for left, right in zip(actual[:2], expected, strict=True):
+        for attribute in ("reads", "writes"):
+            assert {r for r in getattr(left, attribute) if r.kind != "temporary"} == {
+                r for r in getattr(right, attribute) if r.kind != "temporary"
+            }
+
+
+def test_thumb_trap_retains_any_it_state_effects_emitted_by_vex():
+    from bingraph.ddg.effects import instruction_effects
+
+    # VEX emits a zero-length UDF marker after IT EQ, including IT-state
+    # accesses. Accept the trap without dropping that partially lifted IR.
+    data = bytes.fromhex("08bf00de")
+    project = angr.load_shellcode(data, arch="armel", load_address=0x1000)
+    graph = get_ddg(project, 0x1001, len(data))
+    effect = instruction_effects(project, graph.instructions, len(data))[1]
+    assert any(r.label == "itstate" for r in effect.reads)
+    assert (0, 1, "RAW") in kinds(graph)
+
+
+@pytest.mark.parametrize(
+    "arch,code,address",
+    [
+        ("amd64", "0f0b90", 0x1000),  # No instructions may follow UD2.
+        (
+            "amd64",
+            "0f0b0f0b",
+            0x1000,
+        ),  # An earlier trap cannot hide behind a later one.
+        ("amd64", "eb000f0b", 0x1000),  # A jump still ends the preceding block.
+        ("amd64", "0fffc00f0b", 0x1000),  # An earlier UD0 is not the accepted UD2.
+        ("armel", "f201f0e70000a0e1", 0x1000),
+        ("armel", "00de00bf", 0x1001),
+    ],
+)
+def test_trap_exception_does_not_hide_earlier_failures_or_following_code(
+    arch, code, address
+):
+    data = bytes.fromhex(code)
+    project = angr.load_shellcode(data, arch=arch, load_address=address & ~1)
+    with pytest.raises(ValueError, match="DDG"):
+        get_ddg(project, address, len(data))
+
+
+@pytest.mark.parametrize("failure", ["fault PC", "extent", "emulation failure"])
+def test_terminal_trap_requires_matching_vex_stop_metadata(monkeypatch, failure):
+    from types import SimpleNamespace
+    import pyvex
+
+    data = bytes.fromhex("89f80f0b")
+    project = angr.load_shellcode(data, arch="amd64", load_address=0x1000)
+    vex = SimpleNamespace(
+        size=3 if failure == "extent" else len(data),
+        next=pyvex.expr.Const(
+            pyvex.const.U64(0x1000 if failure == "fault PC" else 0x1002)
+        ),
+        jumpkind="Ijk_EmFail" if failure == "emulation failure" else "Ijk_NoDecode",
+    )
+    monkeypatch.setattr(
+        project.factory, "block", lambda *a, **k: SimpleNamespace(vex=vex)
+    )
+    with pytest.raises(ValueError, match="one fully liftable"):
+        get_ddg(project, 0x1000, len(data))
+
+
+@pytest.mark.parametrize(
+    "code,width,access",
+    [
+        ("0878", 1, "reads"),
+        ("0888", 2, "reads"),
+        ("0870", 1, "writes"),
+        ("0880", 2, "writes"),
+        ("0860", 4, "writes"),
+    ],
+)
+def test_constant_guarded_thumb_memory_keeps_its_access_width(code, width, access):
+    from bingraph.ddg.effects import instruction_effects
+
+    # IT EQ; NOP exhausts an explicit IT state before a load/store r0,[r1].
     # A raw Thumb entry alone does not prove its incoming IT state is zero.
     project = angr.load_shellcode(
         bytes.fromhex("08bf00bf" + code), arch="armel", load_address=0x1000
     )
     graph = get_ddg(project, 0x1001, 6)
-    reads = instruction_effects(project, graph.instructions, 6)[-1].reads
-    assert [r.size for r in reads if r.kind == "memory"] == [width]
+    effect = instruction_effects(project, graph.instructions, 6)[-1]
+    assert [r.size for r in getattr(effect, access) if r.kind == "memory"] == [width]
+
+
+@pytest.mark.parametrize("guard", [True, False, None])
+@pytest.mark.parametrize("policy", ["always", "may", "must"])
+def test_guarded_stores_require_proof_before_replacing_producers(
+    monkeypatch, guard, policy
+):
+    from types import SimpleNamespace
+    import pyvex
+    from bingraph.ddg.effects import instruction_effects
+
+    # Store EAX, guarded store EBX, load, definite store ESI, load. A possible
+    # write keeps both producers; the later definite write replaces both.
+    data = bytes.fromhex("8907891f8b0f89378b17")
+    project = angr.load_shellcode(data, arch="amd64", load_address=0x1000)
+    vex = project.factory.block(
+        0x1000, size=len(data), opt_level=0, cross_insn_opt=False, strict_block_end=True
+    ).vex
+    stores = [
+        i for i, s in enumerate(vex.statements) if isinstance(s, pyvex.stmt.Store)
+    ]
+    store = vex.statements[stores[1]]
+    condition = (
+        pyvex.expr.Const(pyvex.const.U1(int(guard)))
+        if guard is not None
+        else pyvex.expr.Binop(
+            "Iop_CmpNE64",
+            [
+                pyvex.expr.Get(project.arch.registers["rsi"][0], "Ity_I64"),
+                pyvex.expr.Const(pyvex.const.U64(0)),
+            ],
+        )
+    )
+    vex.statements[stores[1]] = pyvex.stmt.StoreG(
+        store.end, store.addr, store.data, condition
+    )
+    monkeypatch.setattr(
+        project.factory, "block", lambda *a, **k: SimpleNamespace(vex=vex)
+    )
+    graph = get_ddg(project, 0x1000, len(data), policy)
+    assert ((0, 2, "RAW") in kinds(graph)) == (not guard)
+    assert ((1, 2, "RAW") in kinds(graph)) == (guard is not False)
+    assert ((0, 1, "WAW") in kinds(graph)) == (guard is not False)
+    assert (3, 4, "RAW") in kinds(graph)
+    assert not {(0, 4, "RAW"), (1, 4, "RAW")} & kinds(graph)
+    effect = instruction_effects(project, graph.instructions, len(data))[1]
+    if guard is False:
+        assert not effect.reads
+        assert all(r.kind == "temporary" for r in effect.writes)
+    else:
+        write = next(r for r in effect.writes if r.kind == "memory")
+        assert write.conditional == (guard is None)
+        assert write.size == 4
+        if guard is None:
+            assert any(r.label == "rsi" for r in effect.reads)
+            assert any(
+                "(conditional)" in r
+                for d in graph.dependencies
+                if d.source == 1 and d.target == 2 and d.kind == "RAW"
+                for r in d.resources
+            )
+
+
+@pytest.mark.parametrize("guard", [True, False, None])
+def test_guarded_loads_keep_the_fallback_and_skip_inactive_addresses(
+    monkeypatch, guard
+):
+    from types import SimpleNamespace
+    import pyvex
+    from bingraph.ddg.effects import instruction_effects
+
+    # MOV ECX,1; guarded load ECX,[RDI] (otherwise keep ECX); MOV EDX,ECX.
+    data = bytes.fromhex("b9010000008b0f89ca")
+    project = angr.load_shellcode(data, arch="amd64", load_address=0x1000)
+    vex = project.factory.block(
+        0x1000, size=len(data), opt_level=0, cross_insn_opt=False, strict_block_end=True
+    ).vex
+    index = next(
+        n
+        for n, s in enumerate(vex.statements)
+        if isinstance(s, pyvex.stmt.WrTmp) and isinstance(s.data, pyvex.expr.Load)
+    )
+    statement = vex.statements[index]
+    condition = (
+        pyvex.expr.Const(pyvex.const.U1(int(guard)))
+        if guard is not None
+        else pyvex.expr.Binop(
+            "Iop_CmpNE64",
+            [
+                pyvex.expr.Get(project.arch.registers["rsi"][0], "Ity_I64"),
+                pyvex.expr.Const(pyvex.const.U64(0)),
+            ],
+        )
+    )
+    vex.statements[index] = pyvex.stmt.LoadG(
+        statement.data.end,
+        "ILGop_Ident32",
+        statement.tmp,
+        statement.data.addr,
+        pyvex.expr.Get(project.arch.registers["ecx"][0], "Ity_I32"),
+        condition,
+    )
+    monkeypatch.setattr(
+        project.factory, "block", lambda *a, **k: SimpleNamespace(vex=vex)
+    )
+    graph = get_ddg(project, 0x1000, len(data))
+    assert ((0, 1, "RAW") in kinds(graph)) == (guard is not True)
+    assert (1, 2, "RAW") in kinds(graph)
+    effect = instruction_effects(project, graph.instructions, len(data))[1]
+    memory = [r for r in effect.reads if r.kind == "memory"]
+    assert len(memory) == int(guard is not False)
+    if memory:
+        assert memory[0].conditional == (guard is None)
+        assert memory[0].size == 4
+    assert any(r.label == "rdi" for r in effect.reads) == (guard is not False)
+    assert any(r.label == "rsi" for r in effect.reads) == (guard is None)
+
+
+@pytest.mark.parametrize("policy", ["always", "may", "must"])
+def test_arm_predicated_load_keeps_guard_fallback_and_memory_dependencies(policy):
+    from bingraph.ddg.effects import instruction_effects
+    from bingraph.ddg.render import DependencyEdges
+
+    # MOV R0,1; MOV R1,R2; CMP R3,0; STR R5,[R1]; LDRNE R0,[R1]; ADD R4,R0,1.
+    data = bytes.fromhex("0100a0e30210a0e1000053e3005081e500009115014080e2")
+    project = angr.load_shellcode(data, arch="armel", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data), policy)
+    assert {
+        (0, 4, "RAW"),
+        (1, 4, "RAW"),
+        (2, 4, "RAW"),
+        (3, 4, "RAW"),
+        (4, 5, "RAW"),
+    } <= kinds(graph)
+    effect = instruction_effects(project, graph.instructions, len(data))[4]
+    assert next(r for r in effect.reads if r.kind == "memory").conditional
+    label = next(
+        r
+        for d in graph.dependencies
+        if d.source == 3 and d.target == 4 and d.kind == "RAW"
+        for r in d.resources
+        if r.startswith("mem")
+    )
+    assert "(conditional)" in label
+    assert DependencyEdges._resource_label(label) == "[r2]"
+
+
+@pytest.mark.parametrize("policy", ["always", "may", "must"])
+@pytest.mark.parametrize(
+    "store,unknown_alias", [("00208115", True), ("04208015", False)]
+)
+def test_conditional_stores_use_the_existing_alias_policy(policy, store, unknown_alias):
+    # STR R4,[R0]; STRNE R2,[R1] (unknown alias) or [R0+4] (disjoint); LDR R3,[R0].
+    data = bytes.fromhex("004080e5" + store + "003090e5")
+    project = angr.load_shellcode(data, arch="armel", load_address=0x1000)
+    graph = get_ddg(project, 0x1000, len(data), policy)
+    assert (0, 2, "RAW") in kinds(graph)
+    expected = policy == "always" or (unknown_alias and policy == "may")
+    assert ((1, 2, "RAW") in kinds(graph)) == expected
+
+
+def test_conditional_accesses_do_not_prove_overwrites_or_merge_into_definite_ranges():
+    from dataclasses import replace
+    from angr import claripy
+    from bingraph.ddg.memory import coalesce_memory, covers
+    from bingraph.ddg.models import Resource
+
+    definite = Resource("memory", 0, 4, "mem[p]:4", claripy.BVV(0x1000, 64))
+    possible = replace(definite, conditional=True)
+    assert not covers(possible, definite)
+    assert covers(definite, possible)
+    assert coalesce_memory([definite, possible]) == [possible, definite]
 
 
 @pytest.mark.parametrize(

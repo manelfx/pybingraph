@@ -35,6 +35,10 @@ change when moving modules or changing their responsibilities.
   producers; pure temporary reads are collected at their consumers, while
   actual loads remain effects even when their values are unused. Optional
   values have an expanded-expression budget independent of dependency facts.
+  Scalar FP reads use angr-compatible bitcasts from register/memory storage;
+  optional values that the arithmetic backend cannot evaluate become typed
+  unknowns without discarding operand dependencies. Unknown explicit rounding
+  modes remain unknown values rather than using angr's default-mode assumption.
   Large blocks span bounded VEX lifts only across
   proven straight-line fallthroughs, retaining state and separate temporary
   namespaces. `ddg/memory.py` handles conservative byte-range
@@ -45,6 +49,10 @@ change when moving modules or changing their responsibilities.
   merge only across proven contiguous ranges; symbolic/multi-exit loops fail
   rather than silently exposing partial effects. VEX restart counters are
   internal state, not architectural dependency resources.
+  Explicit terminal UD2/UDF traps require matching Capstone architecture/opcode
+  metadata and a VEX NoDecode stop/fault PC at that final instruction. Retain
+  any prefix/trap IR effects; never skip an earlier undecodable instruction or
+  accept instructions following the trap.
   Repeated x86 CMPS/SCAS with concrete counts instead summarize maximum read
   footprints from one VEX iteration, without exploring early exits. Unknown
   direction covers both directions; final registers become unknown. Zero counts
@@ -73,6 +81,11 @@ whereas default `must` omits them. Do not use that omission to infer pointer
 independence, remove possible producers, or claim safe instruction reordering.
 For repeated comparisons, `must` proves overlap of modeled maximum footprints,
 not that an early-terminating instruction actually accesses every modeled byte.
+Guarded VEX loads/stores retain guard reads and mark possible memory accesses as
+conditional, independently of alias policy. Symbolic loads combine the loaded
+and fallback values within the existing expression budget. Conditional stores
+never kill earlier producers or merge into unconditional write ranges; proven
+false guards consume no memory, address or store-data resources.
 
 Module moves must preserve resolver priority, proof budgets, cache lifetime and
 unknown-target handling. Keep internal imports directed at their implementation

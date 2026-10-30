@@ -252,6 +252,10 @@ identity, register dependencies or the proofs used to kill earlier stores.
 
 Edge labels use compact operands such as `[rdi+0x8]`; hover
 tooltips retain the dependency kind, access width and `may alias` qualifiers.
+Guarded loads and stores retain possible memory accesses and guard dependencies;
+tooltips mark these accesses as `conditional`. The memory policy still selects
+edges by address overlap, not by guaranteed execution. Conditional stores do
+not erase earlier possible memory producers.
 Loaded pointer values use their reading register where a register-plus-offset
 form is established, such as `[s2]`; otherwise an opaque address shows `[?]`.
 The original symbolic address remains in the tooltip and in alias analysis.
@@ -267,8 +271,10 @@ traversal. Final pointer, count and flag values remain unknown; symbolic repeat
 counts are currently unsupported.
 
 Regions must fully decode and lift as one block, including any delay slots.
+Explicit terminal x86 `UD2` and ARM/Thumb `UDF` traps are retained even when
+VEX reports them as undecodable; unknown instructions remain errors.
 Limits are 4,096 bytes and 256 instructions. Unsupported stateful VEX operations
-(including genuinely conditional memory, atomic operations and opaque helpers) report an error
+(including atomic operations and opaque helpers) report an error
 rather than silently producing an incomplete graph. Memory dependencies describe
 ordering, not hardware timing or a complete instruction scheduling model.
 

@@ -28,7 +28,7 @@ def get_ddg(
     """Analyze exactly one bounded region; cached results have no render state.
 
     Each register byte keeps its latest writer. Memory producers are retained
-    unless a later must-alias store fully covers the queried load. WAR/WAW
+    unless a later unconditional must-alias store fully covers the load. WAR/WAW
     relations preserve ordering even when they are transitively redundant.
     Memory labels explicitly say may-alias when overlap is not established.
     """
@@ -62,6 +62,7 @@ def get_ddg(
     def memory_label(left, right):
         return (
             right.label
+            + (" (conditional)" if left.conditional or right.conditional else "")
             + (
                 " (maximum footprint)"
                 if left.maximum_footprint or right.maximum_footprint

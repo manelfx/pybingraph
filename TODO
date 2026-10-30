@@ -32,7 +32,7 @@ sites before adding the API/UI and renderer.
 
 === Extend block-level dependency analysis ===
 
-Consider guarded memory, atomic operations, indexed register banks and opaque
+Consider atomic operations, indexed register banks and opaque
 VEX helpers after defining conservative effects and focused negative tests.
 Do not silently ignore unsupported side effects or introduce architecture-specific
 instruction matchers where angr/VEX already supplies semantics. Expand the DDG

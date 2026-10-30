@@ -28,6 +28,44 @@ def test_openapi_reports_package_version_and_text_formats(monkeypatch, tmp_path)
     assert parameter["schema"]["enum"] == ["svg", "dot", "raw", "xdot"]
 
 
+@pytest.mark.parametrize("endpoint", ["/cfg", "/api/cfg"])
+@pytest.mark.parametrize("debug", [False, True])
+def test_error_messages_escape_only_nondebug_html(
+    monkeypatch, tmp_path, endpoint, debug
+):
+    """Render exception text literally without changing JSON or debug propagation."""
+
+    (tmp_path / "binary").touch()
+    settings = Settings.model_construct(
+        root=tmp_path, debug=debug, server=None, client=None
+    )
+    monkeypatch.setattr(settings_module, "_settings", settings)
+    message = '<script>alert("error")</script> & missing binary'
+
+    def fail_loading(_):
+        raise ValueError(message)
+
+    monkeypatch.setattr(app_module, "load_project", fail_loading)
+    client = TestClient(app_module.create_app())
+    params = {"filepath": "binary", "function": "0x10", "format": "raw"}
+    if debug:
+        with pytest.raises(ValueError) as exc:
+            client.get(endpoint, params=params)
+        assert str(exc.value) == message
+        return
+
+    response = client.get(endpoint, params=params)
+    assert response.status_code == 400
+    if endpoint.startswith("/api"):
+        assert response.json() == {"error": message}
+    else:
+        assert "<script>" not in response.text
+        assert (
+            "<p>&lt;script&gt;alert(&quot;error&quot;)&lt;/script&gt; &amp; missing binary</p>"
+            in response.text
+        )
+
+
 @pytest.mark.parametrize("format", ["png", "pdf", "unknown"])
 def test_nontext_formats_are_rejected_before_loading_or_analysis(
     monkeypatch, tmp_path, format
